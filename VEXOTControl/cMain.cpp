@@ -1,0 +1,3105 @@
+#include "cMain.h"
+
+wxBEGIN_EVENT_TABLE(cMain, wxFrame)
+	EVT_CLOSE(cMain::OnExit)
+	EVT_MENU(MainFrameVariables::ID_MENUBAR_FILE_QUIT, cMain::OnExit)
+	EVT_MENU(MainFrameVariables::ID_RIGHT_CAM_SINGLE_SHOT_BTN, cMain::OnSingleShotCameraImage)
+	EVT_MENU(MainFrameVariables::ID_RIGHT_CAM_START_STOP_LIVE_CAPTURING_TGL_BTN, cMain::OnStartStopLiveCapturingMenu)
+	EVT_MENU(MainFrameVariables::ID_MENUBAR_EDIT_ENABLE_DARK_MODE, cMain::OnEnableDarkMode)
+	EVT_MENU(MainFrameVariables::ID_MENUBAR_EDIT_SETTINGS, cMain::OnOpenSettings)
+	EVT_MENU(MainFrameVariables::ID_MENUBAR_TOOLS_CROSSHAIR, cMain::OnCrossHairButton)
+	EVT_MENU(MainFrameVariables::ID_MENUBAR_TOOLS_VALUE_DISPLAYING, cMain::OnValueDisplayingCheck)
+	EVT_MENU(MainFrameVariables::ID_MENUBAR_WINDOW_FULLSCREEN, cMain::OnFullScreen)
+	EVT_MAXIMIZE(cMain::OnMaximizeButton)
+	/* Detector X */
+	EVT_TEXT_ENTER(MainFrameVariables::ID_RIGHT_SC_DET_X_ABS_TE_CTL, cMain::OnEnterTextCtrlDetectorXAbsPos)
+	EVT_BUTTON(MainFrameVariables::ID_RIGHT_SC_DET_X_SET_BTN, cMain::OnSetDetectorXAbsPos)
+	EVT_BUTTON(MainFrameVariables::ID_RIGHT_SC_DET_X_DEC_BTN, cMain::OnDecrementDetectorXAbsPos)
+	EVT_BUTTON(MainFrameVariables::ID_RIGHT_SC_DET_X_INC_BTN, cMain::OnIncrementDetectorXAbsPos)
+	EVT_BUTTON(MainFrameVariables::ID_RIGHT_SC_DET_X_CENTER_BTN, cMain::OnCenterDetectorX)
+	EVT_BUTTON(MainFrameVariables::ID_RIGHT_SC_DET_X_HOME_BTN, cMain::OnHomeDetectorX)
+	/* Detector Y */
+	EVT_TEXT_ENTER(MainFrameVariables::ID_RIGHT_SC_DET_Y_ABS_TE_CTL, cMain::OnEnterTextCtrlDetectorYAbsPos)
+	EVT_BUTTON(MainFrameVariables::ID_RIGHT_SC_DET_Y_SET_BTN, cMain::OnSetDetectorYAbsPos)
+	EVT_BUTTON(MainFrameVariables::ID_RIGHT_SC_DET_Y_DEC_BTN, cMain::OnDecrementDetectorYAbsPos)
+	EVT_BUTTON(MainFrameVariables::ID_RIGHT_SC_DET_Y_INC_BTN, cMain::OnIncrementDetectorYAbsPos)
+	EVT_BUTTON(MainFrameVariables::ID_RIGHT_SC_DET_Y_CENTER_BTN, cMain::OnCenterDetectorY)
+	EVT_BUTTON(MainFrameVariables::ID_RIGHT_SC_DET_Y_HOME_BTN, cMain::OnHomeDetectorY)
+	/* Detector Z */
+	EVT_TEXT_ENTER(MainFrameVariables::ID_RIGHT_SC_DET_Z_ABS_TE_CTL, cMain::OnEnterTextCtrlDetectorZAbsPos)
+	EVT_BUTTON(MainFrameVariables::ID_RIGHT_SC_DET_Z_SET_BTN, cMain::OnSetDetectorZAbsPos)
+	EVT_BUTTON(MainFrameVariables::ID_RIGHT_SC_DET_Z_DEC_BTN, cMain::OnDecrementDetectorZAbsPos)
+	EVT_BUTTON(MainFrameVariables::ID_RIGHT_SC_DET_Z_INC_BTN, cMain::OnIncrementDetectorZAbsPos)
+	EVT_BUTTON(MainFrameVariables::ID_RIGHT_SC_DET_Z_CENTER_BTN, cMain::OnCenterDetectorZ)
+	EVT_BUTTON(MainFrameVariables::ID_RIGHT_SC_DET_Z_HOME_BTN, cMain::OnHomeDetectorZ)
+	/* Optics Y */
+	EVT_TEXT_ENTER(MainFrameVariables::ID_RIGHT_SC_OPT_Y_ABS_TE_CTL, cMain::OnEnterTextCtrlOpticsYAbsPos)
+	EVT_BUTTON(MainFrameVariables::ID_RIGHT_SC_OPT_Y_SET_BTN, cMain::OnSetOpticsYAbsPos)
+	EVT_BUTTON(MainFrameVariables::ID_RIGHT_SC_OPT_Y_DEC_BTN, cMain::OnDecrementOpticsYAbsPos)
+	EVT_BUTTON(MainFrameVariables::ID_RIGHT_SC_OPT_Y_INC_BTN, cMain::OnIncrementOpticsYAbsPos)
+	EVT_BUTTON(MainFrameVariables::ID_RIGHT_SC_OPT_Y_CENTER_BTN, cMain::OnCenterOpticsY)
+	EVT_BUTTON(MainFrameVariables::ID_RIGHT_SC_OPT_Y_HOME_BTN, cMain::OnHomeOpticsY)
+	/* Camera */
+	EVT_CHOICE(MainFrameVariables::ID_RIGHT_CAM_MANUFACTURER_CHOICE, cMain::ChangeCameraManufacturerChoice)
+	EVT_TEXT_ENTER(MainFrameVariables::ID_RIGHT_CAM_EXPOSURE_TE_CTL, cMain::ExposureValueChanged)
+	EVT_BUTTON(MainFrameVariables::ID_RIGHT_CAM_SINGLE_SHOT_BTN, cMain::OnSingleShotCameraImage)
+	EVT_TEXT(MainFrameVariables::ID_RIGHT_CAM_CROSS_HAIR_POS_X_TXT_CTRL, cMain::OnXPosCrossHairTextCtrl)
+	EVT_TEXT(MainFrameVariables::ID_RIGHT_CAM_CROSS_HAIR_POS_Y_TXT_CTRL, cMain::OnYPosCrossHairTextCtrl)
+	EVT_TOGGLEBUTTON(MainFrameVariables::ID_RIGHT_CAM_CROSS_HAIR_SET_POS_TGL_BTN, cMain::OnSetPosCrossHairTglBtn)
+	/* Set Out Folder */
+	EVT_BUTTON(MainFrameVariables::ID_RIGHT_MT_OUT_FLD_BTN, cMain::OnSetOutDirectoryBtn)
+	/* First Stage */
+	EVT_CHOICE(MainFrameVariables::ID_RIGHT_MT_FIRST_STAGE_CHOICE, cMain::OnFirstStageChoice)
+	/* Second Stage */
+	EVT_CHOICE(MainFrameVariables::ID_RIGHT_MT_SECOND_STAGE_CHOICE, cMain::OnSecondStageChoice)
+	/* Start Capturing */
+	EVT_BUTTON(MainFrameVariables::ID_RIGHT_MT_START_MEASUREMENT, cMain::OnStartCapturingButton)
+	/* Start\Stop Live Capturing */
+	EVT_TOGGLEBUTTON(MainFrameVariables::ID_RIGHT_CAM_START_STOP_LIVE_CAPTURING_TGL_BTN, cMain::OnStartStopLiveCapturingTglBtn)
+
+	/* Live Capturing */
+	EVT_THREAD(MainFrameVariables::ID_THREAD_LIVE_CAPTURING, cMain::LiveCapturingThread)
+	/* Progress */
+	EVT_THREAD(MainFrameVariables::ID_THREAD_PROGRESS_CAPTURING, cMain::UpdateProgress)
+wxEND_EVENT_TABLE()
+
+cMain::cMain(const wxString& title_) 
+	: wxFrame(NULL, wxID_ANY, title_)
+{
+	CreateMainFrame();
+	InitDefaultStateWidgets();
+
+	//SetIcon(logo_xpm);
+
+	/* Creating, but not showing ProgressBar */
+	CreateProgressBar();
+	//m_ProgressBar->SetIcon(logo_xpm);
+
+	CenterOnScreen();
+	Show();
+
+	{
+		m_MenuBar->menu_edit->Check(MainFrameVariables::ID_MENUBAR_EDIT_ENABLE_DARK_MODE, true);
+		wxCommandEvent art_evt(wxEVT_MENU, MainFrameVariables::ID_MENUBAR_EDIT_ENABLE_DARK_MODE);
+		ProcessEvent(art_evt);
+	}
+#ifdef _DEBUG
+	{
+		wxCommandEvent art_evt(wxEVT_MENU, MainFrameVariables::ID_MENUBAR_EDIT_SETTINGS);
+		ProcessEvent(art_evt);
+	}
+#endif // _DEBUG
+
+	{
+		//m_StartStopLiveCapturingTglBtn->SetValue(true);
+		//wxCommandEvent art_start_live_capturing(wxEVT_TOGGLEBUTTON, MainFrameVariables::ID_RIGHT_CAM_START_STOP_LIVE_CAPTURING_TGL_BTN);
+		//ProcessEvent(art_start_live_capturing);
+	}
+}
+
+//auto cMain::StopLiveCapturing() -> bool
+//{
+	//return m_StopLiveCapturing;
+//}
+
+void cMain::CreateMainFrame()
+{
+	InitComponents();
+	CreateMenuBarOnFrame();
+	CreateVerticalToolBar();
+	CreateLeftAndRightSide();
+}
+
+void cMain::InitComponents()
+{
+	/* Settings Frame */
+	m_Settings = std::make_unique<cSettings>(this);
+	//m_Settings->SetIcon(logo_xpm);
+	/* Detector */
+	m_X_Detector = std::make_unique<MainFrameVariables::StepperControl>();
+	m_Y_Detector = std::make_unique<MainFrameVariables::StepperControl>();
+	m_Z_Detector = std::make_unique<MainFrameVariables::StepperControl>();
+	/* Optics */
+	m_X_Optics = std::make_unique<MainFrameVariables::StepperControl>();
+	m_Y_Optics = std::make_unique<MainFrameVariables::StepperControl>();
+	m_Z_Optics = std::make_unique<MainFrameVariables::StepperControl>();
+	/* Measurement */
+	m_FirstStage = std::make_unique<MainFrameVariables::MeasurementStage>();
+	m_SecondStage = std::make_unique<MainFrameVariables::MeasurementStage>();
+}
+
+void cMain::CreateMenuBarOnFrame()
+{
+	m_MenuBar = std::make_unique<MainFrameVariables::MenuBar>();
+	this->SetMenuBar(m_MenuBar->menu_bar);
+
+	// File Menu
+	m_MenuBar->menu_file->Append(MainFrameVariables::ID_MENUBAR_FILE_QUIT, wxT("Quit\tCtrl+Q"));
+	// Append File Menu to the Menu Bar
+	m_MenuBar->menu_bar->Append(m_MenuBar->menu_file, wxT("&File"));
+
+	// Edit Menu
+	m_MenuBar->menu_edit->Append(MainFrameVariables::ID_RIGHT_CAM_SINGLE_SHOT_BTN, wxT("Single Shot\tS"));
+	m_MenuBar->menu_edit->Enable(MainFrameVariables::ID_RIGHT_CAM_SINGLE_SHOT_BTN, false);
+	m_MenuBar->menu_edit->AppendCheckItem(MainFrameVariables::ID_RIGHT_CAM_START_STOP_LIVE_CAPTURING_TGL_BTN, wxT("Start Live\tL"));
+	m_MenuBar->menu_edit->AppendCheckItem(MainFrameVariables::ID_MENUBAR_EDIT_ENABLE_DARK_MODE, wxT("Dark Mode"));
+	m_MenuBar->menu_edit->Append(MainFrameVariables::ID_MENUBAR_EDIT_SETTINGS, wxT("Settings\tCtrl+S"));
+	// Append Edit Menu to the Menu Bar
+	m_MenuBar->menu_bar->Append(m_MenuBar->menu_edit, wxT("&Edit"));
+
+	// Intensity Profile SubMenu
+	m_MenuBar->submenu_intensity_profile->AppendCheckItem(MainFrameVariables::ID_MENUBAR_TOOLS_CROSSHAIR, wxT("Crosshair\tC"));
+	// Append Submenu Selection Tools to the Tools Menu
+	m_MenuBar->menu_tools->Append(wxID_ANY, wxT("&Intensity Profile"), m_MenuBar->submenu_intensity_profile);
+	// Append Value Displaying Check
+	m_MenuBar->menu_tools->Append(MainFrameVariables::ID_MENUBAR_TOOLS_VALUE_DISPLAYING, wxT("Value Displaying\tV"), wxEmptyString, wxITEM_CHECK);
+	// Append Tools Menu to the Menu Bar
+	m_MenuBar->menu_bar->Append(m_MenuBar->menu_tools, wxT("&Tools"));
+	// Window Menu
+	m_MenuBar->menu_window->Append(MainFrameVariables::ID_MENUBAR_WINDOW_FULLSCREEN, wxT("Full screen mode\tF11"), wxEmptyString, wxITEM_CHECK);
+	// Append Window Menu to the Menu Bar
+	m_MenuBar->menu_bar->Append(m_MenuBar->menu_window, wxT("&Window"));
+
+	// Help Menu
+	m_MenuBar->menu_help->Append(MainFrameVariables::ID_MENUBAR_HELP_ABOUT, wxT("About MMCam\tF1"));
+	m_MenuBar->menu_bar->Append(m_MenuBar->menu_help, wxT("&Help"));
+}
+
+void cMain::InitDefaultStateWidgets()
+{
+	m_MenuBar->menu_tools->Check(MainFrameVariables::ID_MENUBAR_TOOLS_VALUE_DISPLAYING, true);
+	m_CamPreview->SetValueDisplayingActive(true);
+	m_IsValueDisplayingChecked = true;
+
+	float default_absolute_value{ 0.0f }, default_relative_value{ 1.0f };
+	/* Disabling Detector Widgets */
+	{
+		/* X */
+		{
+			m_X_Detector->absolute_text_ctrl->ChangeValue(wxString::Format(wxT("%.3f"), default_absolute_value));
+			m_X_Detector->relative_text_ctrl->ChangeValue(wxString::Format(wxT("%.3f"), default_relative_value));
+			//m_X_Detector->DisableAllControls();
+		}
+		/* Y */
+		{
+			m_Y_Detector->absolute_text_ctrl->ChangeValue(wxString::Format(wxT("%.3f"), default_absolute_value));
+			m_Y_Detector->relative_text_ctrl->ChangeValue(wxString::Format(wxT("%.3f"), default_relative_value));
+			//m_Y_Detector->DisableAllControls();
+		}
+		/* Z */
+		{
+			m_Z_Detector->absolute_text_ctrl->ChangeValue(wxString::Format(wxT("%.3f"), default_absolute_value));
+			m_Z_Detector->relative_text_ctrl->ChangeValue(wxString::Format(wxT("%.3f"), default_relative_value));
+			//m_Z_Detector->DisableAllControls();
+		}
+	}
+	/* Disabling Optics Widgets */
+	{
+		/* X */
+		{
+			m_X_Optics->absolute_text_ctrl->ChangeValue(wxString::Format(wxT("%.3f"), default_absolute_value));
+			m_X_Optics->relative_text_ctrl->ChangeValue(wxString::Format(wxT("%.3f"), default_relative_value));
+			m_X_Optics->DisableAllControls();
+		}
+		/* Y */
+		{
+			m_Y_Optics->absolute_text_ctrl->ChangeValue(wxString::Format(wxT("%.3f"), default_absolute_value));
+			m_Y_Optics->relative_text_ctrl->ChangeValue(wxString::Format(wxT("%.3f"), default_relative_value));
+			//m_Y_Optics->DisableAllControls();
+		}
+		/* Z */
+		{
+			m_Z_Optics->absolute_text_ctrl->ChangeValue(wxString::Format(wxT("%.3f"), default_absolute_value));
+			m_Z_Optics->relative_text_ctrl->ChangeValue(wxString::Format(wxT("%.3f"), default_relative_value));
+			m_Z_Optics->DisableAllControls();
+		}
+	}
+
+	/* Disabling Measurement Controls */
+	{
+		//m_OutDirTextCtrl->Disable();
+		//m_OutDirBtn->Disable();
+
+		float default_start{ 0.0f }, default_step{ 1.0f }, default_finish{ 24.0f };
+
+		/* First Stage */
+		{
+			m_FirstStage->start->ChangeValue(wxString::Format(wxT("%.3f"), default_start));
+			m_FirstStage->step->ChangeValue(wxString::Format(wxT("%.3f"), default_step));
+			m_FirstStage->finish->ChangeValue(wxString::Format(wxT("%.3f"), default_finish));
+			m_FirstStage->DisableAllControls();
+		}
+		/* Second Stage */
+		{
+			m_SecondStage->start->ChangeValue(wxString::Format(wxT("%.3f"), default_start));
+			m_SecondStage->step->ChangeValue(wxString::Format(wxT("%.3f"), default_step));
+			m_SecondStage->finish->ChangeValue(wxString::Format(wxT("%.3f"), default_finish));
+			m_SecondStage->DisableAllControls();
+		}
+		/* Start Capturing */
+		m_StartMeasurement->Disable();
+	}
+}
+
+void cMain::CreateLeftAndRightSide()
+{
+	wxBoxSizer* main_sizer = new wxBoxSizer(wxHORIZONTAL);
+
+	int height_left_and_right_panels{ 600 };
+	wxBoxSizer* right_sizer = new wxBoxSizer(wxVERTICAL);
+	wxSize sizeOfRightSide = { 300, height_left_and_right_panels };
+	right_sizer->SetMinSize(sizeOfRightSide);
+	CreateRightSide(right_sizer);
+
+	wxBoxSizer* left_sizer = new wxBoxSizer(wxHORIZONTAL);
+	wxSize sizeOfPreviewWindow = { 600, height_left_and_right_panels };
+	left_sizer->SetMinSize(sizeOfPreviewWindow);
+	CreateLeftSide(left_sizer);
+
+	main_sizer->Add(left_sizer, 1, wxEXPAND);
+	main_sizer->Add(right_sizer, 0, wxEXPAND);
+
+	SetSizerAndFit(main_sizer);
+}
+
+void cMain::CreateLeftSide(wxSizer* left_side_sizer)
+{
+	left_side_sizer->Add(m_VerticalToolBar->tool_bar, 0, wxEXPAND);
+	auto input_args = std::make_unique<CameraPreviewVariables::InputPreviewPanelArgs>
+		(
+			m_CrossHairPosXTxtCtrl.get(),
+			m_CrossHairPosYTxtCtrl.get(),
+			m_SetCrossHairPosTglBtn.get()
+			);
+
+	m_CamPreview = std::make_unique<cCamPreview>
+		(
+		this, 
+		left_side_sizer, 
+		std::move(input_args)
+		);
+}
+
+void cMain::CreateRightSide(wxSizer* right_side_sizer)
+{
+	m_RightSidePanel = new wxPanel(this);
+#ifdef _DEBUG
+	m_RightSidePanel->SetBackgroundColour(wxColor(150, 100, 180));
+#else
+	m_RightSidePanel->SetBackgroundColour(wxColor(255, 255, 255));
+#endif // _DEBUG
+
+	wxBoxSizer* right_side_panel_sizer = new wxBoxSizer(wxVERTICAL);
+
+	CreateSteppersControl(m_RightSidePanel, right_side_panel_sizer);
+	CreateCameraControls(m_RightSidePanel, right_side_panel_sizer);
+	CreateMeasurement(m_RightSidePanel, right_side_panel_sizer);
+
+	m_RightSidePanel->SetSizer(right_side_panel_sizer);
+	right_side_sizer->Add(m_RightSidePanel, 1, wxEXPAND);
+}
+
+void cMain::CreateSteppersControl(wxPanel* right_side_panel, wxBoxSizer* right_side_panel_sizer)
+{
+	wxSizer* const sc_static_box_sizer = new wxStaticBoxSizer(wxVERTICAL, right_side_panel, "&Steppers Constrol");
+
+	wxSize absolute_text_ctrl_size = { 54, 20 }, relative_text_ctrl_size = {absolute_text_ctrl_size};
+	wxSize set_btn_size = { 35, 20 };
+	wxSize inc_dec_size = { 20, 20 };
+
+	/* Center bitmap */
+	wxImage centerImage = wxImage(center_xpm);
+	wxBitmap centerBitmap = wxBitmap(centerImage);
+	/* Home bitmap */
+	wxImage homeImage = wxImage(home_xpm);
+	wxBitmap homeBitmap = wxBitmap(homeImage);
+	{
+		wxSizer* const detector_static_box_sizer = new wxStaticBoxSizer(wxVERTICAL, right_side_panel, "&Detector");
+		{
+			/* Detector X */
+			wxSizer* const x_detector = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&X");
+			x_detector->AddStretchSpacer();
+			{
+				/* Absolute */
+				{
+					wxSizer* const abs_sizer = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Absolute [mm]");
+					wxFloatingPointValidator<float>	abs_val(3, NULL, wxNUM_VAL_DEFAULT);
+					abs_val.SetMin(-1000.f);
+					abs_val.SetMax(1000.f);
+					m_X_Detector->absolute_text_ctrl = new wxTextCtrl(
+						right_side_panel, 
+						MainFrameVariables::ID_RIGHT_SC_DET_X_ABS_TE_CTL, 
+						wxT("123.456"), 
+						wxDefaultPosition, 
+						absolute_text_ctrl_size, 
+						wxTE_CENTRE | wxTE_PROCESS_ENTER, 
+						abs_val
+					);
+
+					m_X_Detector->set_btn = new wxButton(
+						right_side_panel, 
+						MainFrameVariables::ID_RIGHT_SC_DET_X_SET_BTN, 
+						wxT("Set"), 
+						wxDefaultPosition, 
+						set_btn_size);
+					m_X_Detector->set_btn->SetToolTip(wxT("Set the absolute motor position"));
+
+					abs_sizer->Add(m_X_Detector->absolute_text_ctrl, 0, wxALIGN_CENTER);
+					abs_sizer->Add(m_X_Detector->set_btn, 0, wxALIGN_CENTER | wxLEFT, 2);
+					x_detector->Add(abs_sizer, 0, wxALIGN_CENTER);
+				}
+
+				/* Relative */
+				{
+					m_X_Detector->decrement_btn = new wxButton(
+						right_side_panel, 
+						MainFrameVariables::ID_RIGHT_SC_DET_X_DEC_BTN, 
+						wxT("-"), 
+						wxDefaultPosition, 
+						inc_dec_size);
+					m_X_Detector->decrement_btn->SetToolTip(wxT("Decrement distance"));
+					wxFloatingPointValidator<float>	rel_val(3, NULL, wxNUM_VAL_DEFAULT);
+					rel_val.SetMin(-1000.f);
+					rel_val.SetMax(1000.f);
+					m_X_Detector->relative_text_ctrl = new wxTextCtrl(
+						right_side_panel,
+						MainFrameVariables::ID_RIGHT_SC_DET_X_REL_TE_CTL, 
+						wxT("789.123"), 
+						wxDefaultPosition, 
+						relative_text_ctrl_size, 
+						wxTE_CENTRE, 
+						rel_val
+					);
+					m_X_Detector->increment_btn = new wxButton(
+						right_side_panel, 
+						MainFrameVariables::ID_RIGHT_SC_DET_X_INC_BTN, 
+						wxT("+"), 
+						wxDefaultPosition, 
+						inc_dec_size);
+					m_X_Detector->increment_btn->SetToolTip(wxT("Increment distance"));
+
+					wxSizer* const rel_sizer = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Relative [mm]");
+					rel_sizer->Add(m_X_Detector->decrement_btn, 0, wxALIGN_CENTER | wxRIGHT, 2);
+					rel_sizer->Add(m_X_Detector->relative_text_ctrl, 0, wxALIGN_CENTER);
+					rel_sizer->Add(m_X_Detector->increment_btn, 0, wxALIGN_CENTER | wxLEFT, 2);
+					x_detector->Add(rel_sizer, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, 2);
+				}
+
+
+				/* Global positioning controls */
+				{
+					m_X_Detector->center_btn = new wxBitmapButton(
+						right_side_panel, 
+						MainFrameVariables::ID_RIGHT_SC_DET_X_CENTER_BTN, 
+						centerBitmap, 
+						wxDefaultPosition, 
+						inc_dec_size);
+					m_X_Detector->center_btn->SetToolTip(wxT("Go to the center position of motor"));
+					m_X_Detector->home_btn = new wxBitmapButton(
+						right_side_panel, 
+						MainFrameVariables::ID_RIGHT_SC_DET_X_HOME_BTN, 
+						homeBitmap, 
+						wxDefaultPosition, 
+						inc_dec_size);
+					m_X_Detector->home_btn->SetToolTip(wxT("Go to the home position of motor"));
+
+					wxSizer* const jump_sizer = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Jump");
+					jump_sizer->Add(m_X_Detector->center_btn, 0, wxALIGN_CENTER | wxRIGHT, 2);
+					jump_sizer->Add(m_X_Detector->home_btn, 0, wxALIGN_CENTER);
+
+					x_detector->Add(jump_sizer, 0, wxALIGN_CENTER);
+
+				}
+			}
+			x_detector->AddStretchSpacer();
+			detector_static_box_sizer->Add(x_detector, 0, wxEXPAND);
+
+			/* Detector Y */
+			wxSizer* const y_detector = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Y");
+			y_detector->AddStretchSpacer();
+			{
+				/* Absolute */
+				{
+					wxSizer* const abs_sizer = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Absolute [mm]");
+					wxFloatingPointValidator<float>	abs_val(3, NULL, wxNUM_VAL_DEFAULT);
+					abs_val.SetMin(-1000.f);
+					abs_val.SetMax(1000.f);
+					m_Y_Detector->absolute_text_ctrl = new wxTextCtrl(
+						right_side_panel, 
+						MainFrameVariables::ID_RIGHT_SC_DET_Y_ABS_TE_CTL, 
+						wxT("123.456"), 
+						wxDefaultPosition, 
+						absolute_text_ctrl_size, 
+						wxTE_CENTRE | wxTE_PROCESS_ENTER, 
+						abs_val
+					);
+
+					m_Y_Detector->set_btn = new wxButton(
+						right_side_panel, 
+						MainFrameVariables::ID_RIGHT_SC_DET_Y_SET_BTN, 
+						wxT("Set"), 
+						wxDefaultPosition, 
+						set_btn_size);
+					m_Y_Detector->set_btn->SetToolTip(wxT("Set the absolute motor position"));
+
+					abs_sizer->Add(m_Y_Detector->absolute_text_ctrl, 0, wxALIGN_CENTER);
+					abs_sizer->Add(m_Y_Detector->set_btn, 0, wxALIGN_CENTER | wxLEFT, 2);
+					y_detector->Add(abs_sizer, 0, wxALIGN_CENTER);
+				}
+
+				/* Relative */
+				{
+					m_Y_Detector->decrement_btn = new wxButton(
+						right_side_panel, 
+						MainFrameVariables::ID_RIGHT_SC_DET_Y_DEC_BTN, 
+						wxT("-"), 
+						wxDefaultPosition, 
+						inc_dec_size);
+					m_Y_Detector->decrement_btn->SetToolTip(wxT("Decrement distance"));
+					wxFloatingPointValidator<float>	rel_val(3, NULL, wxNUM_VAL_DEFAULT);
+					rel_val.SetMin(-1000.f);
+					rel_val.SetMax(1000.f);
+					m_Y_Detector->relative_text_ctrl = new wxTextCtrl(
+						right_side_panel,
+						MainFrameVariables::ID_RIGHT_SC_DET_Y_REL_TE_CTL, 
+						wxT("789.123"), 
+						wxDefaultPosition, 
+						relative_text_ctrl_size, 
+						wxTE_CENTRE, 
+						rel_val
+					);
+					m_Y_Detector->increment_btn = new wxButton(
+						right_side_panel, 
+						MainFrameVariables::ID_RIGHT_SC_DET_Y_INC_BTN, 
+						wxT("+"), 
+						wxDefaultPosition, 
+						inc_dec_size);
+					m_Y_Detector->increment_btn->SetToolTip(wxT("Increment distance"));
+
+					wxSizer* const rel_sizer = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Relative [mm]");
+					rel_sizer->Add(m_Y_Detector->decrement_btn, 0, wxALIGN_CENTER | wxRIGHT, 2);
+					rel_sizer->Add(m_Y_Detector->relative_text_ctrl, 0, wxALIGN_CENTER);
+					rel_sizer->Add(m_Y_Detector->increment_btn, 0, wxALIGN_CENTER | wxLEFT, 2);
+					y_detector->Add(rel_sizer, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, 2);
+				}
+
+
+				/* Global positioning controls */
+				{
+					m_Y_Detector->center_btn = new wxBitmapButton(
+						right_side_panel, 
+						MainFrameVariables::ID_RIGHT_SC_DET_Y_CENTER_BTN, 
+						centerBitmap, 
+						wxDefaultPosition, 
+						inc_dec_size);
+					m_Y_Detector->center_btn->SetToolTip(wxT("Go to the center position of motor"));
+					m_Y_Detector->home_btn = new wxBitmapButton(
+						right_side_panel, 
+						MainFrameVariables::ID_RIGHT_SC_DET_Y_HOME_BTN, 
+						homeBitmap, 
+						wxDefaultPosition, 
+						inc_dec_size);
+					m_Y_Detector->home_btn->SetToolTip(wxT("Go to the home position of motor"));
+
+					wxSizer* const jump_sizer = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Jump");
+					jump_sizer->Add(m_Y_Detector->center_btn, 0, wxALIGN_CENTER | wxRIGHT, 2);
+					jump_sizer->Add(m_Y_Detector->home_btn, 0, wxALIGN_CENTER);
+
+					y_detector->Add(jump_sizer, 0, wxALIGN_CENTER);
+
+				}
+			}
+			y_detector->AddStretchSpacer();
+			detector_static_box_sizer->Add(y_detector, 0, wxEXPAND);
+
+			/* Detector Z */
+			wxSizer* const z_detector = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Z");
+			z_detector->AddStretchSpacer();
+			{
+				/* Absolute */
+				{
+					wxSizer* const abs_sizer = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Absolute [mm]");
+					wxFloatingPointValidator<float>	abs_val(3, NULL, wxNUM_VAL_DEFAULT);
+					abs_val.SetMin(-1000.f);
+					abs_val.SetMax(1000.f);
+					m_Z_Detector->absolute_text_ctrl = new wxTextCtrl(
+						right_side_panel, 
+						MainFrameVariables::ID_RIGHT_SC_DET_Z_ABS_TE_CTL, 
+						wxT("123.456"), 
+						wxDefaultPosition, 
+						absolute_text_ctrl_size, 
+						wxTE_CENTRE | wxTE_PROCESS_ENTER, 
+						abs_val
+					);
+
+					m_Z_Detector->set_btn = new wxButton(
+						right_side_panel, 
+						MainFrameVariables::ID_RIGHT_SC_DET_Z_SET_BTN, 
+						wxT("Set"), 
+						wxDefaultPosition, 
+						set_btn_size);
+					m_Z_Detector->set_btn->SetToolTip(wxT("Set the absolute motor position"));
+
+					abs_sizer->Add(m_Z_Detector->absolute_text_ctrl, 0, wxALIGN_CENTER);
+					abs_sizer->Add(m_Z_Detector->set_btn, 0, wxALIGN_CENTER | wxLEFT, 2);
+					z_detector->Add(abs_sizer, 0, wxALIGN_CENTER);
+				}
+
+				/* Relative */
+				{
+					m_Z_Detector->decrement_btn = new wxButton(
+						right_side_panel, 
+						MainFrameVariables::ID_RIGHT_SC_DET_Z_DEC_BTN, 
+						wxT("-"), 
+						wxDefaultPosition, 
+						inc_dec_size);
+					m_Z_Detector->decrement_btn->SetToolTip(wxT("Decrement distance"));
+					wxFloatingPointValidator<float>	rel_val(3, NULL, wxNUM_VAL_DEFAULT);
+					rel_val.SetMin(-1000.f);
+					rel_val.SetMax(1000.f);
+					m_Z_Detector->relative_text_ctrl = new wxTextCtrl(
+						right_side_panel,
+						MainFrameVariables::ID_RIGHT_SC_DET_Z_REL_TE_CTL, 
+						wxT("789.123"), 
+						wxDefaultPosition, 
+						relative_text_ctrl_size, 
+						wxTE_CENTRE, 
+						rel_val
+					);
+					m_Z_Detector->increment_btn = new wxButton(
+						right_side_panel, 
+						MainFrameVariables::ID_RIGHT_SC_DET_Z_INC_BTN, 
+						wxT("+"), 
+						wxDefaultPosition, 
+						inc_dec_size);
+					m_Z_Detector->increment_btn->SetToolTip(wxT("Increment distance"));
+
+					wxSizer* const rel_sizer = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Relative [mm]");
+					rel_sizer->Add(m_Z_Detector->decrement_btn, 0, wxALIGN_CENTER | wxRIGHT, 2);
+					rel_sizer->Add(m_Z_Detector->relative_text_ctrl, 0, wxALIGN_CENTER);
+					rel_sizer->Add(m_Z_Detector->increment_btn, 0, wxALIGN_CENTER | wxLEFT, 2);
+					z_detector->Add(rel_sizer, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, 2);
+				}
+
+
+				/* Global positioning controls */
+				{
+					m_Z_Detector->center_btn = new wxBitmapButton(
+						right_side_panel, 
+						MainFrameVariables::ID_RIGHT_SC_DET_Z_CENTER_BTN, 
+						centerBitmap, 
+						wxDefaultPosition, 
+						inc_dec_size);
+					m_Z_Detector->center_btn->SetToolTip(wxT("Go to the center position of motor"));
+					m_Z_Detector->home_btn = new wxBitmapButton(
+						right_side_panel, 
+						MainFrameVariables::ID_RIGHT_SC_DET_Z_HOME_BTN, 
+						homeBitmap, 
+						wxDefaultPosition, 
+						inc_dec_size);
+					m_Z_Detector->home_btn->SetToolTip(wxT("Go to the home position of motor"));
+
+					wxSizer* const jump_sizer = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Jump");
+					jump_sizer->Add(m_Z_Detector->center_btn, 0, wxALIGN_CENTER | wxRIGHT, 2);
+					jump_sizer->Add(m_Z_Detector->home_btn, 0, wxALIGN_CENTER);
+
+					z_detector->Add(jump_sizer, 0, wxALIGN_CENTER);
+				}
+			}
+			z_detector->AddStretchSpacer();
+			detector_static_box_sizer->Add(z_detector, 0, wxEXPAND);
+		}
+		sc_static_box_sizer->Add(detector_static_box_sizer, 0, wxEXPAND);
+
+		wxSizer* const optics_static_box_sizer = new wxStaticBoxSizer(wxVERTICAL, right_side_panel, "&Optics");
+		{
+			/* Optics X */
+			wxSizer* const x_optics = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&X");
+			x_optics->AddStretchSpacer();
+			{
+				/* Absolute */
+				{
+					wxSizer* const abs_sizer = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Absolute [mm]");
+					wxFloatingPointValidator<float>	abs_val(3, NULL, wxNUM_VAL_DEFAULT);
+					abs_val.SetMin(-1000.f);
+					abs_val.SetMax(1000.f);
+					m_X_Optics->absolute_text_ctrl = new wxTextCtrl(
+						right_side_panel, 
+						MainFrameVariables::ID_RIGHT_SC_OPT_X_ABS_TE_CTL, 
+						wxT("123.456"), 
+						wxDefaultPosition, 
+						absolute_text_ctrl_size, 
+						wxTE_CENTRE | wxTE_PROCESS_ENTER, 
+						abs_val
+					);
+
+					m_X_Optics->set_btn = new wxButton(
+						right_side_panel, 
+						MainFrameVariables::ID_RIGHT_SC_OPT_X_SET_BTN, 
+						wxT("Set"), 
+						wxDefaultPosition, 
+						set_btn_size);
+					m_X_Optics->set_btn->SetToolTip(wxT("Set the absolute motor position"));
+
+					abs_sizer->Add(m_X_Optics->absolute_text_ctrl, 0, wxALIGN_CENTER);
+					abs_sizer->Add(m_X_Optics->set_btn, 0, wxALIGN_CENTER | wxLEFT, 2);
+					x_optics->Add(abs_sizer, 0, wxALIGN_CENTER);
+				}
+
+				/* Relative */
+				{
+					m_X_Optics->decrement_btn = new wxButton(
+						right_side_panel, 
+						MainFrameVariables::ID_RIGHT_SC_OPT_X_DEC_BTN, 
+						wxT("-"), 
+						wxDefaultPosition, 
+						inc_dec_size);
+					m_X_Optics->decrement_btn->SetToolTip(wxT("Decrement distance"));
+					wxFloatingPointValidator<float>	rel_val(3, NULL, wxNUM_VAL_DEFAULT);
+					rel_val.SetMin(-1000.f);
+					rel_val.SetMax(1000.f);
+					m_X_Optics->relative_text_ctrl = new wxTextCtrl(
+						right_side_panel,
+						MainFrameVariables::ID_RIGHT_SC_OPT_X_REL_TE_CTL, 
+						wxT("789.123"), 
+						wxDefaultPosition, 
+						relative_text_ctrl_size, 
+						wxTE_CENTRE, 
+						rel_val
+					);
+					m_X_Optics->increment_btn = new wxButton(
+						right_side_panel, 
+						MainFrameVariables::ID_RIGHT_SC_OPT_X_INC_BTN, 
+						wxT("+"), 
+						wxDefaultPosition, 
+						inc_dec_size);
+					m_X_Optics->increment_btn->SetToolTip(wxT("Increment distance"));
+
+					wxSizer* const rel_sizer = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Relative [mm]");
+					rel_sizer->Add(m_X_Optics->decrement_btn, 0, wxALIGN_CENTER | wxRIGHT, 2);
+					rel_sizer->Add(m_X_Optics->relative_text_ctrl, 0, wxALIGN_CENTER);
+					rel_sizer->Add(m_X_Optics->increment_btn, 0, wxALIGN_CENTER | wxLEFT, 2);
+					x_optics->Add(rel_sizer, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, 2);
+				}
+
+				/* Global positioning controls */
+				{
+					m_X_Optics->center_btn = new wxBitmapButton(
+						right_side_panel, 
+						MainFrameVariables::ID_RIGHT_SC_OPT_X_CENTER_BTN, 
+						centerBitmap, 
+						wxDefaultPosition, 
+						inc_dec_size);
+					m_X_Optics->center_btn->SetToolTip(wxT("Go to the center position of motor"));
+					m_X_Optics->home_btn = new wxBitmapButton(
+						right_side_panel, 
+						MainFrameVariables::ID_RIGHT_SC_OPT_X_HOME_BTN, 
+						homeBitmap, 
+						wxDefaultPosition, 
+						inc_dec_size);
+					m_X_Optics->home_btn->SetToolTip(wxT("Go to the home position of motor"));
+
+					wxSizer* const jump_sizer = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Jump");
+					jump_sizer->Add(m_X_Optics->center_btn, 0, wxALIGN_CENTER | wxRIGHT, 2);
+					jump_sizer->Add(m_X_Optics->home_btn, 0, wxALIGN_CENTER);
+
+					x_optics->Add(jump_sizer, 0, wxALIGN_CENTER);
+				}
+			}
+			x_optics->AddStretchSpacer();
+			optics_static_box_sizer->Add(x_optics, 0, wxEXPAND);
+
+			/* Optics Y */
+			wxSizer* const y_optics = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Y");
+			y_optics->AddStretchSpacer();
+			{
+				/* Absolute */
+				{
+					wxSizer* const abs_sizer = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Absolute [mm]");
+					wxFloatingPointValidator<float>	abs_val(3, NULL, wxNUM_VAL_DEFAULT);
+					abs_val.SetMin(-1000.f);
+					abs_val.SetMax(1000.f);
+					m_Y_Optics->absolute_text_ctrl = new wxTextCtrl(
+						right_side_panel, 
+						MainFrameVariables::ID_RIGHT_SC_OPT_Y_ABS_TE_CTL, 
+						wxT("123.456"), 
+						wxDefaultPosition, 
+						absolute_text_ctrl_size, 
+						wxTE_CENTRE | wxTE_PROCESS_ENTER, 
+						abs_val
+					);
+
+					m_Y_Optics->set_btn = new wxButton(
+						right_side_panel, 
+						MainFrameVariables::ID_RIGHT_SC_OPT_Y_SET_BTN, 
+						wxT("Set"), 
+						wxDefaultPosition, 
+						set_btn_size);
+					m_Y_Optics->set_btn->SetToolTip(wxT("Set the absolute motor position"));
+
+					abs_sizer->Add(m_Y_Optics->absolute_text_ctrl, 0, wxALIGN_CENTER);
+					abs_sizer->Add(m_Y_Optics->set_btn, 0, wxALIGN_CENTER | wxLEFT, 2);
+					y_optics->Add(abs_sizer, 0, wxALIGN_CENTER);
+				}
+
+				/* Relative */
+				{
+					m_Y_Optics->decrement_btn = new wxButton(
+						right_side_panel, 
+						MainFrameVariables::ID_RIGHT_SC_OPT_Y_DEC_BTN, 
+						wxT("-"), 
+						wxDefaultPosition, 
+						inc_dec_size);
+					m_Y_Optics->decrement_btn->SetToolTip(wxT("Decrement distance"));
+					wxFloatingPointValidator<float>	rel_val(3, NULL, wxNUM_VAL_DEFAULT);
+					rel_val.SetMin(-1000.f);
+					rel_val.SetMax(1000.f);
+					m_Y_Optics->relative_text_ctrl = new wxTextCtrl(
+						right_side_panel,
+						MainFrameVariables::ID_RIGHT_SC_OPT_Y_REL_TE_CTL, 
+						wxT("789.123"), 
+						wxDefaultPosition, 
+						relative_text_ctrl_size, 
+						wxTE_CENTRE, 
+						rel_val
+					);
+					m_Y_Optics->increment_btn = new wxButton(
+						right_side_panel, 
+						MainFrameVariables::ID_RIGHT_SC_OPT_Y_INC_BTN, 
+						wxT("+"), 
+						wxDefaultPosition, 
+						inc_dec_size);
+					m_Y_Optics->increment_btn->SetToolTip(wxT("Increment distance"));
+
+					wxSizer* const rel_sizer = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Relative [mm]");
+					rel_sizer->Add(m_Y_Optics->decrement_btn, 0, wxALIGN_CENTER | wxRIGHT, 2);
+					rel_sizer->Add(m_Y_Optics->relative_text_ctrl, 0, wxALIGN_CENTER);
+					rel_sizer->Add(m_Y_Optics->increment_btn, 0, wxALIGN_CENTER | wxLEFT, 2);
+					y_optics->Add(rel_sizer, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, 2);
+				}
+
+				/* Global positioning controls */
+				{
+					m_Y_Optics->center_btn = new wxBitmapButton(
+						right_side_panel, 
+						MainFrameVariables::ID_RIGHT_SC_OPT_Y_CENTER_BTN, 
+						centerBitmap, 
+						wxDefaultPosition, 
+						inc_dec_size);
+					m_Y_Optics->center_btn->SetToolTip(wxT("Go to the center position of motor"));
+					m_Y_Optics->home_btn = new wxBitmapButton(
+						right_side_panel, 
+						MainFrameVariables::ID_RIGHT_SC_OPT_Y_HOME_BTN, 
+						homeBitmap, 
+						wxDefaultPosition, 
+						inc_dec_size);
+					m_Y_Optics->home_btn->SetToolTip(wxT("Go to the home position of motor"));
+
+					wxSizer* const jump_sizer = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Jump");
+					jump_sizer->Add(m_Y_Optics->center_btn, 0, wxALIGN_CENTER | wxRIGHT, 2);
+					jump_sizer->Add(m_Y_Optics->home_btn, 0, wxALIGN_CENTER);
+
+					y_optics->Add(jump_sizer, 0, wxALIGN_CENTER);
+				}
+			}
+			y_optics->AddStretchSpacer();
+			optics_static_box_sizer->Add(y_optics, 0, wxEXPAND);
+
+			/* Optics Z */
+			wxSizer* const z_optics = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Z");
+			z_optics->AddStretchSpacer();
+			{
+				/* Absolute */
+				{
+					wxSizer* const abs_sizer = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Absolute [mm]");
+					wxFloatingPointValidator<float>	abs_val(3, NULL, wxNUM_VAL_DEFAULT);
+					abs_val.SetMin(-1000.f);
+					abs_val.SetMax(1000.f);
+					m_Z_Optics->absolute_text_ctrl = new wxTextCtrl(
+						right_side_panel, 
+						MainFrameVariables::ID_RIGHT_SC_OPT_Z_ABS_TE_CTL, 
+						wxT("123.456"), 
+						wxDefaultPosition, 
+						absolute_text_ctrl_size, 
+						wxTE_CENTRE | wxTE_PROCESS_ENTER, 
+						abs_val
+					);
+
+					m_Z_Optics->set_btn = new wxButton(
+						right_side_panel, 
+						MainFrameVariables::ID_RIGHT_SC_OPT_Z_SET_BTN, 
+						wxT("Set"), 
+						wxDefaultPosition, 
+						set_btn_size);
+					m_Z_Optics->set_btn->SetToolTip(wxT("Set the absolute motor position"));
+
+					abs_sizer->Add(m_Z_Optics->absolute_text_ctrl, 0, wxALIGN_CENTER);
+					abs_sizer->Add(m_Z_Optics->set_btn, 0, wxALIGN_CENTER | wxLEFT, 2);
+					z_optics->Add(abs_sizer, 0, wxALIGN_CENTER);
+				}
+
+				/* Relative */
+				{
+					m_Z_Optics->decrement_btn = new wxButton(
+						right_side_panel, 
+						MainFrameVariables::ID_RIGHT_SC_OPT_Z_DEC_BTN, 
+						wxT("-"), 
+						wxDefaultPosition, 
+						inc_dec_size);
+					m_Z_Optics->decrement_btn->SetToolTip(wxT("Decrement distance"));
+					wxFloatingPointValidator<float>	rel_val(3, NULL, wxNUM_VAL_DEFAULT);
+					rel_val.SetMin(-1000.f);
+					rel_val.SetMax(1000.f);
+					m_Z_Optics->relative_text_ctrl = new wxTextCtrl(
+						right_side_panel,
+						MainFrameVariables::ID_RIGHT_SC_OPT_Z_REL_TE_CTL, 
+						wxT("789.123"), 
+						wxDefaultPosition, 
+						relative_text_ctrl_size, 
+						wxTE_CENTRE, 
+						rel_val
+					);
+					m_Z_Optics->increment_btn = new wxButton(
+						right_side_panel, 
+						MainFrameVariables::ID_RIGHT_SC_OPT_Z_INC_BTN, 
+						wxT("+"), 
+						wxDefaultPosition, 
+						inc_dec_size);
+					m_Z_Optics->increment_btn->SetToolTip(wxT("Increment distance"));
+
+					wxSizer* const rel_sizer = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Relative [mm]");
+					rel_sizer->Add(m_Z_Optics->decrement_btn, 0, wxALIGN_CENTER | wxRIGHT, 2);
+					rel_sizer->Add(m_Z_Optics->relative_text_ctrl, 0, wxALIGN_CENTER);
+					rel_sizer->Add(m_Z_Optics->increment_btn, 0, wxALIGN_CENTER | wxLEFT, 2);
+					z_optics->Add(rel_sizer, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, 2);
+				}
+
+				/* Global positioning controls */
+				{
+					m_Z_Optics->center_btn = new wxBitmapButton(
+						right_side_panel, 
+						MainFrameVariables::ID_RIGHT_SC_OPT_Z_CENTER_BTN, 
+						centerBitmap, 
+						wxDefaultPosition, 
+						inc_dec_size);
+					m_Z_Optics->center_btn->SetToolTip(wxT("Go to the center position of motor"));
+					m_Z_Optics->home_btn = new wxBitmapButton(
+						right_side_panel, 
+						MainFrameVariables::ID_RIGHT_SC_OPT_Z_HOME_BTN, 
+						homeBitmap, 
+						wxDefaultPosition, 
+						inc_dec_size);
+					m_Z_Optics->home_btn->SetToolTip(wxT("Go to the home position of motor"));
+
+					wxSizer* const jump_sizer = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Jump");
+					jump_sizer->Add(m_Z_Optics->center_btn, 0, wxALIGN_CENTER | wxRIGHT, 2);
+					jump_sizer->Add(m_Z_Optics->home_btn, 0, wxALIGN_CENTER);
+
+					z_optics->Add(jump_sizer, 0, wxALIGN_CENTER);
+				}
+			}
+			z_optics->AddStretchSpacer();
+			optics_static_box_sizer->Add(z_optics, 0, wxEXPAND);
+		}
+		sc_static_box_sizer->Add(optics_static_box_sizer, 0, wxEXPAND);
+	}
+	right_side_panel_sizer->Add(sc_static_box_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, 2);
+}
+
+void cMain::CreateCameraControls(wxPanel* right_side_panel, wxBoxSizer* right_side_panel_sizer)
+{
+	wxSizer* const cam_static_box_sizer = new wxStaticBoxSizer(wxVERTICAL, right_side_panel, "&Camera");
+	wxSizer* const first_row_sizer = new wxBoxSizer(wxHORIZONTAL);
+	{
+		wxSizer* const selected_camera_box_sizer = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Selected Camera");
+		{
+			m_SelectedCameraStaticTXT = std::make_unique<wxStaticText>(right_side_panel, wxID_ANY, wxT("None"));
+			selected_camera_box_sizer->AddStretchSpacer();
+			selected_camera_box_sizer->Add(m_SelectedCameraStaticTXT.get(), 0, wxCENTER);
+			selected_camera_box_sizer->AddStretchSpacer();
+		}
+		first_row_sizer->Add(selected_camera_box_sizer, 0, wxEXPAND);
+
+		wxSizer* const settings_static_box_sizer = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Settings");
+		{
+			wxSizer* const exposure_static_box_sizer = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Exposure [ms]");
+
+			wxIntegerValidator<int>	exposure_val(NULL, wxNUM_VAL_ZERO_AS_BLANK);
+			exposure_val.SetMin(1);
+			exposure_val.SetMax(1000000);
+
+			wxSize exposure_size = { 64, 20 };
+
+			m_CamExposure = std::make_unique<wxTextCtrl>
+				(
+					right_side_panel, 
+					MainFrameVariables::ID_RIGHT_CAM_EXPOSURE_TE_CTL, 
+					wxT("10"), 
+					wxDefaultPosition, 
+					exposure_size, 
+					wxTE_CENTRE | wxTE_PROCESS_ENTER, 
+					exposure_val
+				);
+
+			exposure_static_box_sizer->AddStretchSpacer();
+			exposure_static_box_sizer->Add(m_CamExposure.get(), 0, wxEXPAND);
+			exposure_static_box_sizer->AddStretchSpacer();
+
+			settings_static_box_sizer->Add(exposure_static_box_sizer, 0, wxEXPAND);
+		}
+		first_row_sizer->Add(settings_static_box_sizer, 0, wxEXPAND | wxLEFT, 2);
+
+		/* Preview And Start\Stop Live Capturing */
+		{
+			wxSizer* const ss_and_start_stop_box_sizer = new wxBoxSizer(wxVERTICAL);
+			
+			m_SingleShotBtn = std::make_unique<wxButton>(
+				right_side_panel,
+				MainFrameVariables::ID_RIGHT_CAM_SINGLE_SHOT_BTN,
+				wxT("Single Shot (S)"), 
+				wxDefaultPosition, 
+				wxDefaultSize);
+			m_SingleShotBtn->Disable();
+			ss_and_start_stop_box_sizer->Add(m_SingleShotBtn.get(), 0, wxEXPAND);
+
+			m_StartStopLiveCapturingTglBtn = std::make_unique<wxToggleButton>
+				(
+					right_side_panel,
+					MainFrameVariables::ID_RIGHT_CAM_START_STOP_LIVE_CAPTURING_TGL_BTN, 
+					wxT("Start Live (L)")
+				);
+			ss_and_start_stop_box_sizer->Add(m_StartStopLiveCapturingTglBtn.get(), 0, wxEXPAND | wxTOP, 5);
+
+			first_row_sizer->AddStretchSpacer();
+			first_row_sizer->Add(ss_and_start_stop_box_sizer, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, 2);
+		}
+	}
+	cam_static_box_sizer->Add(first_row_sizer, 0, wxEXPAND);
+
+	wxSizer* const second_row_sizer = new wxBoxSizer(wxHORIZONTAL);
+	{
+		wxSizer* const cross_hair_sizer = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&CrossHair");
+		/* X Position */
+		{
+			wxSizer* const x_pos_sizer = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&X");
+			wxIntegerValidator<int>	x_pos_validator(NULL, wxNUM_VAL_ZERO_AS_BLANK);
+			x_pos_validator.SetMin(1);
+			x_pos_validator.SetMax(10000);
+
+			m_CrossHairPosXTxtCtrl = std::make_unique<wxTextCtrl>
+				(
+					right_side_panel,
+					MainFrameVariables::ID_RIGHT_CAM_CROSS_HAIR_POS_X_TXT_CTRL,
+					wxT("1"), 
+					wxDefaultPosition, 
+					wxDefaultSize, 
+					wxTE_CENTRE
+					);
+			m_CrossHairPosXTxtCtrl->Disable();
+			x_pos_sizer->Add(m_CrossHairPosXTxtCtrl.get(), 1, wxEXPAND);
+			cross_hair_sizer->Add(x_pos_sizer, 1, wxEXPAND | wxRIGHT, 2);
+		}
+
+		/* Y Position */
+		{
+			wxSizer* const y_pos_sizer = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Y");
+			wxIntegerValidator<int>	y_pos_validator(NULL, wxNUM_VAL_ZERO_AS_BLANK);
+			y_pos_validator.SetMin(1);
+			y_pos_validator.SetMax(10000);
+
+			m_CrossHairPosYTxtCtrl = std::make_unique<wxTextCtrl>
+				(
+					right_side_panel,
+					MainFrameVariables::ID_RIGHT_CAM_CROSS_HAIR_POS_Y_TXT_CTRL,
+					wxT("1"), 
+					wxDefaultPosition, 
+					wxDefaultSize, 
+					wxTE_CENTRE
+					);
+			m_CrossHairPosYTxtCtrl->Disable();
+			y_pos_sizer->Add(m_CrossHairPosYTxtCtrl.get(), 1, wxEXPAND);
+			cross_hair_sizer->Add(y_pos_sizer, 1, wxEXPAND);
+		}
+
+		/* Set Postion */
+		{
+			m_SetCrossHairPosTglBtn = std::make_unique<wxToggleButton>
+				(
+					right_side_panel,
+					MainFrameVariables::ID_RIGHT_CAM_CROSS_HAIR_SET_POS_TGL_BTN,
+					wxT("Set")
+				);
+
+			cross_hair_sizer->AddSpacer(2);
+			cross_hair_sizer->Add(m_SetCrossHairPosTglBtn.get(), 0, wxALIGN_CENTER);
+		}
+		second_row_sizer->Add(cross_hair_sizer, 1, wxEXPAND);
+	}
+	cam_static_box_sizer->Add(second_row_sizer, 0, wxEXPAND);
+
+	right_side_panel_sizer->Add(cam_static_box_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, 2);
+}
+
+void cMain::CreateMeasurement(wxPanel* right_side_panel, wxBoxSizer* right_side_panel_sizer)
+{
+	wxSizer* const mmt_static_box_sizer = new wxStaticBoxSizer(wxVERTICAL, right_side_panel, "&Measurement");
+
+	/* Output directory */
+	{
+		wxSizer* const out_dir_static_box_sizer = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Output directory");
+		
+		m_OutDirTextCtrl = std::make_unique<wxTextCtrl>(
+			right_side_panel, 
+			MainFrameVariables::ID_RIGHT_MT_OUT_FLD_TE_CTL, 
+			wxT("Save directory..."), 
+			wxDefaultPosition, 
+			wxDefaultSize, 
+			wxTE_LEFT | wxTE_READONLY
+			);
+
+		m_OutDirBtn = std::make_unique<wxButton>(
+			right_side_panel, 
+			MainFrameVariables::ID_RIGHT_MT_OUT_FLD_BTN, 
+			wxT("Select folder"));
+		m_OutDirBtn->SetToolTip(wxT("Set the output directory"));
+
+		out_dir_static_box_sizer->Add(m_OutDirTextCtrl.get(), 1, wxEXPAND | wxRIGHT, 4);
+		//out_dir_static_box_sizer->AddStretchSpacer();
+		out_dir_static_box_sizer->Add(m_OutDirBtn.get(), 0, wxALIGN_CENTER);
+
+		mmt_static_box_sizer->Add(out_dir_static_box_sizer, 0, wxEXPAND);
+	}
+
+	wxSize start_text_ctrl_size = { 54, 20 }, step_text_ctrl_size = {start_text_ctrl_size}, finish_text_ctrl_size{start_text_ctrl_size};
+
+	{
+		wxSizer* const directions_static_box_sizer = new wxStaticBoxSizer(wxVERTICAL, right_side_panel, "&Directions");
+
+		/* First axis */
+		{
+			wxSizer* const first_axis_static_box_sizer = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&First axis");
+
+			/* Stage */
+			{
+				wxSizer* const stage_static_box_sizer = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Stage");
+				m_FirstStage->stage = new wxChoice(
+					right_side_panel, 
+					MainFrameVariables::ID_RIGHT_MT_FIRST_STAGE_CHOICE, 
+					wxDefaultPosition, 
+					wxDefaultSize, 
+					m_FirstStage->motors);
+				m_FirstStage->stage->SetSelection(0);
+				stage_static_box_sizer->Add(m_FirstStage->stage, 0, wxEXPAND);
+				first_axis_static_box_sizer->Add(stage_static_box_sizer, 0, wxEXPAND);
+			}
+
+			/* Start */
+			{
+				wxSizer* const start_static_box_sizer = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Start");
+
+				wxFloatingPointValidator<float>	start_val(3, NULL, wxNUM_VAL_DEFAULT);
+				start_val.SetMin(-1000.0);
+				start_val.SetMax(1000.0);
+
+				m_FirstStage->start = new wxTextCtrl(
+					right_side_panel,
+					MainFrameVariables::ID_RIGHT_MT_FIRST_STAGE_START,
+					wxT("123.456"), 
+					wxDefaultPosition, 
+					start_text_ctrl_size, 
+					wxTE_CENTRE, 
+					start_val);
+
+				start_static_box_sizer->Add(m_FirstStage->start, 0, wxEXPAND);
+
+				first_axis_static_box_sizer->Add(start_static_box_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, 2);
+			}
+
+			/* Step */
+			{
+				wxSizer* const step_static_box_sizer = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Step");
+
+				wxFloatingPointValidator<float>	step_val(3, NULL, wxNUM_VAL_DEFAULT);
+				step_val.SetMin(-1000.0);
+				step_val.SetMax(1000.0);
+
+				m_FirstStage->step = new wxTextCtrl(
+					right_side_panel, 
+					MainFrameVariables::ID_RIGHT_MT_FIRST_STAGE_STEP,
+					wxT("123.456"), 
+					wxDefaultPosition, 
+					step_text_ctrl_size, 
+					wxTE_CENTRE, 
+					step_val);
+				
+				step_static_box_sizer->Add(m_FirstStage->step, 0, wxEXPAND);
+				first_axis_static_box_sizer->Add(step_static_box_sizer, 0, wxEXPAND | wxRIGHT, 2);
+			}
+
+			/* Finish */
+			{
+				wxSizer* const finish_static_box_sizer = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Finish");
+
+				wxFloatingPointValidator<float>	finish_val(3, NULL, wxNUM_VAL_DEFAULT);
+				finish_val.SetMin(-1000.0);
+				finish_val.SetMax(1000.0);
+
+				m_FirstStage->finish = new wxTextCtrl(
+					right_side_panel, 
+					MainFrameVariables::ID_RIGHT_MT_FIRST_STAGE_FINISH,
+					wxT("123.456"), 
+					wxDefaultPosition, 
+					finish_text_ctrl_size, 
+					wxTE_CENTRE, 
+					finish_val);
+
+				finish_static_box_sizer->Add(m_FirstStage->finish, 0, wxEXPAND);
+				first_axis_static_box_sizer->Add(finish_static_box_sizer, 0, wxEXPAND);
+			}
+
+			directions_static_box_sizer->Add(first_axis_static_box_sizer, 0, wxEXPAND);
+		}
+
+		/* Second axis */
+		{
+			wxSizer* const second_axis_static_box_sizer = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Second axis");
+
+			/* Stage */
+			{
+				wxSizer* const stage_static_box_sizer = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Stage");
+				m_SecondStage->stage = new wxChoice(
+					right_side_panel, 
+					MainFrameVariables::ID_RIGHT_MT_SECOND_STAGE_CHOICE, 
+					wxDefaultPosition, 
+					wxDefaultSize, 
+					m_SecondStage->motors);
+				m_SecondStage->stage->SetSelection(0);
+				stage_static_box_sizer->Add(m_SecondStage->stage, 0, wxEXPAND);
+				second_axis_static_box_sizer->Add(stage_static_box_sizer, 0, wxEXPAND);
+			}
+
+			/* Start */
+			{
+				wxSizer* const start_static_box_sizer = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Start");
+
+				wxFloatingPointValidator<float>	start_val(3, NULL, wxNUM_VAL_DEFAULT);
+				start_val.SetMin(-1000.0);
+				start_val.SetMax(1000.0);
+
+				m_SecondStage->start = new wxTextCtrl(
+					right_side_panel,
+					MainFrameVariables::ID_RIGHT_MT_SECOND_STAGE_START,
+					wxT("123.456"), 
+					wxDefaultPosition, 
+					start_text_ctrl_size, 
+					wxTE_CENTRE, 
+					start_val);
+
+				start_static_box_sizer->Add(m_SecondStage->start, 0, wxEXPAND);
+
+				second_axis_static_box_sizer->Add(start_static_box_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, 2);
+			}
+
+			/* Step */
+			{
+				wxSizer* const step_static_box_sizer = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Step");
+
+				wxFloatingPointValidator<float>	step_val(3, NULL, wxNUM_VAL_DEFAULT);
+				step_val.SetMin(-1000.0);
+				step_val.SetMax(1000.0);
+
+				m_SecondStage->step = new wxTextCtrl(
+					right_side_panel, 
+					MainFrameVariables::ID_RIGHT_MT_SECOND_STAGE_STEP,
+					wxT("123.456"), 
+					wxDefaultPosition, 
+					step_text_ctrl_size, 
+					wxTE_CENTRE, 
+					step_val);
+				
+				step_static_box_sizer->Add(m_SecondStage->step, 0, wxEXPAND);
+				second_axis_static_box_sizer->Add(step_static_box_sizer, 0, wxEXPAND | wxRIGHT, 2);
+			}
+
+			/* Finish */
+			{
+				wxSizer* const finish_static_box_sizer = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Finish");
+
+				wxFloatingPointValidator<float>	finish_val(3, NULL, wxNUM_VAL_DEFAULT);
+				finish_val.SetMin(-1000.0);
+				finish_val.SetMax(1000.0);
+
+				m_SecondStage->finish = new wxTextCtrl(
+					right_side_panel, 
+					MainFrameVariables::ID_RIGHT_MT_SECOND_STAGE_FINISH,
+					wxT("123.456"), 
+					wxDefaultPosition, 
+					finish_text_ctrl_size, 
+					wxTE_CENTRE, 
+					finish_val);
+
+				finish_static_box_sizer->Add(m_SecondStage->finish, 0, wxEXPAND);
+				second_axis_static_box_sizer->Add(finish_static_box_sizer, 0, wxEXPAND);
+			}
+
+			directions_static_box_sizer->Add(second_axis_static_box_sizer, 0, wxEXPAND);
+		}
+
+		mmt_static_box_sizer->Add(directions_static_box_sizer, 0, wxEXPAND);
+	}
+
+	/* Start Capturing */
+	{
+		wxSizer* const horizontal_sizer = new wxBoxSizer(wxHORIZONTAL);
+
+		wxSizer* const capturing_sizer = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Capturing");
+		m_StartMeasurement = std::make_unique<wxButton>
+			(
+				right_side_panel,
+				MainFrameVariables::ID_RIGHT_MT_START_MEASUREMENT,
+				wxT("Start Capturing")					
+			);
+		horizontal_sizer->AddStretchSpacer();
+		horizontal_sizer->Add(capturing_sizer);
+		capturing_sizer->Add(m_StartMeasurement.get());
+		mmt_static_box_sizer->Add(horizontal_sizer, 0, wxEXPAND);
+	}
+
+	right_side_panel_sizer->Add(mmt_static_box_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, 2);
+}
+
+auto cMain::OnEnableDarkMode(wxCommandEvent& evt) -> void
+{
+	if (m_MenuBar->menu_edit->IsChecked(MainFrameVariables::ID_MENUBAR_EDIT_ENABLE_DARK_MODE))
+	{
+		m_CamPreview->SetBackgroundColor(m_BlackAppearenceColor);
+		wxColour normalized_black = wxColour(100, 100, 100);
+		m_VerticalToolBar->tool_bar->SetBackgroundColour(normalized_black);
+		wxColour nb_color = wxColour(normalized_black.Red() + 40, normalized_black.Green() + 40, normalized_black.Blue() + 40);
+		m_RightSidePanel->SetBackgroundColour(nb_color);
+	}
+	else
+	{
+		m_CamPreview->SetBackgroundColor(m_DefaultAppearenceColor);
+
+		m_VerticalToolBar->tool_bar->SetBackgroundColour(m_DefaultAppearenceColor);
+		m_RightSidePanel->SetBackgroundColour(m_DefaultAppearenceColor);
+	}
+	Refresh();
+}
+
+void cMain::CreateProgressBar()
+{
+	wxSize size_of_progress_bar{ 400, 190 };
+	wxPoint start_point_progress_bar
+	{ 
+		this->GetPosition().x + this->GetSize().x - size_of_progress_bar.x, 
+		this->GetPosition().y + this->GetSize().y - size_of_progress_bar.y 
+	};
+	m_ProgressBar = std::make_unique<ProgressBar>(this, start_point_progress_bar, size_of_progress_bar);
+	//m_ProgressBar = new ProgressBar(this, start_point_progress_bar, size_of_progress_bar);
+	//m_ProgressBar->SetIcon(logo_xpm);
+}
+
+void cMain::OnSingleShotCameraImage(wxCommandEvent& evt)
+{
+	constexpr auto raise_exception_msg = []() 
+	{
+		wxString title = "Connection error";
+		wxMessageBox(
+			wxT
+			(
+				"Current camera can't provide a single shot."
+				"\nPlease, check if the camera is connected properly and restart the program."
+			),
+			title,
+			wxICON_ERROR);
+	};
+
+	wxBusyCursor busy_cursor{};
+	wxString exposure_time_str = m_CamExposure->GetValue().IsEmpty() 
+		? wxString("0") 
+		: m_CamExposure->GetValue();
+	int exposure_time = abs(wxAtoi(exposure_time_str)) * 1000; // Because user input is in [ms], we need to recalculate exposure time to [us]
+
+	auto start_live_capturing_after_ss = m_StartStopLiveCapturingTglBtn->GetValue();
+
+	if (m_StartStopLiveCapturingTglBtn->GetValue())
+	{
+		//m_XimeaControl->StopAcquisition();
+		//m_XimeaControl->TurnOffLastThread();
+		wxString exposure_time_str = m_CamExposure->GetValue().IsEmpty() 
+			? wxString("0") 
+			: m_CamExposure->GetValue();
+		unsigned long exposure_time = abs(wxAtoi(exposure_time_str)); // Because user input is in [ms], we need to recalculate the value to [us]
+		wxThread::This()->Sleep(exposure_time);
+	}
+	//m_StopLiveCapturing = true;
+	{
+		//while (!m_LiveCapturingEndedDrawingOnCamPreview)
+		//{
+		//	wxThread::This()->Sleep(10);
+		//}
+		wxString exposure_time_str = m_CamExposure->GetValue().IsEmpty() 
+			? wxString("0") 
+			: m_CamExposure->GetValue();
+		unsigned long exposure_time = abs(wxAtoi(exposure_time_str)) * 1000; // Because user input is in [ms], we need to recalculate the value to [us]
+
+		auto now = std::chrono::system_clock::now();
+		auto cur_time = std::chrono::system_clock::to_time_t(now);
+		auto str_time = std::string(std::ctime(&cur_time)).substr(11, 8);
+		auto cur_hours = str_time.substr(0, 2);
+		auto cur_mins = str_time.substr(3, 2);
+		auto cur_secs = str_time.substr(6, 2);
+
+		auto out_dir = m_OutDirTextCtrl->GetValue();
+		const std::string file_name = std::string(out_dir.mb_str()) + std::string("\\") +
+			std::string("ss_") + 
+			cur_hours + std::string("H_") + 
+			cur_mins + std::string("M_") + 
+			cur_secs + std::string("S_") + 
+			std::to_string(exposure_time) + std::string("us") 
+			+ std::string(".tif");
+
+		/* Camera */
+		{
+			//auto ximea_control = std::make_unique<XimeaControl>();
+			//auto curr_cam = m_Settings->GetSelectedCamera();
+			//ximea_control->InitializeCameraBySN(curr_cam.ToStdString());
+			//m_XimeaControl->SetExposureTime(exposure_time);
+			//ximea_control->SetExposureTime(exposure_time);
+			//auto image_size = wxSize{ (int)m_XimeaControl->GetImageWidth(), (int)m_XimeaControl->GetImageHeight() };
+			unsigned short* data_ptr{};
+			//data_ptr = m_XimeaControl->GetImage();
+			if (!data_ptr)
+			{
+				raise_exception_msg();
+				return;
+			}
+
+			//cv::Mat cv_img
+			//(
+			//	cv::Size(image_size.GetWidth(), image_size.GetHeight()),
+			//	CV_16U,
+			//	data_ptr,
+			//	cv::Mat::AUTO_STEP
+			//);
+			//cv::imwrite(file_name, cv_img);
+		}
+	}
+	/* Only if user has already started Live Capturing, continue Live Capturing */
+	if (start_live_capturing_after_ss)
+	{
+		//m_StopLiveCapturing = false;
+		StartLiveCapturing();
+	}
+}
+
+void cMain::OnSetOutDirectoryBtn(wxCommandEvent& evt)
+{
+	wxDirDialog save_dialog(NULL, "Choose save directory", "",
+		wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
+
+	if (save_dialog.ShowModal() == wxID_CANCEL)
+		return;
+
+	m_OutDirTextCtrl->SetValue(save_dialog.GetPath());
+	m_FirstStage->EnableAllControls();
+	//m_SecondStage->EnableAllControls();
+	m_MenuBar->menu_edit->Enable(MainFrameVariables::ID_RIGHT_CAM_SINGLE_SHOT_BTN, true);
+	m_SingleShotBtn->Enable();
+	m_StartMeasurement->Enable();
+}
+
+void cMain::OnOpenSettings(wxCommandEvent& evt)
+{
+	m_CamPreview->SetFocus();
+	m_Settings->ShowModal();
+	if (!m_Settings->IsActive())
+	{
+		InitializeSelectedCamera();
+		UpdateStagePositions();
+		EnableUsedAndDisableNonUsedMotors();	
+	}
+}
+
+auto cMain::InitializeSelectedCamera() -> void
+{
+	auto curr_camera = m_Settings->GetSelectedCamera();
+	if (curr_camera == "None") return;
+
+	m_SelectedCameraStaticTXT->SetLabel(curr_camera);	
+	//m_XimeaControl = std::make_unique<XimeaControl>();
+	//m_XimeaControl->InitializeCameraBySN(curr_camera.ToStdString());
+
+	//m_StopLiveCapturing = true;
+	//while (!m_LiveCapturingEndedDrawingOnCamPreview)
+	//{
+	//	wxThread::This()->Sleep(10);
+	//}
+	//m_StopLiveCapturing = false;
+
+	m_StartStopLiveCapturingTglBtn->SetValue(true);
+	wxCommandEvent art_start_live_capturing(wxEVT_TOGGLEBUTTON, MainFrameVariables::ID_RIGHT_CAM_START_STOP_LIVE_CAPTURING_TGL_BTN);
+	ProcessEvent(art_start_live_capturing);
+}
+
+void cMain::OnFullScreen(wxCommandEvent& evt)
+{
+	if (!IsMaximized())
+	{
+		Maximize(true);
+		m_MenuBar->menu_window->Check(MainFrameVariables::ID_MENUBAR_WINDOW_FULLSCREEN, true);
+	}
+	else
+	{
+		Maximize(false);
+		m_MenuBar->menu_window->Check(MainFrameVariables::ID_MENUBAR_WINDOW_FULLSCREEN, false);
+	}
+}
+
+void cMain::OnMaximizeButton(wxMaximizeEvent& evt)
+{
+	if (m_MenuBar->menu_window->IsChecked(MainFrameVariables::ID_MENUBAR_WINDOW_FULLSCREEN))
+	{
+		m_MenuBar->menu_window->Check(MainFrameVariables::ID_MENUBAR_WINDOW_FULLSCREEN, false);
+	}
+	else
+	{
+		m_MenuBar->menu_window->Check(MainFrameVariables::ID_MENUBAR_WINDOW_FULLSCREEN, true);
+	}
+}
+
+void cMain::OnExit(wxCloseEvent& evt)
+{
+#ifndef _DEBUG
+	if (evt.CanVeto())
+	{
+		if (wxMessageBox("Are you sure?",
+			"Exit application",
+			wxICON_QUESTION | wxYES_NO) != wxYES)
+		{
+			evt.Veto();
+			return;
+		}
+	}
+#endif // !_DEBUG
+	//m_XimeaControl->StopAcquisition();
+	//m_XimeaControl->TurnOffLastThread();
+	{
+		wxString exposure_time_str = m_CamExposure->GetValue().IsEmpty() 
+			? wxString("0") 
+			: m_CamExposure->GetValue();
+		unsigned long exposure_time = abs(wxAtoi(exposure_time_str)); // Because user input is in [ms], we need to recalculate the value to [us]
+		wxThread::This()->Sleep(exposure_time);
+	}
+	//m_XimeaControl->ClearAllThreads();
+
+	Destroy();  // you may also do:  event.Skip();
+	evt.Skip();
+	// since the default event handler does call Destroy(), too
+}
+
+void cMain::UpdateStagePositions()
+{
+	m_X_Detector->absolute_text_ctrl->SetValue(wxString::Format(wxT("%.3f"), m_Settings->GetActualDetectorXStagePos()));
+	m_Y_Detector->absolute_text_ctrl->SetValue(wxString::Format(wxT("%.3f"), m_Settings->GetActualDetectorYStagePos()));
+	m_Z_Detector->absolute_text_ctrl->SetValue(wxString::Format(wxT("%.3f"), m_Settings->GetActualDetectorZStagePos()));
+
+	m_Y_Optics->absolute_text_ctrl->SetValue(wxString::Format(wxT("%.3f"), m_Settings->GetActualOpticsYStagePos()));
+}
+
+void cMain::OnExit(wxCommandEvent& evt)
+{
+	wxCloseEvent artificialExit(wxEVT_CLOSE_WINDOW);
+	ProcessEvent(artificialExit);
+}
+
+void cMain::EnableUsedAndDisableNonUsedMotors()
+{
+	/* Detector X */
+	if (m_Settings->DetectorXHasSerialNumber()) m_X_Detector->EnableAllControls();
+	else m_X_Detector->DisableAllControls();
+	/* Detector Y */
+	if (m_Settings->DetectorYHasSerialNumber()) m_Y_Detector->EnableAllControls();
+	else m_Y_Detector->DisableAllControls();
+	/* Detector Z */
+	if (m_Settings->DetectorZHasSerialNumber()) m_Z_Detector->EnableAllControls();
+	else m_Z_Detector->DisableAllControls();
+	/* Optics X */
+	if (m_Settings->OpticsXHasSerialNumber()) m_X_Optics->EnableAllControls();
+	else m_X_Optics->DisableAllControls();
+	/* Optics Y */
+	if (m_Settings->OpticsYHasSerialNumber()) m_Y_Optics->EnableAllControls();
+	else m_Y_Optics->DisableAllControls();
+	/* Optics Z */
+	if (m_Settings->OpticsZHasSerialNumber()) m_Z_Optics->EnableAllControls();
+	else m_Z_Optics->DisableAllControls();
+}
+
+void cMain::OnEnterTextCtrlDetectorXAbsPos(wxCommandEvent& evt)
+{
+	wxCommandEvent enter_evt(wxEVT_BUTTON, MainFrameVariables::ID_RIGHT_SC_DET_X_SET_BTN);
+	ProcessEvent(enter_evt);
+}
+
+void cMain::OnSetDetectorXAbsPos(wxCommandEvent& evt)
+{
+	double absolute_position{};
+	if (!m_X_Detector->absolute_text_ctrl->GetValue().ToDouble(&absolute_position)) return;
+	m_Settings->GoToAbsDetectorX((float)absolute_position);
+}
+
+void cMain::OnDecrementDetectorXAbsPos(wxCommandEvent& evt)
+{
+	double delta_position{};
+	if (!m_X_Detector->relative_text_ctrl->GetValue().ToDouble(&delta_position)) return;
+	m_X_Detector->absolute_text_ctrl->SetValue(
+		wxString::Format
+		(
+			wxT("%.3f"), 
+			m_Settings->GoOffsetDetectorX(-(float)delta_position)
+		));
+}
+
+void cMain::OnIncrementDetectorXAbsPos(wxCommandEvent& evt)
+{	
+	double delta_position{};
+	if (!m_X_Detector->relative_text_ctrl->GetValue().ToDouble(&delta_position)) return;	
+	m_X_Detector->absolute_text_ctrl->SetValue(
+		wxString::Format
+		(
+			wxT("%.3f"), 
+			m_Settings->GoOffsetDetectorX((float)delta_position)
+		));
+}
+
+void cMain::OnCenterDetectorX(wxCommandEvent& evt)
+{
+	m_X_Detector->absolute_text_ctrl->SetValue(
+		wxString::Format(
+			wxT("%.3f"), 
+			m_Settings->CenterDetectorX()
+		));
+}
+
+void cMain::OnHomeDetectorX(wxCommandEvent& evt)
+{	
+	m_X_Detector->absolute_text_ctrl->ChangeValue(
+		wxString::Format(
+			wxT("%.3f"), 
+			m_Settings->HomeDetectorX()
+		));
+}
+
+void cMain::OnEnterTextCtrlDetectorYAbsPos(wxCommandEvent& evt)
+{
+	wxCommandEvent enter_evt(wxEVT_BUTTON, MainFrameVariables::ID_RIGHT_SC_DET_Y_SET_BTN);
+	ProcessEvent(enter_evt);
+}
+
+void cMain::OnSetDetectorYAbsPos(wxCommandEvent& evt)
+{	
+	double absolute_position{};
+	if (!m_Y_Detector->absolute_text_ctrl->GetValue().ToDouble(&absolute_position)) return;
+	m_Settings->GoToAbsDetectorY((float)absolute_position);
+}
+
+void cMain::OnDecrementDetectorYAbsPos(wxCommandEvent& evt)
+{	
+	double delta_position{};
+	if (!m_Y_Detector->relative_text_ctrl->GetValue().ToDouble(&delta_position)) return;
+	m_Y_Detector->absolute_text_ctrl->SetValue(
+		wxString::Format
+		(
+			wxT("%.3f"), 
+			m_Settings->GoOffsetDetectorY(-(float)delta_position)
+		));
+}
+
+void cMain::OnIncrementDetectorYAbsPos(wxCommandEvent& evt)
+{
+	double delta_position{};
+	if (!m_Y_Detector->relative_text_ctrl->GetValue().ToDouble(&delta_position)) return;	
+	m_Y_Detector->absolute_text_ctrl->SetValue(
+		wxString::Format
+		(
+			wxT("%.3f"), 
+			m_Settings->GoOffsetDetectorY((float)delta_position)
+		));
+}
+
+void cMain::CreateVerticalToolBar()
+{
+	m_VerticalToolBar = std::make_unique<MainFrameVariables::ToolBar>();
+	m_VerticalToolBar->tool_bar = new wxToolBar
+	(
+		this, 
+		wxID_ANY, 
+		wxDefaultPosition, 
+		wxDefaultSize, 
+		wxTB_VERTICAL
+	);
+
+	// CrossHair
+	wxImage crosshairToolImage = wxImage(cross_hair_xpm);
+	wxBitmap crosshairToolBitmap = wxBitmap(crosshairToolImage);
+	m_VerticalToolBar->tool_bar->AddCheckTool(MainFrameVariables::ID_MENUBAR_TOOLS_CROSSHAIR, _("Crosshair"), crosshairToolBitmap);
+	m_VerticalToolBar->tool_bar->SetToolShortHelp(MainFrameVariables::ID_MENUBAR_TOOLS_CROSSHAIR, wxT("Crosshair (C)"));
+
+	m_VerticalToolBar->tool_bar->SetToolBitmapSize(wxSize(30, 30));
+	m_VerticalToolBar->tool_bar->Realize();
+}
+
+void cMain::OnCenterDetectorY(wxCommandEvent& evt)
+{
+	m_Y_Detector->absolute_text_ctrl->SetValue(
+		wxString::Format(
+			wxT("%.3f"), 
+			m_Settings->CenterDetectorY()
+		));
+}
+
+void cMain::OnHomeDetectorY(wxCommandEvent& evt)
+{
+	m_Y_Detector->absolute_text_ctrl->SetValue(
+		wxString::Format(
+			wxT("%.3f"), 
+			m_Settings->HomeDetectorY()
+		));
+}
+
+void cMain::OnEnterTextCtrlDetectorZAbsPos(wxCommandEvent& evt)
+{
+	wxCommandEvent enter_evt(wxEVT_BUTTON, MainFrameVariables::ID_RIGHT_SC_DET_Z_SET_BTN);
+	ProcessEvent(enter_evt);
+}
+
+void cMain::OnSetDetectorZAbsPos(wxCommandEvent& evt)
+{	
+	double absolute_position{};
+	if (!m_Z_Detector->absolute_text_ctrl->GetValue().ToDouble(&absolute_position)) return;
+	m_Settings->GoToAbsDetectorZ((float)absolute_position);
+}
+
+void cMain::OnDecrementDetectorZAbsPos(wxCommandEvent& evt)
+{
+	double delta_position{};
+	if (!m_Z_Detector->relative_text_ctrl->GetValue().ToDouble(&delta_position)) return;
+	m_Z_Detector->absolute_text_ctrl->SetValue(
+		wxString::Format
+		(
+			wxT("%.3f"), 
+			m_Settings->GoOffsetDetectorZ(-(float)delta_position)
+		));
+}
+
+void cMain::OnIncrementDetectorZAbsPos(wxCommandEvent& evt)
+{
+	double delta_position{};
+	if (!m_Z_Detector->relative_text_ctrl->GetValue().ToDouble(&delta_position)) return;	
+	m_Z_Detector->absolute_text_ctrl->SetValue(
+		wxString::Format
+		(
+			wxT("%.3f"), 
+			m_Settings->GoOffsetDetectorZ((float)delta_position)
+		));
+}
+
+auto cMain::LiveCapturingFinishedCapturingAndDrawing(bool is_finished) -> void
+{
+	//m_LiveCapturingEndedDrawingOnCamPreview = is_finished;
+}
+
+auto cMain::WorkerThreadFinished(bool is_finished) -> void
+{
+	if (is_finished)
+	{
+		wxCommandEvent live_capturing_evt(wxEVT_TOGGLEBUTTON, MainFrameVariables::ID_RIGHT_CAM_START_STOP_LIVE_CAPTURING_TGL_BTN);
+		ProcessEvent(live_capturing_evt);
+	}
+}
+
+void cMain::UnCheckAllTools()
+{
+	/* Unchecking CrossHair Button */
+	m_VerticalToolBar->tool_bar->ToggleTool(MainFrameVariables::ID_MENUBAR_TOOLS_CROSSHAIR, false);
+	m_MenuBar->menu_tools->Check(MainFrameVariables::ID_MENUBAR_TOOLS_CROSSHAIR, false);
+	m_CamPreview->SetCrossHairButtonActive(false);
+	m_CrossHairPosXTxtCtrl->Disable();
+	m_CrossHairPosYTxtCtrl->Disable();
+}
+
+void cMain::OnFirstStageChoice(wxCommandEvent& evt)
+{
+	auto first_stage_selection = m_FirstStage->stage->GetCurrentSelection() - 1;
+	double start_stage_value{}, step_stage_value{}, finish_stage_value{};
+	switch (first_stage_selection)
+	{
+	/* Detector */
+	case 0:
+		if (!m_X_Detector->absolute_text_ctrl->GetValue().ToDouble(&start_stage_value)) return;
+		break;
+	case 1:
+		if (!m_Y_Detector->absolute_text_ctrl->GetValue().ToDouble(&start_stage_value)) return;
+		break;
+	case 2:
+		if (!m_Z_Detector->absolute_text_ctrl->GetValue().ToDouble(&start_stage_value)) return;
+		break;
+	/* Optics */
+	case 3:
+		if (!m_X_Optics->absolute_text_ctrl->GetValue().ToDouble(&start_stage_value)) return;
+		break;
+	case 4:
+		if (!m_Y_Optics->absolute_text_ctrl->GetValue().ToDouble(&start_stage_value)) return;
+		break;
+	case 5:
+		if (!m_Z_Optics->absolute_text_ctrl->GetValue().ToDouble(&start_stage_value)) return;
+		break;
+	default:
+		break;
+	}
+	/* Set Start To Current position of motor */
+	m_FirstStage->start->SetValue
+	(
+		wxString::Format
+		(
+			wxT("%.3f"), 
+			(float)start_stage_value
+		)
+	);
+	/* Set Finish To Current position of motor + Step */
+	if (!m_FirstStage->step->GetValue().ToDouble(&step_stage_value)) return;
+	finish_stage_value = start_stage_value + step_stage_value;
+	m_FirstStage->finish->SetValue
+	(
+		wxString::Format
+		(
+			wxT("%.3f"), 
+			(float)finish_stage_value
+		)
+	);
+}
+
+void cMain::OnSecondStageChoice(wxCommandEvent& evt)
+{
+	auto second_stage_selection = m_SecondStage->stage->GetCurrentSelection() - 1;
+	double start_stage_value{}, step_stage_value{}, finish_stage_value{};
+	switch (second_stage_selection)
+	{
+	/* Detector */
+	case 0:
+		if (!m_X_Detector->absolute_text_ctrl->GetValue().ToDouble(&start_stage_value)) return;
+		break;
+	case 1:
+		if (!m_Y_Detector->absolute_text_ctrl->GetValue().ToDouble(&start_stage_value)) return;
+		break;
+	case 2:
+		if (!m_Z_Detector->absolute_text_ctrl->GetValue().ToDouble(&start_stage_value)) return;
+		break;
+	/* Optics */
+	case 3:
+		if (!m_X_Optics->absolute_text_ctrl->GetValue().ToDouble(&start_stage_value)) return;
+		break;
+	case 4:
+		if (!m_Y_Optics->absolute_text_ctrl->GetValue().ToDouble(&start_stage_value)) return;
+		break;
+	case 5:
+		if (!m_Z_Optics->absolute_text_ctrl->GetValue().ToDouble(&start_stage_value)) return;
+		break;
+	default:
+		break;
+	}
+	/* Set Start To Current position of motor */
+	m_SecondStage->start->SetValue
+	(
+		wxString::Format
+		(
+			wxT("%.3f"), 
+			(float)start_stage_value
+		)
+	);
+	/* Set Finish To Current position of motor + Step */
+	if (!m_SecondStage->step->GetValue().ToDouble(&step_stage_value)) return;
+	finish_stage_value = start_stage_value + step_stage_value;
+	m_SecondStage->finish->SetValue
+	(
+		wxString::Format
+		(
+			wxT("%.3f"), 
+			(float)finish_stage_value
+		)
+	);
+}
+
+void cMain::OnStartCapturingButton(wxCommandEvent& evt)
+{
+	constexpr auto raise_exception_msg = [](wxString axis) 
+	{
+		wxString title = "Finish position error";
+		wxMessageBox(
+			wxT
+			(
+				"Finish position of " + axis + " axis is not correct!"
+				"\nPlease, check if STEP and FINISH values are correct!"
+			),
+			title,
+			wxICON_ERROR);
+	};
+
+	//m_StopLiveCapturing = true;		
+	if (m_StartStopLiveCapturingTglBtn->GetValue())
+	{
+		//m_XimeaControl->StopAcquisition();
+		//m_XimeaControl->TurnOffLastThread();
+		{
+			wxString exposure_time_str = m_CamExposure->GetValue().IsEmpty()
+				? wxString("0")
+				: m_CamExposure->GetValue();
+			unsigned long exposure_time = abs(wxAtoi(exposure_time_str)); // Because user input is in [ms], we need to recalculate the value to [us]
+			wxThread::This()->Sleep(exposure_time);
+		}
+	}
+
+	//if (m_XimeaControl->IsCameraConnected()) m_XimeaControl->StopAcquisition();
+	//{
+	//	wxString exposure_time_str = m_CamExposure->GetValue().IsEmpty() 
+	//		? wxString("0") 
+	//		: m_CamExposure->GetValue();
+	//	unsigned long exposure_time = abs(wxAtoi(exposure_time_str)) * 1000; // Because user input is in [ms], we need to recalculate the value to [us]
+	//	wxThread::This()->Sleep(exposure_time / 1000);
+	//}
+
+	auto first_axis = std::make_unique<MainFrameVariables::AxisMeasurement>();
+	auto second_axis = std::make_unique<MainFrameVariables::AxisMeasurement>();
+	double start_first_stage_value{}, step_first_stage_value{}, finish_first_stage_value{};
+	double start_second_stage_value{}, step_second_stage_value{}, finish_second_stage_value{};
+	int first_stage_step_count{}, second_stage_step_count{};
+	/* Checking if user selected None as a stage */
+	{
+		/* Checking first stage */
+		{
+			if (m_FirstStage->stage->GetCurrentSelection() == 0) return;
+			else first_axis->axis_number = m_FirstStage->stage->GetCurrentSelection() - 1;
+		}
+		/* Checking Start, Step and Finish values */
+		{
+			if (!m_FirstStage->start->GetValue().ToDouble(&start_first_stage_value)) return;
+			first_axis->start = (int)(start_first_stage_value * 1000.0) / 1000.f;
+			if (!m_FirstStage->step->GetValue().ToDouble(&step_first_stage_value)) return;
+			first_axis->step = (int)(step_first_stage_value * 1000.0) / 1000.f;
+			if (!m_FirstStage->finish->GetValue().ToDouble(&finish_first_stage_value)) return;
+			first_axis->finish = (int)(finish_first_stage_value * 1000.0) / 1000.f;
+			if (
+				(finish_first_stage_value - start_first_stage_value < 0.0 && step_first_stage_value > 0.0)
+				|| (finish_first_stage_value - start_first_stage_value > 0.0 && step_first_stage_value < 0.0)
+				) 
+				raise_exception_msg("first");
+			first_axis->step_number = ((int)(finish_first_stage_value * 1000.0) - 
+				(int)(start_first_stage_value * 1000.0)) / 
+				(int)(step_first_stage_value * 1000.0) + 1;
+		}
+		/* Checking second stage */
+		if (m_SecondStage->stage->GetCurrentSelection() - 1 == first_axis->axis_number) return;
+		/* 
+		if (m_SecondStage->stage->GetCurrentSelection() == 0) return;
+		else selected_second_stage = m_SecondStage->stage->GetCurrentSelection() - 1;		
+		*/
+	}
+	{
+		CreateMetadataFile();
+		m_StartCalculationTime = std::chrono::steady_clock::now();
+		wxPoint start_point_progress_bar
+		{ 
+			this->GetPosition().x + this->GetSize().x - m_ProgressBar->GetSize().x, 
+			this->GetPosition().y + this->GetSize().y - m_ProgressBar->GetSize().y 
+		};
+		m_ProgressBar->SetPosition(start_point_progress_bar);
+		m_Settings->ResetCapturing();
+		m_ProgressBar->Show();
+
+		m_AppProgressIndicator = std::make_unique<wxAppProgressIndicator>(this, 100);
+
+		this->Disable();
+		//m_StartMeasurement->Disable();
+	}
+
+	/* Worker and Progress Threads */
+	{
+		auto out_dir = m_OutDirTextCtrl->GetValue();
+
+		wxString exposure_time_str = m_CamExposure->GetValue().IsEmpty() 
+			? wxString("0") 
+			: m_CamExposure->GetValue();
+		unsigned long exposure_time = abs(wxAtoi(exposure_time_str)) * 1000; // Because user input is in [ms], we need to recalculate the value to [us]
+
+		WorkerThread* worker_thread = new WorkerThread
+		(
+			this,
+			m_Settings.get(),
+			m_CamPreview.get(),
+			//m_XimeaControl.get(),
+			out_dir,
+			exposure_time,
+			first_axis.release(), 
+			second_axis.release()
+		);
+		ProgressThread* progress_thread = new ProgressThread(m_Settings.get(), this);
+
+		if (worker_thread->CreateThread() != wxTHREAD_NO_ERROR)
+		{
+			delete worker_thread;
+			worker_thread = nullptr;
+			return;
+		}
+		if (progress_thread->CreateThread() != wxTHREAD_NO_ERROR)
+		{
+			delete progress_thread;
+			progress_thread = nullptr;
+			return;
+		}
+		if (progress_thread->GetThread()->Run() != wxTHREAD_NO_ERROR)
+		{
+			delete progress_thread;
+			progress_thread = nullptr;
+			return;
+		}
+		if (worker_thread->GetThread()->Run() != wxTHREAD_NO_ERROR)
+		{
+			delete progress_thread;
+			progress_thread = nullptr;
+			delete worker_thread;
+			worker_thread = nullptr;
+			return;
+		}
+	}
+}
+
+void cMain::StartLiveCapturing()
+{
+	wxString exposure_time_str = m_CamExposure->GetValue().IsEmpty() 
+		? wxString("0") 
+		: m_CamExposure->GetValue();
+	unsigned long exposure_time = abs(wxAtoi(exposure_time_str)) * 1000; // Because user input is in [ms], we need to recalculate the value to [us]
+	//m_XimeaControl->SetExposureTime(exposure_time);
+
+	//auto curr_camera = m_Settings->GetSelectedCamera();
+
+	LiveCapturing* live_capturing = new LiveCapturing
+	(
+		this, 
+		m_CamPreview.get(), 
+		//m_XimeaControl.get(),
+		//curr_camera.ToStdString(),
+		exposure_time
+	);
+
+	if (live_capturing->CreateThread() != wxTHREAD_NO_ERROR)
+	{
+		delete live_capturing;
+		live_capturing = nullptr;
+		return;
+	}
+	if (live_capturing->GetThread()->Run() != wxTHREAD_NO_ERROR)
+	{
+		delete live_capturing;
+		live_capturing = nullptr;
+		return;
+	}
+}
+
+void cMain::ChangeCameraManufacturerChoice(wxCommandEvent& evt)
+{
+	wxCommandEvent simulate_change_exposure_value(wxEVT_TEXT_ENTER, MainFrameVariables::ID_RIGHT_CAM_EXPOSURE_TE_CTL);
+	ProcessEvent(simulate_change_exposure_value);
+}
+
+void cMain::OnCrossHairButton(wxCommandEvent& evt)
+{
+	UnCheckAllTools();
+	if (!m_IsCrossHairChecked)
+	{
+		m_MenuBar->menu_tools->Check(MainFrameVariables::ID_MENUBAR_TOOLS_CROSSHAIR, true);
+		m_VerticalToolBar->tool_bar->ToggleTool(MainFrameVariables::ID_MENUBAR_TOOLS_CROSSHAIR, true);
+		m_IsCrossHairChecked = true;
+		m_CamPreview->SetCrossHairButtonActive(true);
+		m_CrossHairPosXTxtCtrl->Enable();
+		m_CrossHairPosYTxtCtrl->Enable();
+		{
+			auto img_size = m_CamPreview->GetImageSize();
+			//m_CamPreview->SetXCrossHairPosFromParentWindow(img_size.GetWidth() / 2);
+			//m_CamPreview->SetYCrossHairPosFromParentWindow(img_size.GetHeight() / 2);
+			m_CrossHairPosXTxtCtrl->SetValue(wxString::Format(wxT("%i"), img_size.GetWidth() / 2));
+			m_CrossHairPosYTxtCtrl->SetValue(wxString::Format(wxT("%i"), img_size.GetHeight() / 2));
+		}
+	}
+	else
+	{
+		m_IsCrossHairChecked = false;
+	}
+}
+
+auto cMain::LiveCapturingThread(wxThreadEvent& evt) -> void
+{
+	auto curr_code = evt.GetInt();
+
+	// -1 == Camera is disconnected
+	if (curr_code == -1)
+	{
+		//m_StartStopLiveCapturingTglBtn->SetValue(false);
+		//wxCommandEvent live_capturing_evt(wxEVT_TOGGLEBUTTON, MainFrameVariables::ID_RIGHT_CAM_START_STOP_LIVE_CAPTURING_TGL_BTN);
+		//ProcessEvent(live_capturing_evt);
+	}
+	// 0 == Camera is Connected and everything is allright
+	else if (curr_code == 0)
+	{
+		//if (!m_StartStopLiveCapturingTglBtn->GetValue())
+		//{
+		//	m_StartStopLiveCapturingTglBtn->SetValue(true);
+		//	m_StartStopLiveCapturingTglBtn->SetLabel(wxT("Stop Live (L)"));
+		//}
+	}
+}
+
+void cMain::UpdateProgress(wxThreadEvent& evt)
+{
+	int progress = evt.GetInt();
+	wxString msg = evt.GetString();
+	unsigned long long elapsed_seconds{};
+
+	if (progress != -1)
+	{
+		auto current_time = std::chrono::steady_clock::now();
+		elapsed_seconds = std::chrono::duration_cast<std::chrono::seconds>(current_time - m_StartCalculationTime).count();
+		m_ProgressBar->UpdateProgressWithMessage(msg, progress);
+		m_AppProgressIndicator->SetValue(progress);
+		m_ProgressBar->UpdateElapsedTime(elapsed_seconds);
+		m_ProgressBar->UpdateEstimatedTime(progress, elapsed_seconds);
+	}
+	else
+	{
+		m_ProgressBar->Hide();
+		m_ProgressBar->UpdateProgressWithMessage("", 0);
+		m_ProgressBar->UpdateElapsedTime(0);
+		m_ProgressBar->UpdateEstimatedTime(0, 0);
+		m_AppProgressIndicator->~wxAppProgressIndicator();
+		UpdateAllAxisGlobalPositions();
+		this->Enable();
+	}
+}
+
+auto cMain::CreateMetadataFile() -> void
+{
+	wxString exposure_time_str = m_CamExposure->GetValue().IsEmpty() 
+		? wxString("0") 
+		: m_CamExposure->GetValue();
+	unsigned long exposure_time = abs(wxAtoi(exposure_time_str)) * 1000; // Because user input is in [ms], we need to recalculate the value to [us]
+
+	double det_x_pos{}, det_y_pos{}, det_z_pos{};
+	double opt_y_pos{};
+
+	{
+		/* Detector */
+		if (!m_X_Detector->absolute_text_ctrl->GetValue().ToDouble(&det_x_pos)) return;
+		if (!m_Y_Detector->absolute_text_ctrl->GetValue().ToDouble(&det_y_pos)) return;
+		if (!m_Z_Detector->absolute_text_ctrl->GetValue().ToDouble(&det_z_pos)) return;
+		/* Optics */
+		if (!m_Y_Optics->absolute_text_ctrl->GetValue().ToDouble(&opt_y_pos)) return;
+	}
+
+	std::string selected_axis{};
+	switch (m_FirstStage->stage->GetCurrentSelection() - 1)
+	{
+	/* Detector */
+	case 0:
+		selected_axis = std::string("detector_x");
+		break;
+	case 1:
+		selected_axis = std::string("detector_y");
+		break;
+	case 2:
+		selected_axis = std::string("detector_z");
+		break;
+	/* Optics */
+	case 3:
+		break;
+	case 4:
+		selected_axis = std::string("optics_y");
+		break;
+	case 5:
+		break;
+	default:
+		break;
+	}
+
+	double start_first_stage_value{}, step_first_stage_value{}, finish_first_stage_value{};
+	{
+		if (!m_FirstStage->start->GetValue().ToDouble(&start_first_stage_value)) return;
+		if (!m_FirstStage->step->GetValue().ToDouble(&step_first_stage_value)) return;
+		if (!m_FirstStage->finish->GetValue().ToDouble(&finish_first_stage_value)) return;
+	}
+	auto now = std::chrono::system_clock::now();
+	auto cur_time = std::chrono::system_clock::to_time_t(now);
+	std::string time_metadata_filename{};
+	std::string cur_date_and_time{};
+	{
+		std::string cur_date(30, '\0');
+		std::strftime(&cur_date[0], cur_date.size(), "%Y%m%d", std::localtime(&cur_time));
+		cur_date_and_time = cur_date.substr(0, 8); 
+		auto str_time = std::string(std::ctime(&cur_time)).substr(11, 8); // Cut date in format: 20230223
+		auto cur_hours = str_time.substr(0, 2);
+		auto cur_mins = str_time.substr(3, 2);
+		auto cur_secs = str_time.substr(6, 2);
+		time_metadata_filename = cur_hours + std::string("H_") + cur_mins + std::string("M_") + cur_secs + std::string("S");
+		cur_date_and_time += std::string("_") + cur_hours + cur_mins + cur_secs;
+	}
+
+	nlohmann::json main_table{};
+	main_table = 
+	{
+		{"units", "mm"},
+		{"pos_source", 0.000},
+		{"pos_optics", 123.456},
+		{"pos_detector", 234.567},
+		{"first_stage", 
+			{
+				{"title", "optics"}, 
+				{"position", opt_y_pos}
+			}
+		},
+		{"second_stage", 
+			{
+				{"title", "detector_x"}, 
+				{"position", det_x_pos}
+			}
+		},
+		{"third_stage", 
+			{
+				{"title", "detector_y"}, 
+				{"position", det_y_pos}
+			}
+		},
+		{"fourth_stage", 
+			{
+				{"title", "detector_z"}, 
+				{"position", det_z_pos}
+			}
+		},
+		{"measurement", 
+			{
+				{"stage", selected_axis}, 
+				{"start", start_first_stage_value},
+				{"step", step_first_stage_value},
+				{"finish", finish_first_stage_value},
+				{"exposure", 
+					{
+						{"units", "us"}, 
+						{"time", exposure_time}, 
+						{"gain", 1}
+					}
+				},
+				{"date_time", cur_date_and_time}
+			}
+		},
+		{"message", ""}
+	};
+	
+	auto out_dir_with_filename = 
+		m_OutDirTextCtrl->GetValue() + 
+		wxString("\\metadata_") + 
+		wxString(time_metadata_filename) + 
+		wxString(".json");
+	std::ofstream out_file(out_dir_with_filename.ToStdString());
+	if (out_file.is_open())
+	{
+		out_file << main_table;
+		out_file.close();
+	}
+}
+
+bool cMain::Cancelled()
+{
+	wxCriticalSectionLocker lock(m_CSCancelled);
+	return m_Cancelled;
+}
+
+void cMain::OnValueDisplayingCheck(wxCommandEvent& evt)
+{
+	m_IsValueDisplayingChecked = m_MenuBar->menu_tools->IsChecked(MainFrameVariables::ID_MENUBAR_TOOLS_VALUE_DISPLAYING);
+	m_CamPreview->SetValueDisplayingActive(m_IsValueDisplayingChecked);
+}
+
+void cMain::UpdateAllAxisGlobalPositions()
+{
+	/* Detectors */
+	m_X_Detector->absolute_text_ctrl->ChangeValue(wxString::Format(wxT("%.3f"), m_Settings->GetActualDetectorXStagePos()));
+	m_Y_Detector->absolute_text_ctrl->ChangeValue(wxString::Format(wxT("%.3f"), m_Settings->GetActualDetectorYStagePos()));
+	m_Z_Detector->absolute_text_ctrl->ChangeValue(wxString::Format(wxT("%.3f"), m_Settings->GetActualDetectorZStagePos()));
+	/* Optics */
+	m_X_Optics->absolute_text_ctrl->ChangeValue(wxString::Format(wxT("%.3f"), m_Settings->GetActualOpticsXStagePos()));
+	m_Y_Optics->absolute_text_ctrl->ChangeValue(wxString::Format(wxT("%.3f"), m_Settings->GetActualOpticsYStagePos()));
+	m_Z_Optics->absolute_text_ctrl->ChangeValue(wxString::Format(wxT("%.3f"), m_Settings->GetActualOpticsZStagePos()));
+}
+
+void cMain::ExposureValueChanged(wxCommandEvent& evt)
+{
+	//m_XimeaControl->StopAcquisition();
+	//m_XimeaControl->TurnOffLastThread();
+	//m_StopLiveCapturing = true;
+	//if (m_XimeaControl->IsCameraInitialized()) m_XimeaControl->StopAcquisition();	
+
+	{
+		wxString exposure_time_str = m_CamExposure->GetValue().IsEmpty() 
+			? wxString("0") 
+			: m_CamExposure->GetValue();
+		unsigned long exposure_time = abs(wxAtoi(exposure_time_str)); // Because user input is in [ms], we need to recalculate the value to [us]
+		wxThread::This()->Sleep(exposure_time);
+	}
+	//m_StopLiveCapturing = false;
+	StartLiveCapturing();
+}
+
+void cMain::OnStartStopLiveCapturingMenu(wxCommandEvent& evt)
+{
+	if (m_MenuBar->menu_edit->IsChecked(MainFrameVariables::ID_RIGHT_CAM_START_STOP_LIVE_CAPTURING_TGL_BTN))
+	{
+		m_StartStopLiveCapturingTglBtn->SetValue(true);
+	}
+	else
+	{
+		m_StartStopLiveCapturingTglBtn->SetValue(false);
+	}
+	wxCommandEvent art_start_live_pressed(wxEVT_TOGGLEBUTTON, MainFrameVariables::ID_RIGHT_CAM_START_STOP_LIVE_CAPTURING_TGL_BTN);
+	ProcessEvent(art_start_live_pressed);
+}
+
+void cMain::OnStartStopLiveCapturingTglBtn(wxCommandEvent& evt)
+{
+	if (m_StartStopLiveCapturingTglBtn->GetValue())
+	{
+		{
+			//m_StopLiveCapturing = false;
+			StartLiveCapturing();
+		}
+
+		m_StartStopLiveCapturingTglBtn->SetLabel(wxT("Stop Live (L)"));
+		if (!m_MenuBar->menu_edit->IsChecked(MainFrameVariables::ID_RIGHT_CAM_START_STOP_LIVE_CAPTURING_TGL_BTN))
+			m_MenuBar->menu_edit->Check(MainFrameVariables::ID_RIGHT_CAM_START_STOP_LIVE_CAPTURING_TGL_BTN, true);
+	}
+	else
+	{	
+		//m_XimeaControl->StopAcquisition();
+		//m_XimeaControl->TurnOffLastThread();
+		{
+			wxString exposure_time_str = m_CamExposure->GetValue().IsEmpty() 
+				? wxString("0") 
+				: m_CamExposure->GetValue();
+			unsigned long exposure_time = abs(wxAtoi(exposure_time_str)); // Because user input is in [ms], we need to recalculate the value to [us]
+			wxThread::This()->Sleep(exposure_time);
+		}
+		//m_XimeaControl->ClearAllThreads();
+
+		m_StartStopLiveCapturingTglBtn->SetLabel(wxT("Start Live (L)"));
+		if (m_MenuBar->menu_edit->IsChecked(MainFrameVariables::ID_RIGHT_CAM_START_STOP_LIVE_CAPTURING_TGL_BTN))
+			m_MenuBar->menu_edit->Check(MainFrameVariables::ID_RIGHT_CAM_START_STOP_LIVE_CAPTURING_TGL_BTN, false);
+	}
+}
+
+void cMain::OnXPosCrossHairTextCtrl(wxCommandEvent& evt)
+{
+	wxString str_x_pos = m_CrossHairPosXTxtCtrl->IsEmpty() ? wxString("1") : m_CrossHairPosXTxtCtrl->GetValue();
+	int x_pos = wxAtoi(str_x_pos);
+	m_CamPreview->SetXCrossHairPosFromParentWindow(x_pos);
+}
+
+void cMain::OnYPosCrossHairTextCtrl(wxCommandEvent& evt)
+{
+	wxString str_y_pos = m_CrossHairPosYTxtCtrl->IsEmpty() ? wxString("1") : m_CrossHairPosYTxtCtrl->GetValue();
+	int y_pos = wxAtoi(str_y_pos);
+	m_CamPreview->SetYCrossHairPosFromParentWindow(y_pos);
+}
+
+auto cMain::OnSetPosCrossHairTglBtn(wxCommandEvent& evt) -> void
+{
+	if (m_SetCrossHairPosTglBtn->GetValue())
+	{
+		m_CamPreview->SettingCrossHairPosFromParentWindow(true);
+	}
+	else
+	{	
+		m_CamPreview->SettingCrossHairPosFromParentWindow(false);
+	}
+}
+
+void cMain::OnCenterDetectorZ(wxCommandEvent& evt)
+{
+	m_Z_Detector->absolute_text_ctrl->SetValue(
+		wxString::Format(
+			wxT("%.3f"), 
+			m_Settings->CenterDetectorZ()
+		));
+}
+
+void cMain::OnHomeDetectorZ(wxCommandEvent& evt)
+{
+	m_Z_Detector->absolute_text_ctrl->SetValue(
+		wxString::Format(
+			wxT("%.3f"), 
+			m_Settings->HomeDetectorZ()
+		));
+}
+
+void cMain::OnEnterTextCtrlOpticsYAbsPos(wxCommandEvent& evt)
+{
+	wxCommandEvent enter_evt(wxEVT_BUTTON, MainFrameVariables::ID_RIGHT_SC_OPT_Y_SET_BTN);
+	ProcessEvent(enter_evt);
+}
+
+void cMain::OnSetOpticsYAbsPos(wxCommandEvent& evt)
+{
+	double absolute_position{};
+	if (!m_Y_Optics->absolute_text_ctrl->GetValue().ToDouble(&absolute_position)) return;
+	m_Settings->GoToAbsOpticsY((float)absolute_position);
+}
+
+void cMain::OnDecrementOpticsYAbsPos(wxCommandEvent& evt)
+{
+	double delta_position{};
+	if (!m_Y_Optics->relative_text_ctrl->GetValue().ToDouble(&delta_position)) return;
+	m_Y_Optics->absolute_text_ctrl->SetValue(
+		wxString::Format
+		(
+			wxT("%.3f"), 
+			m_Settings->GoOffsetOpticsY(-(float)delta_position)
+		));
+}
+
+void cMain::OnIncrementOpticsYAbsPos(wxCommandEvent& evt)
+{
+	double delta_position{};
+	if (!m_Y_Optics->relative_text_ctrl->GetValue().ToDouble(&delta_position)) return;
+	m_Y_Optics->absolute_text_ctrl->SetValue(
+		wxString::Format
+		(
+			wxT("%.3f"), 
+			m_Settings->GoOffsetOpticsY((float)delta_position)
+		));
+}
+
+void cMain::OnCenterOpticsY(wxCommandEvent& evt)
+{
+	m_Y_Optics->absolute_text_ctrl->SetValue(
+		wxString::Format(
+			wxT("%.3f"), 
+			m_Settings->CenterOpticsY()
+		));
+}
+
+void cMain::OnHomeOpticsY(wxCommandEvent& evt)
+{
+	m_Y_Optics->absolute_text_ctrl->SetValue(
+		wxString::Format(
+			wxT("%.3f"), 
+			m_Settings->HomeOpticsY()
+		));
+}
+
+/* ___ Start Live Capturing Thread ___ */
+LiveCapturing::LiveCapturing
+(
+	cMain* main_frame,
+	cCamPreview* cam_preview_window,
+	//XimeaControl* ximea_control,
+	//const std::string& selected_camera,
+	const int exposure_us
+) 
+	: m_MainFrame(main_frame), 
+	m_CamPreviewWindow(cam_preview_window), 
+	//m_XimeaControl(ximea_control),
+	//m_SelectedCameraSN(selected_camera),
+	m_ExposureUS(exposure_us) {}
+
+wxThread::ExitCode LiveCapturing::Entry()
+{
+	constexpr auto raise_exception_msg = []() 
+	{
+		wxString title = "Connection error";
+		wxMessageBox(
+			wxT
+			(
+				"Current camera can't capture an image."
+				"\nPlease, check if the camera is connected properly and restart the program."
+			),
+			title,
+			wxICON_ERROR);
+	};
+	auto exit_thread = [&]()
+	{
+		//m_XimeaCameraControl.release();
+		//m_XimeaControl = nullptr;
+		//m_MainFrame->LiveCapturingFinishedCapturingAndDrawing(true);
+	};	
+	
+	wxThreadEvent evt(wxEVT_THREAD, MainFrameVariables::ID_THREAD_LIVE_CAPTURING);
+	evt.SetInt(0);
+	wxQueueEvent(m_MainFrame, evt.Clone());
+
+	//m_ThreadID = m_XimeaControl->AppendThread();
+	auto text_id = "ID: " + wxString::Format(wxT("%i"), m_ThreadID);
+	wxLogDebug(text_id);
+
+	//if (!m_XimeaControl->IsCameraConnected())
+	//{	
+	//	if (!m_XimeaControl->TryToReconnectLastSelectedCamera())
+	//	{
+	//		raise_exception_msg();
+	//		evt.SetInt(0);
+	//		wxQueueEvent(m_MainFrame, evt.Clone());
+	//		exit_thread();
+	//		return (wxThread::ExitCode)0;
+	//	}
+	//}
+
+	//m_XimeaControl->SetExposureTime(m_ExposureUS);
+	//m_ImageSize.Set(m_XimeaControl->GetImageWidth(), m_XimeaControl->GetImageHeight());
+
+	if (m_CamPreviewWindow->GetImageSize() != m_ImageSize)
+		m_CamPreviewWindow->SetImageSize(m_ImageSize);
+	auto image_ptr = m_CamPreviewWindow->GetImagePtr();
+	auto short_data_ptr = m_CamPreviewWindow->GetDataPtr();
+
+	m_MainFrame->LiveCapturingFinishedCapturingAndDrawing(false);
+
+	//while (m_MainFrame && m_XimeaControl->GetThreadState(m_ThreadID))
+	//{
+	//	if (m_XimeaControl->IsCameraInitialized())
+	//	{
+	//		if (!m_XimeaControl->IsCameraConnected())
+	//		{
+	//			//raise_exception_msg();
+	//			evt.SetInt(-1);
+	//			wxQueueEvent(m_MainFrame, evt.Clone());
+	//			exit_thread();
+	//			return (wxThread::ExitCode)0;
+	//		}
+
+	//		if (CaptureImage(short_data_ptr, image_ptr) && m_XimeaControl->GetThreadState(m_ThreadID))
+	//		{
+	//			m_CamPreviewWindow->SetCameraCapturedImage();
+	//			evt.SetInt(0);
+	//			wxQueueEvent(m_MainFrame, evt.Clone());
+	//		}
+	//		else
+	//		{
+	//			//raise_exception_msg();
+	//			evt.SetInt(-1);
+	//			wxQueueEvent(m_MainFrame, evt.Clone());
+	//			//raise_exception_msg();
+	//			exit_thread();
+	//			return (wxThread::ExitCode)0;
+	//		}
+	//	}
+	//	else
+	//		wxThread::This()->Sleep(500);
+	//}
+	exit_thread();
+	return (wxThread::ExitCode)0;
+}
+
+auto LiveCapturing::CaptureImage
+(
+	unsigned short* short_data_ptr, 
+	wxImage* image_ptr
+) -> bool
+{
+	unsigned short* data_ptr{};
+	wxLogDebug("1");
+	//if (!m_XimeaControl->GetThreadState(m_ThreadID)) return false;
+	wxLogDebug("2");
+	//data_ptr = m_XimeaControl->GetImage();
+	wxLogDebug("3");
+	if (!data_ptr) return false;
+
+	wxLogDebug("4");
+	//if (!m_XimeaControl->GetThreadState(m_ThreadID)) return false;
+#ifdef USE_MULTITHREAD
+	UpdatePixelsMultithread(data_ptr, image_ptr);
+#else
+	unsigned short current_value{};
+	unsigned char red{}, green{}, blue{};
+	for (auto y{ 0 }; y < m_ImageSize.GetHeight(); ++y)
+	{
+		for (auto x{ 0 }; x < m_ImageSize.GetWidth(); ++x)
+		{
+			current_value = data_ptr[y * m_ImageSize.GetWidth() + x];
+			//short_data_ptr[y * m_ImageSize.GetWidth() + x] = current_value;
+			/* Matlab implementation of JetColormap */
+			/* Because XIMEA camera can produce 12-bit per pixel maximum, we use RGB12bit converter */
+			m_CamPreviewWindow->CalculateMatlabJetColormapPixelRGB12bit(current_value, red, green, blue);
+			image_ptr->SetRGB(x, y, red, green, blue);
+		}
+	}
+#endif
+	wxLogDebug("5");
+	if (!short_data_ptr) return false;
+	//if (!m_XimeaControl->GetThreadState(m_ThreadID)) return false;
+	wxLogDebug("6");
+	memcpy
+	(
+		short_data_ptr, 
+		data_ptr, 
+		sizeof(unsigned short) * m_ImageSize.GetWidth() * m_ImageSize.GetHeight()
+	);
+	if (!short_data_ptr) return false;
+
+	return true;
+}
+
+auto LiveCapturing::UpdatePixelsMultithread
+(
+	unsigned short* short_data_ptr, 
+	wxImage* image_ptr
+) -> void
+{
+	auto numThreads = std::thread::hardware_concurrency();
+	auto tileSize = m_ImageSize.GetHeight() % numThreads > 0 ? m_ImageSize.GetHeight() / numThreads + 1 : m_ImageSize.GetHeight() / numThreads;
+
+	std::vector<std::thread> threads;
+	threads.reserve(numThreads);
+
+	for (auto i{ 0 }; i < numThreads; ++i)
+	{
+		auto start_x = 0;
+		auto start_y = i * tileSize;
+		auto finish_x = m_ImageSize.GetWidth();
+		auto finish_y = (i + 1) * tileSize > m_ImageSize.GetHeight() ? m_ImageSize.GetHeight() : (i + 1) * tileSize;
+
+		threads.emplace_back
+		(
+			std::thread
+			(
+			&LiveCapturing::AdjustImageParts, 
+			this, 
+			&short_data_ptr[start_y * m_ImageSize.GetWidth() + start_x], 
+			image_ptr, 
+			start_x, 
+			start_y, 
+			finish_x, 
+			finish_y
+			)
+		);
+	}
+
+	for (auto& thread : threads)
+	{
+		thread.join();
+	}
+}
+
+auto LiveCapturing::AdjustImageParts
+(
+	const unsigned short* data_ptr, 
+	wxImage* image_ptr,
+	const unsigned int start_x, 
+	const unsigned int start_y, 
+	const unsigned int finish_x, 
+	const unsigned int finish_y
+) -> void
+{
+	if (!data_ptr) return;
+	if (!image_ptr->IsOk()) return;
+	unsigned short current_value{};
+	unsigned char red{}, green{}, blue{};
+	unsigned long long position_in_data_pointer{};
+
+	for (auto y{ start_y }; y < finish_y; ++y)
+	{
+		for (auto x{ start_x }; x < finish_x; ++x)
+		{
+			current_value = data_ptr[position_in_data_pointer];
+			/* Matlab implementation of JetColormap */
+			/* Because XIMEA camera can produce 12-bit per pixel maximum, we use RGB12bit converter */
+			m_CamPreviewWindow->CalculateMatlabJetColormapPixelRGB12bit(current_value, red, green, blue);
+			image_ptr->SetRGB(x, y, red, green, blue);
+			++position_in_data_pointer;
+		}
+	}
+}
+
+LiveCapturing::~LiveCapturing()
+{
+	m_MainFrame = nullptr;
+	m_CamPreviewWindow = nullptr;
+}
+/* ___ End Live Capturing Thread ___ */
+
+/* ___ Start Worker Thread ___ */
+WorkerThread::WorkerThread
+(
+	cMain* main_frame,
+	cSettings* settings, 
+	cCamPreview* camera_preview_panel,
+	//XimeaControl* ximea_control,
+	const wxString& path, 
+	const unsigned long& exp_time_us,
+	MainFrameVariables::AxisMeasurement* first_axis, 
+	MainFrameVariables::AxisMeasurement* second_axis
+) 
+	: 
+	m_MainFrame(main_frame),
+	m_Settings(settings), 
+	m_CameraPreview(camera_preview_panel), 
+	//m_XimeaControl(ximea_control),
+	m_ImagePath(path), 
+	m_ExposureTimeUS(exp_time_us),
+	m_FirstAxis(first_axis), 
+	m_SecondAxis(second_axis)
+{}
+
+WorkerThread::~WorkerThread()
+{
+	m_MainFrame = nullptr;
+	m_Settings = nullptr;
+	m_CameraPreview = nullptr;
+	//m_XimeaControl = nullptr;
+	delete m_FirstAxis;
+	m_FirstAxis = nullptr;
+	delete m_SecondAxis;
+	m_SecondAxis = nullptr;
+}
+
+wxThread::ExitCode WorkerThread::Entry()
+{
+	constexpr auto raise_exception_msg = [](wxString camera_name) 
+	{
+		wxString title = "Connection error";
+		wxMessageBox(
+			wxT
+			(
+				"The " + camera_name + " camera can't capture an image."
+				"\nPlease, check if the " + camera_name + " camera is connected properly and restart the program."
+			),
+			title,
+			wxICON_ERROR);
+	};
+	//auto exit_thread = [&](XimeaControl* cam_control)
+	//{
+	//	m_Settings->SetCurrentProgress(m_FirstAxis->step_number, m_FirstAxis->step_number);
+	//	cam_control = nullptr;
+	//	m_MainFrame->WorkerThreadFinished(true);
+	//};
+
+	m_MainFrame->WorkerThreadFinished(false);
+	m_Settings->SetCurrentProgress(0, m_FirstAxis->step_number);
+
+	auto now = std::chrono::system_clock::now();
+	auto cur_time = std::chrono::system_clock::to_time_t(now);
+	auto str_time = std::string(std::ctime(&cur_time)).substr(11, 8);
+	auto cur_hours = str_time.substr(0, 2);
+	auto cur_mins = str_time.substr(3, 2);
+	auto cur_secs = str_time.substr(6, 2);
+
+	auto cam_preview_data_ptr = m_CameraPreview->GetDataPtr();
+	auto cam_preview_image_ptr = m_CameraPreview->GetImagePtr();
+
+	//if (!m_XimeaControl->IsCameraConnected())
+	//{
+	//	exit_thread(m_XimeaControl);
+	//	return (wxThread::ExitCode)0;
+	//}
+
+	//m_XimeaControl->SetExposureTime(m_ExposureTimeUS);
+
+	float first_axis_rounded_go_to{};
+	float first_axis_position{}, second_axis_position{};
+	for (auto i{ 0 }; i < m_FirstAxis->step_number; ++i)
+	{
+		m_Settings->SetCurrentProgress(i, m_FirstAxis->step_number);
+		/* Here we need to round values, for the correct positioning of motors */
+		first_axis_rounded_go_to = (int)((m_FirstAxis->start + i * m_FirstAxis->step) * 1000.f + .5f) / 1000.f;
+		switch (m_FirstAxis->axis_number)
+		{
+		/* Detector */
+		case 0:
+			first_axis_position = m_Settings->GoToAbsDetectorX(first_axis_rounded_go_to);
+			break;
+		case 1:
+			first_axis_position = m_Settings->GoToAbsDetectorY(first_axis_rounded_go_to);
+			break;
+		case 2:
+			first_axis_position = m_Settings->GoToAbsDetectorZ(first_axis_rounded_go_to);
+			break;
+		/* Optics */
+		case 3:
+			break;
+		case 4:
+			first_axis_position = m_Settings->GoToAbsOpticsY(first_axis_rounded_go_to);
+			break;
+		case 5:
+			break;
+		default:
+			break;
+		}
+
+		/* Take Capture */
+		//if (CaptureAndSaveImage
+		//(
+		//	//m_XimeaControl, 
+		//	cam_preview_data_ptr, 
+		//	cam_preview_image_ptr, 
+		//	i + 1,
+		//	first_axis_position,
+		//	second_axis_position,
+		//	cur_hours,
+		//	cur_mins,
+		//	cur_secs
+		//))
+			/* Update image on CameraPreview Panel */
+		//	m_CameraPreview->SetCameraCapturedImage();
+		//else
+		//{
+		//	raise_exception_msg("XIMEA");
+		//	//exit_thread(m_XimeaControl);
+		//	return (wxThread::ExitCode)0;
+		//}
+
+		/* Update Current Progress */
+		m_Settings->SetCurrentProgress(i, m_FirstAxis->step_number);
+	}
+
+#ifdef ENABLE_SECOND_AXIS
+	switch (m_SecondAxis->axis_number)
+	{
+	/* Detector */
+	case 0:
+		m_Settings->GoToAbsDetectorX(m_FirstAxis->start);
+		break;
+	case 1:
+		m_Settings->GoToAbsDetectorY(m_FirstAxis->start);
+		break;
+	case 2:
+		m_Settings->GoToAbsDetectorZ(m_FirstAxis->start);
+		break;
+	/* Optics */
+	case 3:
+		break;
+	case 4:
+		m_Settings->GoToAbsOpticsY(m_FirstAxis->start);
+		break;
+	case 5:
+		break;
+	default:
+		break;
+	}
+#endif // FALSE
+
+	//exit_thread(m_XimeaControl);
+	return (wxThread::ExitCode)0;
+}
+
+auto WorkerThread::CaptureAndSaveImage
+(
+	const auto& camera_pointer,
+	unsigned short* short_data_ptr, 
+	wxImage* image_ptr,
+	const int& image_number,
+	const float& first_stage_position,
+	const float& second_stage_position,
+	const std::string& hours,
+	const std::string& minutes,
+	const std::string& seconds
+) -> bool
+{
+	auto image_size = wxSize{ (int)camera_pointer->GetImageWidth(), (int)camera_pointer->GetImageHeight() };
+	unsigned short* data_ptr{};
+	data_ptr = camera_pointer->GetImage();
+	//if (camera_pointer->WasAcquisitionStopped()) return false;
+	if (!data_ptr) return false;
+
+	/* Save Image */
+	{
+		cv::Mat cv_img
+		(
+			cv::Size(image_size.GetWidth(), image_size.GetHeight()),
+			CV_16U, 
+			data_ptr, 
+			cv::Mat::AUTO_STEP
+		);
+		std::string first_axis_position_str = std::format("{:.3f}", first_stage_position);
+		std::replace(first_axis_position_str.begin(), first_axis_position_str.end(), '.', '_');
+
+		std::string second_axis_position_str = std::format("{:.3f}", second_stage_position);
+		std::replace(second_axis_position_str.begin(), second_axis_position_str.end(), '.', '_');
+		
+		std::string file_name = std::string(m_ImagePath.mb_str()) + std::string("\\") +
+			std::string("img_");
+		file_name += image_number < 10 ? std::string("0") : std::string("");
+		file_name += std::to_string(image_number) + std::string("_") + 
+			hours + std::string("H_") + 
+			minutes + std::string("M_") + 
+			seconds + std::string("S_") + 
+			std::to_string(m_ExposureTimeUS) + std::string("us") 
+			+ std::string("_1A_") + first_axis_position_str 
+			+ std::string("_2A_") + second_axis_position_str 
+			+ std::string(".tif");
+
+		if (!cv::imwrite(file_name, cv_img)) return false;
+	}
+
+	/* Update Values in CamPreview Panel */
+	{
+		unsigned short current_value{};
+		unsigned char red{}, green{}, blue{};
+		for (auto y{ 0 }; y < image_size.GetHeight(); ++y)
+		{
+			for (auto x{ 0 }; x < image_size.GetWidth(); ++x)
+			{
+				current_value = data_ptr[y * image_size.GetWidth() + x];
+				short_data_ptr[y * image_size.GetWidth() + x] = current_value;
+				/* Matlab implementation of JetColormap */
+				/* Because XIMEA camera can produce 12-bit per pixel maximum, we use RGB12bit converter */
+				m_CameraPreview->CalculateMatlabJetColormapPixelRGB12bit(current_value, red, green, blue);
+				image_ptr->SetRGB(x, y, red, green, blue);
+			}
+		}
+	}
+	return true;
+}
+/* ___ End Worker Thread ___ */
+
+/* ___ Start Progress Thread ___ */
+ProgressThread::ProgressThread(
+	cSettings* settings,
+	cMain* main_frame)
+	: m_Frame(main_frame), m_Settings(settings)
+{}
+
+wxThread::ExitCode ProgressThread::Entry()
+{
+	m_Progress = 0;
+	m_ProgressMsg = "";
+	while (!m_Settings->IsCapturingFinished())
+	{
+		wxThreadEvent calc_event(wxEVT_THREAD, MainFrameVariables::ID_THREAD_PROGRESS_CAPTURING);
+		m_Settings->ProvideProgressInfo(&m_ProgressMsg, &m_Progress);
+
+		calc_event.SetInt(m_Progress);
+		calc_event.SetString(m_ProgressMsg);
+
+		wxQueueEvent(m_Frame, calc_event.Clone());
+
+		wxThread::This()->Sleep(100);
+	}
+	wxThreadEvent evt(wxEVT_THREAD, MainFrameVariables::ID_THREAD_PROGRESS_CAPTURING);
+	evt.SetInt(-1);
+	wxQueueEvent(m_Frame, evt.Clone());
+
+	return (wxThread::ExitCode)0;
+}
+
+ProgressThread::~ProgressThread()
+{
+	m_Frame = nullptr;
+	m_Settings = nullptr;
+}
+/* ___ End Progress Thread ___ */
+
+/* ___ Start ProgressBar ___ */
+BEGIN_EVENT_TABLE(ProgressBar, wxFrame)
+END_EVENT_TABLE()
+
+ProgressBar::ProgressBar(wxWindow* parent, const wxPoint& pos, const wxSize& size)
+	: wxFrame(parent, wxID_ANY, wxT("Progress"), pos, size, wxFRAME_FLOAT_ON_PARENT), m_MainSize(size)
+{
+	CreateProgressBar();
+}
+
+void ProgressBar::UpdateProgressWithMessage(const wxString& msg, const int& progress)
+{
+	m_ProgressPanel->SetProgress(progress);
+	m_ProgressPanel->SetComment(msg);
+}
+
+void ProgressBar::UpdateElapsedTime(const uint64_t& elapsed_seconds)
+{
+	m_ProgressPanel->SetElapsedTime(elapsed_seconds);
+}
+
+void ProgressBar::UpdateEstimatedTime(const int& prgs, const uint64_t& elapsed_seconds)
+{
+	m_ProgressPanel->SetEstimatedTime(prgs, elapsed_seconds);
+}
+
+void ProgressBar::CreateProgressBar()
+{
+	wxSizer* const main_sizer = new wxBoxSizer(wxVERTICAL);
+	m_ProgressPanel = new ProgressPanel(this, m_MainSize);
+	main_sizer->Add(m_ProgressPanel, wxSizerFlags(1).Expand().Border());
+	this->SetBackgroundColour(wxColour(255, 255, 255));
+	SetSizerAndFit(main_sizer);
+}
+
+ProgressBar::~ProgressBar()
+{
+	//m_ProgressPanel->Destroy();
+}
+/* ___ End ProgressBar ___ */
+
+/* ___ Start ProgressPanel ___ */
+BEGIN_EVENT_TABLE(ProgressPanel, wxPanel)
+EVT_PAINT(ProgressPanel::PaintEvent)
+EVT_SIZE(ProgressPanel::OnSize)
+END_EVENT_TABLE()
+
+ProgressPanel::ProgressPanel(
+	wxFrame* parent, const wxSize& size)
+	: wxPanel(parent)
+{
+	this->SetDoubleBuffered(true);
+	this->SetBackgroundColour(wxColour(*wxWHITE));
+
+	this->SetMinSize(size);
+	//SetSize(size);
+	//Refresh();
+}
+
+void ProgressPanel::SetSize(const wxSize& new_size)
+{
+	m_Width = new_size.x;
+	m_Height = new_size.y;
+	Refresh();
+}
+
+void ProgressPanel::SetProgress(const int& progress)
+{
+	m_Progress = progress <= 100 ? progress : 100;
+}
+
+void ProgressPanel::SetElapsedTime(const int& elapsed_time)
+{
+	m_ElapsedTime = elapsed_time;
+
+	m_ElapsedHours = elapsed_time / 3600;
+	m_ElapsedMinutes = elapsed_time / 60 - m_ElapsedHours * 60;
+	m_ElapsedSeconds = elapsed_time - m_ElapsedHours * 3600 - m_ElapsedMinutes * 60;
+}
+
+void ProgressPanel::SetEstimatedTime(const int& progress, const int& elapsed_time)
+{
+	if (progress > 0 && progress != m_PreviousEstimateProgress)
+	{
+		m_EstimatedTime = (double)elapsed_time / (double)progress * 100.0 - elapsed_time;
+		m_PreviousEstimateProgress = progress;
+	}
+	else if (progress == 0)
+	{
+		/* Reset Estimated time variables */
+		m_EstimatedTime = 0;
+		m_PreviousEstimateProgress = 0;
+	}
+
+	Refresh();
+}
+
+void ProgressPanel::SetComment(const wxString& progress_comment)
+{
+	m_ProgressComment = progress_comment;
+}
+
+void ProgressPanel::PaintEvent(wxPaintEvent& evt)
+{
+	wxBufferedPaintDC dc(this);
+	Render(dc);
+}
+
+void ProgressPanel::Render(wxBufferedPaintDC& dc)
+{
+	dc.Clear();
+	wxGraphicsContext* gc{};
+	gc = wxGraphicsContext::Create(dc);
+	if (gc)
+	{
+		int borderWidthProgressRectangle{ 1 };
+		gc->SetPen(wxPen(wxColour(0, 0, 0), borderWidthProgressRectangle));
+		wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+		gc->SetFont(font, *wxBLACK);
+		wxGraphicsPath path = gc->CreatePath();
+
+		wxDouble widthText{}, heightText{};
+		wxString text_01("Progress");
+		gc->GetTextExtent(text_01, &widthText, &heightText);
+
+		wxDouble drawPointXText = this->GetSize().x / 2 - widthText / 2;
+		wxDouble offsetYText{ 10 };
+		wxDouble drawPointYText = offsetYText;
+		gc->DrawText(text_01, drawPointXText, drawPointYText);
+
+		// Progress in percents
+		drawPointYText += heightText + offsetYText;
+		wxString text_progress = wxString::Format(wxT("%i"), m_Progress) + "%";
+		gc->GetTextExtent(text_progress, &widthText, &heightText);
+		drawPointXText = this->GetSize().x / 2 - widthText / 2;
+		gc->DrawText(text_progress, drawPointXText, drawPointYText);
+
+		int leftAndRightOffsetRectangle{ 10 }; // [%]
+		wxPoint startUpperLeftBorderRectangle{ this->GetSize().x * leftAndRightOffsetRectangle / 100, (int)(drawPointYText + heightText + offsetYText) };
+		wxSize sizeBorderRectangle{ this->GetSize().x - this->GetSize().x * leftAndRightOffsetRectangle / 100 * 2, 40 };
+
+		unsigned char red{}, green{}, blue{};
+		green = (unsigned char)(255 * (int)m_Progress / 100);
+		red = 255 - green;
+		wxColour currentRectangleColour{ red, green, blue };
+
+		gc->SetBrush(wxBrush(currentRectangleColour));
+		wxDouble widthProgress = (100 - (wxDouble)m_Progress) * (wxDouble)sizeBorderRectangle.x / 100.0;
+		path.AddRectangle(
+			(wxDouble)startUpperLeftBorderRectangle.x + (wxDouble)sizeBorderRectangle.x - widthProgress,
+			startUpperLeftBorderRectangle.y,
+			widthProgress,
+			(wxDouble)sizeBorderRectangle.y);
+		//gc->FillPath(path);
+
+		path.AddRectangle(
+			startUpperLeftBorderRectangle.x,
+			startUpperLeftBorderRectangle.y,
+			sizeBorderRectangle.x,
+			sizeBorderRectangle.y);
+		// Drawing buffered path
+		gc->DrawPath(path);
+
+		// Progress comment
+		gc->GetTextExtent(m_ProgressComment, &widthText, &heightText);
+		drawPointXText = (wxDouble)startUpperLeftBorderRectangle.x + 5.0;
+		drawPointYText = (wxDouble)startUpperLeftBorderRectangle.y + (wxDouble)sizeBorderRectangle.y + offsetYText;
+		gc->DrawText(m_ProgressComment, drawPointXText, drawPointYText);
+
+		// Elapsed time
+		{
+			wxString elapsed_text("Elapsed time: ");
+			wxString elapsed_hours = m_ElapsedHours >= 10 ? wxString::Format(wxT("%i"), m_ElapsedHours) : wxString::Format(wxT("0%i"), m_ElapsedHours);
+			wxString elapsed_minutes = m_ElapsedMinutes >= 10 ? wxString::Format(wxT("%i"), m_ElapsedMinutes) : wxString::Format(wxT("0%i"), m_ElapsedMinutes);
+			wxString elapsed_seconds = m_ElapsedSeconds >= 10 ? wxString::Format(wxT("%i"), m_ElapsedSeconds) : wxString::Format(wxT("0%i"), m_ElapsedSeconds);
+			elapsed_text += elapsed_hours + ":" + elapsed_minutes + ":" + elapsed_seconds;
+
+			drawPointYText += heightText + offsetYText;
+			gc->GetTextExtent(elapsed_text, &widthText, &heightText);
+			drawPointXText = (wxDouble)startUpperLeftBorderRectangle.x + 5.0;
+			gc->DrawText(elapsed_text, drawPointXText, drawPointYText);
+		}
+
+		delete gc;
+	}
+}
+
+void ProgressPanel::OnSize(wxSizeEvent& evt)
+{
+	int newWidth{ evt.GetSize().x }, newHeight{ evt.GetSize().y };
+	if (newWidth != m_Width || newHeight != m_Height)
+	{
+		m_Width = newWidth;
+		m_Height = newHeight;
+		Refresh();
+	}
+}
+/* ___ End ProgressPanel ___ */
+
