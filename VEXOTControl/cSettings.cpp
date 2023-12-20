@@ -30,43 +30,11 @@ float cSettings::GetActualDetectorXStagePos() const
 	);
 }
 
-bool cSettings::DetectorYHasSerialNumber() const
-{	
-	return m_PhysicalMotors->MotorHasSerialNumber
-	(
-		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[1].ToStdString()
-	);
-}
-
-float cSettings::GetActualDetectorYStagePos() const
-{
-	return m_PhysicalMotors->GetActualStagePos
-	(
-		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[1].ToStdString()
-	);
-}
-
-bool cSettings::DetectorZHasSerialNumber() const
-{
-	return m_PhysicalMotors->MotorHasSerialNumber
-	(
-		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[2].ToStdString()
-	);
-}
-
-float cSettings::GetActualDetectorZStagePos() const
-{
-	return m_PhysicalMotors->GetActualStagePos
-	(
-		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[2].ToStdString()
-	);
-}
-
 bool cSettings::OpticsXHasSerialNumber() const
 {
 	return m_PhysicalMotors->MotorHasSerialNumber
 	(
-		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[3].ToStdString()
+		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[1].ToStdString()
 	);
 }
 
@@ -74,7 +42,7 @@ float cSettings::GetActualOpticsXStagePos() const
 {
 	return m_PhysicalMotors->GetActualStagePos
 	(
-		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[3].ToStdString()
+		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[1].ToStdString()
 	);
 }
 
@@ -82,7 +50,7 @@ bool cSettings::OpticsYHasSerialNumber() const
 {
 	return m_PhysicalMotors->MotorHasSerialNumber
 	(
-		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[4].ToStdString()
+		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[2].ToStdString()
 	);
 }
 
@@ -90,7 +58,7 @@ float cSettings::GetActualOpticsYStagePos() const
 {
 	return m_PhysicalMotors->GetActualStagePos
 	(
-		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[4].ToStdString()
+		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[2].ToStdString()
 	);
 }
 
@@ -98,11 +66,43 @@ bool cSettings::OpticsZHasSerialNumber() const
 {	
 	return m_PhysicalMotors->MotorHasSerialNumber
 	(
-		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[5].ToStdString()
+		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[3].ToStdString()
 	);
 }
 
 float cSettings::GetActualOpticsZStagePos() const
+{
+	return m_PhysicalMotors->GetActualStagePos
+	(
+		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[3].ToStdString()
+	);
+}
+
+bool cSettings::OpticsPitchHasSerialNumber() const
+{	
+	return m_PhysicalMotors->MotorHasSerialNumber
+	(
+		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[4].ToStdString()
+	);
+}
+
+float cSettings::GetActualOpticsPitchStagePos() const
+{
+	return m_PhysicalMotors->GetActualStagePos
+	(
+		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[4].ToStdString()
+	);
+}
+
+bool cSettings::OpticsYawHasSerialNumber() const
+{
+	return m_PhysicalMotors->MotorHasSerialNumber
+	(
+		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[5].ToStdString()
+	);
+}
+
+float cSettings::GetActualOpticsYawStagePos() const
 {
 	return m_PhysicalMotors->GetActualStagePos
 	(

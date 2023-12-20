@@ -127,17 +127,18 @@ public:
 	/* Getters */
 	bool DetectorXHasSerialNumber() const;
 	float GetActualDetectorXStagePos() const;
-	bool DetectorYHasSerialNumber() const;
-	float GetActualDetectorYStagePos() const;
-	bool DetectorZHasSerialNumber() const;
-	float GetActualDetectorZStagePos() const;
 
 	bool OpticsXHasSerialNumber() const;
 	float GetActualOpticsXStagePos() const;
 	bool OpticsYHasSerialNumber() const;
 	float GetActualOpticsYStagePos() const;
 	bool OpticsZHasSerialNumber() const;
-	float GetActualOpticsZStagePos() const;
+	float GetActualOpticsZStagePos() const;	
+	bool OpticsPitchHasSerialNumber() const;
+	float GetActualOpticsPitchStagePos() const;
+	bool OpticsYawHasSerialNumber() const;
+	float GetActualOpticsYawStagePos() const;
+
 
 	/* Progress Getter */
 	bool IsCapturingFinished() const;

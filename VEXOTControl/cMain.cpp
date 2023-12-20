@@ -179,6 +179,18 @@ void cMain::InitDefaultStateWidgets()
 			m_Optics[2].relative_text_ctrl->ChangeValue(wxString::Format(wxT("%.3f"), default_relative_value));
 			//m_Optics[0].DisableAllControls();
 		}
+		/* Pitch */
+		{
+			m_Optics[3].absolute_text_ctrl->ChangeValue(wxString::Format(wxT("%.3f"), default_absolute_value));
+			m_Optics[3].relative_text_ctrl->ChangeValue(wxString::Format(wxT("%.3f"), default_relative_value));
+			//m_Optics[0].DisableAllControls();
+		}
+		/* Yaw */
+		{
+			m_Optics[4].absolute_text_ctrl->ChangeValue(wxString::Format(wxT("%.3f"), default_absolute_value));
+			m_Optics[4].relative_text_ctrl->ChangeValue(wxString::Format(wxT("%.3f"), default_relative_value));
+			//m_Optics[0].DisableAllControls();
+		}
 	}
 
 	/* Disabling Measurement Controls */
@@ -669,6 +681,198 @@ void cMain::CreateSteppersControl(wxPanel* right_side_panel, wxBoxSizer* right_s
 			}
 			z_optics->AddStretchSpacer();
 			optics_static_box_sizer->Add(z_optics, 0, wxEXPAND);
+
+			/* Optics Pitch */
+			wxSizer* const pitch_optics = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Pitch");
+			pitch_optics->AddStretchSpacer();
+			{
+				/* Absolute */
+				{
+					wxSizer* const abs_sizer = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Absolute [mm]");
+					wxFloatingPointValidator<float>	abs_val(3, NULL, wxNUM_VAL_DEFAULT);
+					abs_val.SetMin(-1000.f);
+					abs_val.SetMax(1000.f);
+					m_Optics[3].absolute_text_ctrl = new wxTextCtrl(
+						right_side_panel, 
+						MainFrameVariables::ID_RIGHT_SC_OPT_PITCH_ABS_TE_CTL, 
+						wxT("123.456"), 
+						wxDefaultPosition, 
+						absolute_text_ctrl_size, 
+						wxTE_CENTRE | wxTE_PROCESS_ENTER, 
+						abs_val
+					);
+
+					m_Optics[3].set_btn = new wxButton(
+						right_side_panel, 
+						MainFrameVariables::ID_RIGHT_SC_OPT_PITCH_SET_BTN, 
+						wxT("Set"), 
+						wxDefaultPosition, 
+						set_btn_size);
+					m_Optics[3].set_btn->SetToolTip(wxT("Set the absolute motor position"));
+
+					abs_sizer->Add(m_Optics[3].absolute_text_ctrl, 0, wxALIGN_CENTER);
+					abs_sizer->Add(m_Optics[3].set_btn, 0, wxALIGN_CENTER | wxLEFT, 2);
+					pitch_optics->Add(abs_sizer, 0, wxALIGN_CENTER);
+				}
+
+				/* Relative */
+				{
+					m_Optics[3].decrement_btn = new wxButton(
+						right_side_panel, 
+						MainFrameVariables::ID_RIGHT_SC_OPT_PITCH_DEC_BTN, 
+						wxT("-"), 
+						wxDefaultPosition, 
+						inc_dec_size);
+					m_Optics[3].decrement_btn->SetToolTip(wxT("Decrement distance"));
+					wxFloatingPointValidator<float>	rel_val(3, NULL, wxNUM_VAL_DEFAULT);
+					rel_val.SetMin(-1000.f);
+					rel_val.SetMax(1000.f);
+					m_Optics[3].relative_text_ctrl = new wxTextCtrl(
+						right_side_panel,
+						MainFrameVariables::ID_RIGHT_SC_OPT_PITCH_REL_TE_CTL, 
+						wxT("789.123"), 
+						wxDefaultPosition, 
+						relative_text_ctrl_size, 
+						wxTE_CENTRE, 
+						rel_val
+					);
+					m_Optics[3].increment_btn = new wxButton(
+						right_side_panel, 
+						MainFrameVariables::ID_RIGHT_SC_OPT_PITCH_INC_BTN, 
+						wxT("+"), 
+						wxDefaultPosition, 
+						inc_dec_size);
+					m_Optics[3].increment_btn->SetToolTip(wxT("Increment distance"));
+
+					wxSizer* const rel_sizer = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Relative [mm]");
+					rel_sizer->Add(m_Optics[3].decrement_btn, 0, wxALIGN_CENTER | wxRIGHT, 2);
+					rel_sizer->Add(m_Optics[3].relative_text_ctrl, 0, wxALIGN_CENTER);
+					rel_sizer->Add(m_Optics[3].increment_btn, 0, wxALIGN_CENTER | wxLEFT, 2);
+					pitch_optics->Add(rel_sizer, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, 2);
+				}
+
+				/* Global positioning controls */
+				{
+					m_Optics[3].center_btn = new wxBitmapButton(
+						right_side_panel, 
+						MainFrameVariables::ID_RIGHT_SC_OPT_PITCH_CENTER_BTN, 
+						centerBitmap, 
+						wxDefaultPosition, 
+						inc_dec_size);
+					m_Optics[3].center_btn->SetToolTip(wxT("Go to the center position of motor"));
+					m_Optics[3].home_btn = new wxBitmapButton(
+						right_side_panel, 
+						MainFrameVariables::ID_RIGHT_SC_OPT_PITCH_HOME_BTN, 
+						homeBitmap, 
+						wxDefaultPosition, 
+						inc_dec_size);
+					m_Optics[3].home_btn->SetToolTip(wxT("Go to the home position of motor"));
+
+					wxSizer* const jump_sizer = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Jump");
+					jump_sizer->Add(m_Optics[3].center_btn, 0, wxALIGN_CENTER | wxRIGHT, 2);
+					jump_sizer->Add(m_Optics[3].home_btn, 0, wxALIGN_CENTER);
+
+					pitch_optics->Add(jump_sizer, 0, wxALIGN_CENTER);
+				}
+			}
+			pitch_optics->AddStretchSpacer();
+			optics_static_box_sizer->Add(pitch_optics, 0, wxEXPAND);
+
+			/* Optics Yaw */
+			wxSizer* const yaw_optics = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Yaw");
+			yaw_optics->AddStretchSpacer();
+			{
+				/* Absolute */
+				{
+					wxSizer* const abs_sizer = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Absolute [mm]");
+					wxFloatingPointValidator<float>	abs_val(3, NULL, wxNUM_VAL_DEFAULT);
+					abs_val.SetMin(-1000.f);
+					abs_val.SetMax(1000.f);
+					m_Optics[4].absolute_text_ctrl = new wxTextCtrl(
+						right_side_panel, 
+						MainFrameVariables::ID_RIGHT_SC_OPT_YAW_ABS_TE_CTL, 
+						wxT("123.456"), 
+						wxDefaultPosition, 
+						absolute_text_ctrl_size, 
+						wxTE_CENTRE | wxTE_PROCESS_ENTER, 
+						abs_val
+					);
+
+					m_Optics[4].set_btn = new wxButton(
+						right_side_panel, 
+						MainFrameVariables::ID_RIGHT_SC_OPT_YAW_SET_BTN, 
+						wxT("Set"), 
+						wxDefaultPosition, 
+						set_btn_size);
+					m_Optics[4].set_btn->SetToolTip(wxT("Set the absolute motor position"));
+
+					abs_sizer->Add(m_Optics[4].absolute_text_ctrl, 0, wxALIGN_CENTER);
+					abs_sizer->Add(m_Optics[4].set_btn, 0, wxALIGN_CENTER | wxLEFT, 2);
+					yaw_optics->Add(abs_sizer, 0, wxALIGN_CENTER);
+				}
+
+				/* Relative */
+				{
+					m_Optics[4].decrement_btn = new wxButton(
+						right_side_panel, 
+						MainFrameVariables::ID_RIGHT_SC_OPT_YAW_DEC_BTN, 
+						wxT("-"), 
+						wxDefaultPosition, 
+						inc_dec_size);
+					m_Optics[4].decrement_btn->SetToolTip(wxT("Decrement distance"));
+					wxFloatingPointValidator<float>	rel_val(3, NULL, wxNUM_VAL_DEFAULT);
+					rel_val.SetMin(-1000.f);
+					rel_val.SetMax(1000.f);
+					m_Optics[4].relative_text_ctrl = new wxTextCtrl(
+						right_side_panel,
+						MainFrameVariables::ID_RIGHT_SC_OPT_YAW_REL_TE_CTL, 
+						wxT("789.123"), 
+						wxDefaultPosition, 
+						relative_text_ctrl_size, 
+						wxTE_CENTRE, 
+						rel_val
+					);
+					m_Optics[4].increment_btn = new wxButton(
+						right_side_panel, 
+						MainFrameVariables::ID_RIGHT_SC_OPT_YAW_INC_BTN, 
+						wxT("+"), 
+						wxDefaultPosition, 
+						inc_dec_size);
+					m_Optics[4].increment_btn->SetToolTip(wxT("Increment distance"));
+
+					wxSizer* const rel_sizer = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Relative [mm]");
+					rel_sizer->Add(m_Optics[4].decrement_btn, 0, wxALIGN_CENTER | wxRIGHT, 2);
+					rel_sizer->Add(m_Optics[4].relative_text_ctrl, 0, wxALIGN_CENTER);
+					rel_sizer->Add(m_Optics[4].increment_btn, 0, wxALIGN_CENTER | wxLEFT, 2);
+					yaw_optics->Add(rel_sizer, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, 2);
+				}
+
+				/* Global positioning controls */
+				{
+					m_Optics[4].center_btn = new wxBitmapButton(
+						right_side_panel, 
+						MainFrameVariables::ID_RIGHT_SC_OPT_YAW_CENTER_BTN, 
+						centerBitmap, 
+						wxDefaultPosition, 
+						inc_dec_size);
+					m_Optics[4].center_btn->SetToolTip(wxT("Go to the center position of motor"));
+					m_Optics[4].home_btn = new wxBitmapButton(
+						right_side_panel, 
+						MainFrameVariables::ID_RIGHT_SC_OPT_YAW_HOME_BTN, 
+						homeBitmap, 
+						wxDefaultPosition, 
+						inc_dec_size);
+					m_Optics[4].home_btn->SetToolTip(wxT("Go to the home position of motor"));
+
+					wxSizer* const jump_sizer = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Jump");
+					jump_sizer->Add(m_Optics[4].center_btn, 0, wxALIGN_CENTER | wxRIGHT, 2);
+					jump_sizer->Add(m_Optics[4].home_btn, 0, wxALIGN_CENTER);
+
+					yaw_optics->Add(jump_sizer, 0, wxALIGN_CENTER);
+				}
+			}
+			yaw_optics->AddStretchSpacer();
+			optics_static_box_sizer->Add(yaw_optics, 0, wxEXPAND);
 		}
 		sc_static_box_sizer->Add(optics_static_box_sizer, 0, wxEXPAND);
 	}
@@ -1267,7 +1471,13 @@ void cMain::EnableUsedAndDisableNonUsedMotors()
 	else m_Optics[1].DisableAllControls();
 	/* Optics Z */
 	if (m_Settings->OpticsZHasSerialNumber()) m_Optics[2].EnableAllControls();
-	else m_Optics[2].DisableAllControls();
+	else m_Optics[2].DisableAllControls();	
+	/* Optics Pitch */
+	if (m_Settings->OpticsPitchHasSerialNumber()) m_Optics[3].EnableAllControls();
+	else m_Optics[3].DisableAllControls();	
+	/* Optics Yaw */
+	if (m_Settings->OpticsYawHasSerialNumber()) m_Optics[4].EnableAllControls();
+	else m_Optics[4].DisableAllControls();
 }
 
 void cMain::OnEnterTextCtrlDetectorXAbsPos(wxCommandEvent& evt)
