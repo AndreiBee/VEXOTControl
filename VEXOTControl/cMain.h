@@ -44,22 +44,6 @@ namespace MainFrameVariables
 		ID_RIGHT_SC_DET_X_INC_BTN,
 		ID_RIGHT_SC_DET_X_CENTER_BTN,
 		ID_RIGHT_SC_DET_X_HOME_BTN,
-		/* Detector Y */
-		ID_RIGHT_SC_DET_Y_ABS_TE_CTL,
-		ID_RIGHT_SC_DET_Y_SET_BTN,
-		ID_RIGHT_SC_DET_Y_REL_TE_CTL,
-		ID_RIGHT_SC_DET_Y_DEC_BTN,
-		ID_RIGHT_SC_DET_Y_INC_BTN,
-		ID_RIGHT_SC_DET_Y_CENTER_BTN,
-		ID_RIGHT_SC_DET_Y_HOME_BTN,
-		/* Detector Z */
-		ID_RIGHT_SC_DET_Z_ABS_TE_CTL,
-		ID_RIGHT_SC_DET_Z_SET_BTN,
-		ID_RIGHT_SC_DET_Z_REL_TE_CTL,
-		ID_RIGHT_SC_DET_Z_DEC_BTN,
-		ID_RIGHT_SC_DET_Z_INC_BTN,
-		ID_RIGHT_SC_DET_Z_CENTER_BTN,
-		ID_RIGHT_SC_DET_Z_HOME_BTN,
 		/* Optics X */
 		ID_RIGHT_SC_OPT_X_ABS_TE_CTL,
 		ID_RIGHT_SC_OPT_X_SET_BTN,
@@ -84,6 +68,22 @@ namespace MainFrameVariables
 		ID_RIGHT_SC_OPT_Z_INC_BTN,
 		ID_RIGHT_SC_OPT_Z_CENTER_BTN,
 		ID_RIGHT_SC_OPT_Z_HOME_BTN,
+		/* Optics Pitch */
+		ID_RIGHT_SC_OPT_PITCH_ABS_TE_CTL,
+		ID_RIGHT_SC_OPT_PITCH_SET_BTN,
+		ID_RIGHT_SC_OPT_PITCH_REL_TE_CTL,
+		ID_RIGHT_SC_OPT_PITCH_DEC_BTN,
+		ID_RIGHT_SC_OPT_PITCH_INC_BTN,
+		ID_RIGHT_SC_OPT_PITCH_CENTER_BTN,
+		ID_RIGHT_SC_OPT_PITCH_HOME_BTN,	
+		/* Optics Yaw */
+		ID_RIGHT_SC_OPT_YAW_ABS_TE_CTL,
+		ID_RIGHT_SC_OPT_YAW_SET_BTN,
+		ID_RIGHT_SC_OPT_YAW_REL_TE_CTL,
+		ID_RIGHT_SC_OPT_YAW_DEC_BTN,
+		ID_RIGHT_SC_OPT_YAW_INC_BTN,
+		ID_RIGHT_SC_OPT_YAW_CENTER_BTN,
+		ID_RIGHT_SC_OPT_YAW_HOME_BTN,
 		/* Camera */
 		ID_RIGHT_CAM_EXPOSURE_TE_CTL,
 		ID_RIGHT_CAM_MANUFACTURER_CHOICE,
@@ -180,11 +180,13 @@ namespace MainFrameVariables
 		{
 			motors.Add("None");
 			motors.Add("Detector X");
-			motors.Add("Detector Y");
-			motors.Add("Detector Z");
+			//motors.Add("Detector Y");
+			//motors.Add("Detector Z");
 			motors.Add("Optics X");
 			motors.Add("Optics Y");
 			motors.Add("Optics Z");
+			motors.Add("Optics Pitch");
+			motors.Add("Optics Yaw");
 		};
 
 		void DisableAllControls()
@@ -274,20 +276,6 @@ private:
 	void OnIncrementDetectorXAbsPos(wxCommandEvent& evt);
 	void OnCenterDetectorX(wxCommandEvent& evt);
 	void OnHomeDetectorX(wxCommandEvent& evt);
-	/* Detector Y */
-	void OnEnterTextCtrlDetectorYAbsPos(wxCommandEvent& evt);
-	void OnSetDetectorYAbsPos(wxCommandEvent& evt);
-	void OnDecrementDetectorYAbsPos(wxCommandEvent& evt);
-	void OnIncrementDetectorYAbsPos(wxCommandEvent& evt);
-	void OnCenterDetectorY(wxCommandEvent& evt);
-	void OnHomeDetectorY(wxCommandEvent& evt);
-	/* Detector Z */
-	void OnEnterTextCtrlDetectorZAbsPos(wxCommandEvent& evt);
-	void OnSetDetectorZAbsPos(wxCommandEvent& evt);
-	void OnDecrementDetectorZAbsPos(wxCommandEvent& evt);
-	void OnIncrementDetectorZAbsPos(wxCommandEvent& evt);
-	void OnCenterDetectorZ(wxCommandEvent& evt);
-	void OnHomeDetectorZ(wxCommandEvent& evt);
 	/* Optics Y */
 	void OnEnterTextCtrlOpticsYAbsPos(wxCommandEvent& evt);
 	void OnSetOpticsYAbsPos(wxCommandEvent& evt);
@@ -332,8 +320,8 @@ private:
 	/* Preview Panel */
 	std::unique_ptr<cCamPreview> m_CamPreview{};
 	/* Steppers Control */
-	std::unique_ptr<MainFrameVariables::StepperControl> m_X_Detector{}, m_Y_Detector{}, m_Z_Detector{};
-	std::unique_ptr<MainFrameVariables::StepperControl> m_X_Optics{}, m_Y_Optics{}, m_Z_Optics{};
+	std::unique_ptr<MainFrameVariables::StepperControl[]> m_Detector = std::make_unique<MainFrameVariables::StepperControl[]>(1);
+	std::unique_ptr<MainFrameVariables::StepperControl[]> m_Optics = std::make_unique<MainFrameVariables::StepperControl[]>(5);
 
 	/* Camera */
 	//std::unique_ptr<XimeaControl> m_XimeaControl{};
