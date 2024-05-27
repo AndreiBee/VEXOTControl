@@ -171,8 +171,12 @@ public:
 	/* Progress */
 	void SetCurrentProgress(const int& curr_capturing_num, const int& whole_capturing_num);
 
+	/* KETEK */
+	auto GetSelectedKETEK() const -> wxString { if (m_Ketek) return m_Ketek->selected_device_str; };
+
 	/* Camera */
 	auto GetSelectedCamera() const -> wxString;
+
 private:
 	void CreateMainFrame();
 	void CreateSettings();

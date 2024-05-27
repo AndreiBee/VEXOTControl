@@ -646,7 +646,7 @@ void cSettings::CreateMotorsSelection(wxBoxSizer* panel_sizer)
 	/* Ketek */
 	wxSizer* const ketek_static_box_sizer = new wxStaticBoxSizer(wxHORIZONTAL, main_panel, "&Ketek");
 	{
-		auto ketek_txt_ctrl_size = wxSize(80, 24);
+		auto ketek_txt_ctrl_size = wxSize(140, 24);
 		m_Ketek->device = new wxTextCtrl
 		(
 			main_panel, 

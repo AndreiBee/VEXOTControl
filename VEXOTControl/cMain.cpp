@@ -887,10 +887,24 @@ void cMain::CreateDeviceControls(wxPanel* right_side_panel, wxBoxSizer* right_si
 	wxSizer* const static_box_sizer = new wxStaticBoxSizer(wxVERTICAL, right_side_panel, "&Device");
 	wxSizer* const first_row_sizer = new wxBoxSizer(wxHORIZONTAL);
 	{
-		wxSizer* const box_sizer = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Selected Device");
+		wxSizer* const box_sizer = new wxStaticBoxSizer(wxVERTICAL, right_side_panel, "&Selected Device");
 		{
-			m_SelectedDeviceStaticTXT = std::make_unique<wxStaticText>(right_side_panel, wxID_ANY, wxT("None"));
+			m_DeviceChoice = std::make_unique<wxChoice>(right_side_panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_DeviceArrayString);
+			m_DeviceChoice->SetSelection(0);
+			m_DeviceChoice->Disable();
 			box_sizer->AddStretchSpacer();
+			box_sizer->Add(m_DeviceChoice.get(), 0, wxCENTER | wxBOTTOM, 4);
+
+			auto txt_ctrl_size = wxSize(60, 24);
+			m_SelectedDeviceStaticTXT = std::make_unique<wxTextCtrl>
+				(
+					right_side_panel, 
+					wxID_ANY, 
+					wxT("None"),
+					wxDefaultPosition,
+					txt_ctrl_size,
+					wxTE_CENTRE | wxTE_READONLY
+				);
 			box_sizer->Add(m_SelectedDeviceStaticTXT.get(), 0, wxCENTER);
 			box_sizer->AddStretchSpacer();
 		}
@@ -898,15 +912,15 @@ void cMain::CreateDeviceControls(wxPanel* right_side_panel, wxBoxSizer* right_si
 
 		wxSizer* const settings_static_box_sizer = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Settings");
 		{
-			wxSizer* const exposure_static_box_sizer = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Exposure [ms]");
+			wxSizer* const exposure_static_box_sizer = new wxStaticBoxSizer(wxVERTICAL, right_side_panel, "&Exposure [ms]");
 
 			wxIntegerValidator<int>	exposure_val(NULL, wxNUM_VAL_ZERO_AS_BLANK);
 			exposure_val.SetMin(1);
 			exposure_val.SetMax(1000000);
 
-			wxSize exposure_size = { 64, 20 };
+			wxSize exposure_size = { 64, 24 };
 
-			m_CamExposure = std::make_unique<wxTextCtrl>
+			m_DeviceExposure = std::make_unique<wxTextCtrl>
 				(
 					right_side_panel, 
 					MainFrameVariables::ID_RIGHT_CAM_EXPOSURE_TE_CTL, 
@@ -918,12 +932,12 @@ void cMain::CreateDeviceControls(wxPanel* right_side_panel, wxBoxSizer* right_si
 				);
 
 			exposure_static_box_sizer->AddStretchSpacer();
-			exposure_static_box_sizer->Add(m_CamExposure.get(), 0, wxEXPAND);
+			exposure_static_box_sizer->Add(m_DeviceExposure.get(), 0, wxEXPAND);
 			exposure_static_box_sizer->AddStretchSpacer();
 
 			settings_static_box_sizer->Add(exposure_static_box_sizer, 0, wxEXPAND);
 		}
-		first_row_sizer->Add(settings_static_box_sizer, 0, wxEXPAND | wxLEFT, 2);
+		first_row_sizer->Add(settings_static_box_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, 2);
 
 		/* Preview And Start\Stop Live Capturing */
 		{
@@ -1291,18 +1305,18 @@ void cMain::OnSingleShotCameraImage(wxCommandEvent& evt)
 	};
 
 	wxBusyCursor busy_cursor{};
-	wxString exposure_time_str = m_CamExposure->GetValue().IsEmpty() 
+	wxString exposure_time_str = m_DeviceExposure->GetValue().IsEmpty() 
 		? wxString("0") 
-		: m_CamExposure->GetValue();
+		: m_DeviceExposure->GetValue();
 	int exposure_time = abs(wxAtoi(exposure_time_str)) * 1000; // Because user input is in [ms], we need to recalculate exposure time to [us]
 
 	auto start_live_capturing_after_ss = m_StartStopLiveCapturingTglBtn->GetValue();
 
 	if (m_StartStopLiveCapturingTglBtn->GetValue())
 	{
-		wxString exposure_time_str = m_CamExposure->GetValue().IsEmpty() 
+		wxString exposure_time_str = m_DeviceExposure->GetValue().IsEmpty() 
 			? wxString("0") 
-			: m_CamExposure->GetValue();
+			: m_DeviceExposure->GetValue();
 		unsigned long exposure_time = abs(wxAtoi(exposure_time_str)); // Because user input is in [ms], we need to recalculate the value to [us]
 		wxThread::This()->Sleep(exposure_time);
 	}
@@ -1312,9 +1326,9 @@ void cMain::OnSingleShotCameraImage(wxCommandEvent& evt)
 		//{
 		//	wxThread::This()->Sleep(10);
 		//}
-		wxString exposure_time_str = m_CamExposure->GetValue().IsEmpty() 
+		wxString exposure_time_str = m_DeviceExposure->GetValue().IsEmpty() 
 			? wxString("0") 
-			: m_CamExposure->GetValue();
+			: m_DeviceExposure->GetValue();
 		unsigned long exposure_time = abs(wxAtoi(exposure_time_str)) * 1000; // Because user input is in [ms], we need to recalculate the value to [us]
 
 		auto now = std::chrono::system_clock::now();
@@ -1377,6 +1391,7 @@ void cMain::OnOpenSettings(wxCommandEvent& evt)
 		//InitializeSelectedCamera();
 		UpdateStagePositions();
 		EnableUsedAndDisableNonUsedMotors();	
+		InitializeSelectedDevice();
 	}
 }
 
@@ -1390,6 +1405,13 @@ auto cMain::InitializeSelectedCamera() -> void
 	m_StartStopLiveCapturingTglBtn->SetValue(true);
 	wxCommandEvent art_start_live_capturing(wxEVT_TOGGLEBUTTON, MainFrameVariables::ID_RIGHT_CAM_START_STOP_LIVE_CAPTURING_TGL_BTN);
 	ProcessEvent(art_start_live_capturing);
+}
+
+auto cMain::InitializeSelectedDevice() -> void
+{
+	/* Ketek */
+	if (m_DeviceChoice->GetString(m_DeviceChoice->GetSelection()) == "KETEK")
+		m_SelectedDeviceStaticTXT->SetValue(m_Settings->GetSelectedKETEK());
 }
 
 void cMain::OnFullScreen(wxCommandEvent& evt)
@@ -1435,9 +1457,9 @@ void cMain::OnExit(wxCloseEvent& evt)
 	//m_XimeaControl->StopAcquisition();
 	//m_XimeaControl->TurnOffLastThread();
 	{
-		wxString exposure_time_str = m_CamExposure->GetValue().IsEmpty() 
+		wxString exposure_time_str = m_DeviceExposure->GetValue().IsEmpty() 
 			? wxString("0") 
-			: m_CamExposure->GetValue();
+			: m_DeviceExposure->GetValue();
 		unsigned long exposure_time = abs(wxAtoi(exposure_time_str)); // Because user input is in [ms], we need to recalculate the value to [us]
 		wxThread::This()->Sleep(exposure_time);
 	}
@@ -1707,9 +1729,9 @@ void cMain::OnStartCapturingButton(wxCommandEvent& evt)
 		//m_XimeaControl->StopAcquisition();
 		//m_XimeaControl->TurnOffLastThread();
 		{
-			wxString exposure_time_str = m_CamExposure->GetValue().IsEmpty()
+			wxString exposure_time_str = m_DeviceExposure->GetValue().IsEmpty()
 				? wxString("0")
-				: m_CamExposure->GetValue();
+				: m_DeviceExposure->GetValue();
 			unsigned long exposure_time = abs(wxAtoi(exposure_time_str)); // Because user input is in [ms], we need to recalculate the value to [us]
 			wxThread::This()->Sleep(exposure_time);
 		}
@@ -1782,9 +1804,9 @@ void cMain::OnStartCapturingButton(wxCommandEvent& evt)
 	{
 		auto out_dir = m_OutDirTextCtrl->GetValue();
 
-		wxString exposure_time_str = m_CamExposure->GetValue().IsEmpty() 
+		wxString exposure_time_str = m_DeviceExposure->GetValue().IsEmpty() 
 			? wxString("0") 
-			: m_CamExposure->GetValue();
+			: m_DeviceExposure->GetValue();
 		unsigned long exposure_time = abs(wxAtoi(exposure_time_str)) * 1000; // Because user input is in [ms], we need to recalculate the value to [us]
 
 		WorkerThread* worker_thread = new WorkerThread
@@ -1831,9 +1853,9 @@ void cMain::OnStartCapturingButton(wxCommandEvent& evt)
 
 void cMain::StartLiveCapturing()
 {
-	wxString exposure_time_str = m_CamExposure->GetValue().IsEmpty() 
+	wxString exposure_time_str = m_DeviceExposure->GetValue().IsEmpty() 
 		? wxString("0") 
-		: m_CamExposure->GetValue();
+		: m_DeviceExposure->GetValue();
 	unsigned long exposure_time = abs(wxAtoi(exposure_time_str)) * 1000; // Because user input is in [ms], we need to recalculate the value to [us]
 	//m_XimeaControl->SetExposureTime(exposure_time);
 
@@ -1848,7 +1870,7 @@ void cMain::StartLiveCapturing()
 		exposure_time
 	);
 
-	if (live_capturing->Create() != wxTHREAD_NO_ERROR)
+	if (live_capturing->Create(wxTHREAD_DETACHED) != wxTHREAD_NO_ERROR)
 	{
 		delete live_capturing;
 		live_capturing = nullptr;
@@ -1944,9 +1966,9 @@ void cMain::UpdateProgress(wxThreadEvent& evt)
 
 auto cMain::CreateMetadataFile() -> void
 {
-	wxString exposure_time_str = m_CamExposure->GetValue().IsEmpty() 
+	wxString exposure_time_str = m_DeviceExposure->GetValue().IsEmpty() 
 		? wxString("0") 
-		: m_CamExposure->GetValue();
+		: m_DeviceExposure->GetValue();
 	unsigned long exposure_time = abs(wxAtoi(exposure_time_str)) * 1000; // Because user input is in [ms], we need to recalculate the value to [us]
 
 	double det_x_pos{}, det_y_pos{}, det_z_pos{};
@@ -2101,9 +2123,9 @@ void cMain::ExposureValueChanged(wxCommandEvent& evt)
 	//if (m_XimeaControl->IsCameraInitialized()) m_XimeaControl->StopAcquisition();	
 
 	{
-		wxString exposure_time_str = m_CamExposure->GetValue().IsEmpty() 
+		wxString exposure_time_str = m_DeviceExposure->GetValue().IsEmpty() 
 			? wxString("0") 
-			: m_CamExposure->GetValue();
+			: m_DeviceExposure->GetValue();
 		unsigned long exposure_time = abs(wxAtoi(exposure_time_str)); // Because user input is in [ms], we need to recalculate the value to [us]
 		wxThread::This()->Sleep(exposure_time);
 	}
@@ -2143,9 +2165,9 @@ void cMain::OnStartStopLiveCapturingTglBtn(wxCommandEvent& evt)
 		//m_XimeaControl->StopAcquisition();
 		//m_XimeaControl->TurnOffLastThread();
 		{
-			wxString exposure_time_str = m_CamExposure->GetValue().IsEmpty() 
+			wxString exposure_time_str = m_DeviceExposure->GetValue().IsEmpty() 
 				? wxString("0") 
-				: m_CamExposure->GetValue();
+				: m_DeviceExposure->GetValue();
 			unsigned long exposure_time = abs(wxAtoi(exposure_time_str)); // Because user input is in [ms], we need to recalculate the value to [us]
 			wxThread::This()->Sleep(exposure_time);
 		}

@@ -256,6 +256,7 @@ private:
 
 	void OnOpenSettings(wxCommandEvent& evt);
 	auto InitializeSelectedCamera() -> void;
+	auto InitializeSelectedDevice() -> void;
 	void UpdateStagePositions();
 	void EnableUsedAndDisableNonUsedMotors();
 
@@ -323,12 +324,15 @@ private:
 	std::unique_ptr<MainFrameVariables::StepperControl[]> m_Detector = std::make_unique<MainFrameVariables::StepperControl[]>(1);
 	std::unique_ptr<MainFrameVariables::StepperControl[]> m_Optics = std::make_unique<MainFrameVariables::StepperControl[]>(5);
 
-	/* Camera */
+	/* Device */
 	//std::unique_ptr<XimeaControl> m_XimeaControl{};
-	std::unique_ptr<wxTextCtrl> m_CamExposure{};
-	std::unique_ptr<wxStaticText> m_SelectedDeviceStaticTXT{};
+	std::unique_ptr<wxChoice> m_DeviceChoice{};
+	wxArrayString m_DeviceArrayString{ "KETEK", "Raspberry", "xPIN" };
+	std::unique_ptr<wxTextCtrl> m_SelectedDeviceStaticTXT{};
+	std::unique_ptr<wxTextCtrl> m_DeviceExposure{};
 	std::unique_ptr<wxButton> m_SingleShotBtn{};
 	std::unique_ptr<wxToggleButton> m_StartStopLiveCapturingTglBtn{};
+	/* CrossHair */
 	std::unique_ptr<wxTextCtrl> m_CrossHairPosXTxtCtrl{}, m_CrossHairPosYTxtCtrl{};
 	std::unique_ptr<wxToggleButton> m_SetCrossHairPosTglBtn{};
 

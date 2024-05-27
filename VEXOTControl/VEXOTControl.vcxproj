@@ -113,13 +113,13 @@
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(OPENCV)\..\..\include;$(WXWIN323)\include; $(WXWIN323)\include\msvc;$(ProjectDir)src\third_libs\rapidxml;$(XIMC);</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(OPENCV_DIR)\..\..\include;$(WXWIN_LATEST)\include; $(WXWIN_LATEST)\include\msvc;$(ProjectDir)src\third_libs\rapidxml;$(XIMC);</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(OPENCV)\lib;$(WXWIN323)\lib\vc_x64_lib;$(XIMC)\win64;</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opencv_world480d.lib;libximc.lib;bindy.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OPENCV_DIR)\lib;$(WXWIN_LATEST)\lib\vc_x64_lib;$(XIMC)\win64;</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opencv_world454d.lib;libximc.lib;bindy.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -131,15 +131,15 @@
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(OPENCV)\..\..\include;$(WXWIN323)\include; $(WXWIN323)\include\msvc;$(ProjectDir)src\third_libs\rapidxml;$(XIMC);</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(OPENCV_DIR)\..\..\include;$(WXWIN_LATEST)\include; $(WXWIN_LATEST)\include\msvc;$(ProjectDir)src\third_libs\rapidxml;$(XIMC);</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(OPENCV)\lib;$(WXWIN323)\lib\vc_x64_lib;$(XIMC)\win64;</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opencv_world480.lib;libximc.lib;bindy.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OPENCV_DIR)\lib;$(WXWIN_LATEST)\lib\vc_x64_lib;$(XIMC)\win64;</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opencv_world454.lib;libximc.lib;bindy.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -148,6 +148,7 @@
     <ClInclude Include="cMain.h" />
     <ClInclude Include="cPreviewTools.h" />
     <ClInclude Include="cSettings.h" />
+    <ClInclude Include="Ketek.h" />
     <ClInclude Include="Motor.h" />
   </ItemGroup>
   <ItemGroup>
@@ -156,6 +157,7 @@
     <ClCompile Include="cMain.cpp" />
     <ClCompile Include="cPreviewTools.cpp" />
     <ClCompile Include="cSettings.cpp" />
+    <ClCompile Include="Ketek.cpp" />
     <ClCompile Include="Motor.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
