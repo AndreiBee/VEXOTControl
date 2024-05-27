@@ -14,7 +14,7 @@
 
 #include "json.hpp"
 
-#include "cCamPreview.h"
+#include "cPreviewPanel.h"
 #include "cSettings.h"
 
 #include "src/img/cross_hair.xpm"
@@ -238,7 +238,7 @@ private:
 	void CreateLeftSide(wxSizer* left_side_sizer);
 	void CreateRightSide(wxSizer* right_side_sizer);
 	void CreateSteppersControl(wxPanel* right_side_panel, wxBoxSizer* right_side_panel_sizer);
-	void CreateCameraControls(wxPanel* right_side_panel, wxBoxSizer* right_side_panel_sizer);
+	void CreateDeviceControls(wxPanel* right_side_panel, wxBoxSizer* right_side_panel_sizer);
 	void CreateMeasurement(wxPanel* right_side_panel, wxBoxSizer* right_side_panel_sizer);
 
 	auto OnEnableDarkMode(wxCommandEvent& evt) -> void;
@@ -318,7 +318,7 @@ private:
 	/* Tool Bar */
 	std::unique_ptr<MainFrameVariables::ToolBar> m_VerticalToolBar{};
 	/* Preview Panel */
-	std::unique_ptr<cCamPreview> m_CamPreview{};
+	std::unique_ptr<cPreviewPanel> m_PreviewPanel{};
 	/* Steppers Control */
 	std::unique_ptr<MainFrameVariables::StepperControl[]> m_Detector = std::make_unique<MainFrameVariables::StepperControl[]>(1);
 	std::unique_ptr<MainFrameVariables::StepperControl[]> m_Optics = std::make_unique<MainFrameVariables::StepperControl[]>(5);
@@ -326,7 +326,7 @@ private:
 	/* Camera */
 	//std::unique_ptr<XimeaControl> m_XimeaControl{};
 	std::unique_ptr<wxTextCtrl> m_CamExposure{};
-	std::unique_ptr<wxStaticText> m_SelectedCameraStaticTXT{};
+	std::unique_ptr<wxStaticText> m_SelectedDeviceStaticTXT{};
 	std::unique_ptr<wxButton> m_SingleShotBtn{};
 	std::unique_ptr<wxToggleButton> m_StartStopLiveCapturingTglBtn{};
 	std::unique_ptr<wxTextCtrl> m_CrossHairPosXTxtCtrl{}, m_CrossHairPosYTxtCtrl{};
@@ -370,13 +370,13 @@ private:
 /* ___ End cMain ___ */
 
 /* ___ Start Live Capturing Theread ___ */
-class LiveCapturing final: public wxThreadHelper
+class LiveCapturing final: public wxThread
 {
 public:
 	LiveCapturing
 	(
 		cMain* main_frame,
-		cCamPreview* cam_preview_window,
+		cPreviewPanel* cam_preview_window,
 		//XimeaControl* ximea_control,
 		//const std::string& selected_camera,
 		const int exposure_us
@@ -408,7 +408,7 @@ private:
 
 private:
 	cMain* m_MainFrame{};
-	cCamPreview* m_CamPreviewWindow{};
+	cPreviewPanel* m_CamPreviewWindow{};
 	//XimeaControl* m_XimeaControl{};
 	//std::string m_SelectedCameraSN{};
 	int m_ExposureUS{};
@@ -419,14 +419,14 @@ private:
 /* ___ End Worker Thread ___ */
 
 /* ___ Start Worker Theread ___ */
-class WorkerThread final: public wxThreadHelper
+class WorkerThread final: public wxThread
 {
 public:
 	WorkerThread
 	(
 		cMain* main_frame,
 		cSettings* settings, 
-		cCamPreview* camera_preview_panel,
+		cPreviewPanel* camera_preview_panel,
 		//XimeaControl* ximea_control,
 		const wxString& path, 
 		const unsigned long& exp_time_us,
@@ -455,7 +455,7 @@ private:
 private:
 	cMain* m_MainFrame{};
 	cSettings* m_Settings{};
-	cCamPreview* m_CameraPreview{};
+	cPreviewPanel* m_PreviewPanel{};
 	//XimeaControl* m_XimeaControl{};
 	wxString m_ImagePath{};
 	unsigned long m_ExposureTimeUS{};
@@ -464,7 +464,7 @@ private:
 /* ___ End Worker Thread ___ */
 
 /* ___ Start Progress Thread ___ */
-class ProgressThread final : public wxThreadHelper
+class ProgressThread final : public wxThread
 {
 public:
 	ProgressThread(cSettings* settings, cMain* main_frame);

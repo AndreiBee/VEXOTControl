@@ -1,6 +1,6 @@
 #pragma once
-#ifndef CCAM_PREVIEW_H
-#define CCAM_PREVIEW_H
+#ifndef CPREVIEWPANEL_H
+#define CPREVIEWPANEL_H
 
 #include "wx/wx.h"
 #include "wx/dcbuffer.h"
@@ -18,12 +18,14 @@
 #include "cPreviewTools.h"
 //#include "XimeaControl.h"
 
-namespace CameraPreviewVariables
+namespace PreviewPanelVariables
 {
-	enum 
+	enum Device
 	{
-		MORAVIAN_INSTRUMENTS_CAM,
-		XIMEA_CAM,
+		XPIN,
+		KETEK,
+		TIMEPIX_ADVACAM,
+		FLI_CAMERA
 	};
 
 	struct InputPreviewPanelArgs
@@ -42,14 +44,14 @@ namespace CameraPreviewVariables
 	};
 }
 
-class cCamPreview final : public wxPanel
+class cPreviewPanel final : public wxPanel
 {
 public:
-	cCamPreview
+	cPreviewPanel
 	(
 		wxFrame* parent_frame, 
 		wxSizer* parent_sizer, 
-		std::unique_ptr<CameraPreviewVariables::InputPreviewPanelArgs> input_preview_panel_args
+		std::unique_ptr<PreviewPanelVariables::InputPreviewPanelArgs> input_preview_panel_args
 	);
 	auto SetBackgroundColor(wxColour bckg_colour) -> void;
 	auto SetCrossHairButtonActive(bool activate = false) -> void;
@@ -150,10 +152,10 @@ private:
 
 	bool m_DisplayPixelValues{};
 
-	std::unique_ptr<CameraPreviewVariables::InputPreviewPanelArgs> m_ParentArguments{};
+	std::unique_ptr<PreviewPanelVariables::InputPreviewPanelArgs> m_ParentArguments{};
 
 	DECLARE_EVENT_TABLE();
 };
 
-#endif // !CCAM_PREVIEW_H
+#endif // !CPREVIEWPANEL_H
 

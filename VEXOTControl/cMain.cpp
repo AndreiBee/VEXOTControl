@@ -146,8 +146,11 @@ void cMain::CreateMenuBarOnFrame()
 void cMain::InitDefaultStateWidgets()
 {
 	m_MenuBar->menu_tools->Check(MainFrameVariables::ID_MENUBAR_TOOLS_VALUE_DISPLAYING, true);
-	m_CamPreview->SetValueDisplayingActive(true);
+	m_PreviewPanel->SetValueDisplayingActive(true);
 	m_IsValueDisplayingChecked = true;
+
+	m_MenuBar->menu_tools->Enable(MainFrameVariables::ID_MENUBAR_TOOLS_CROSSHAIR, false);
+	m_VerticalToolBar->tool_bar->EnableTool(MainFrameVariables::ID_MENUBAR_TOOLS_CROSSHAIR, false);
 
 	float default_absolute_value{ 0.0f }, default_relative_value{ 1.0f };
 	/* Default Detector Widgets */
@@ -243,14 +246,14 @@ void cMain::CreateLeftAndRightSide()
 void cMain::CreateLeftSide(wxSizer* left_side_sizer)
 {
 	left_side_sizer->Add(m_VerticalToolBar->tool_bar, 0, wxEXPAND);
-	auto input_args = std::make_unique<CameraPreviewVariables::InputPreviewPanelArgs>
+	auto input_args = std::make_unique<PreviewPanelVariables::InputPreviewPanelArgs>
 		(
 			m_CrossHairPosXTxtCtrl.get(),
 			m_CrossHairPosYTxtCtrl.get(),
 			m_SetCrossHairPosTglBtn.get()
 			);
 
-	m_CamPreview = std::make_unique<cCamPreview>
+	m_PreviewPanel = std::make_unique<cPreviewPanel>
 		(
 		this, 
 		left_side_sizer, 
@@ -270,7 +273,7 @@ void cMain::CreateRightSide(wxSizer* right_side_sizer)
 	wxBoxSizer* right_side_panel_sizer = new wxBoxSizer(wxVERTICAL);
 
 	CreateSteppersControl(m_RightSidePanel, right_side_panel_sizer);
-	CreateCameraControls(m_RightSidePanel, right_side_panel_sizer);
+	CreateDeviceControls(m_RightSidePanel, right_side_panel_sizer);
 	CreateMeasurement(m_RightSidePanel, right_side_panel_sizer);
 
 	m_RightSidePanel->SetSizer(right_side_panel_sizer);
@@ -879,19 +882,19 @@ void cMain::CreateSteppersControl(wxPanel* right_side_panel, wxBoxSizer* right_s
 	right_side_panel_sizer->Add(sc_static_box_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, 2);
 }
 
-void cMain::CreateCameraControls(wxPanel* right_side_panel, wxBoxSizer* right_side_panel_sizer)
+void cMain::CreateDeviceControls(wxPanel* right_side_panel, wxBoxSizer* right_side_panel_sizer)
 {
-	wxSizer* const cam_static_box_sizer = new wxStaticBoxSizer(wxVERTICAL, right_side_panel, "&Camera");
+	wxSizer* const static_box_sizer = new wxStaticBoxSizer(wxVERTICAL, right_side_panel, "&Device");
 	wxSizer* const first_row_sizer = new wxBoxSizer(wxHORIZONTAL);
 	{
-		wxSizer* const selected_camera_box_sizer = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Selected Camera");
+		wxSizer* const box_sizer = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Selected Device");
 		{
-			m_SelectedCameraStaticTXT = std::make_unique<wxStaticText>(right_side_panel, wxID_ANY, wxT("None"));
-			selected_camera_box_sizer->AddStretchSpacer();
-			selected_camera_box_sizer->Add(m_SelectedCameraStaticTXT.get(), 0, wxCENTER);
-			selected_camera_box_sizer->AddStretchSpacer();
+			m_SelectedDeviceStaticTXT = std::make_unique<wxStaticText>(right_side_panel, wxID_ANY, wxT("None"));
+			box_sizer->AddStretchSpacer();
+			box_sizer->Add(m_SelectedDeviceStaticTXT.get(), 0, wxCENTER);
+			box_sizer->AddStretchSpacer();
 		}
-		first_row_sizer->Add(selected_camera_box_sizer, 0, wxEXPAND);
+		first_row_sizer->Add(box_sizer, 0, wxEXPAND);
 
 		wxSizer* const settings_static_box_sizer = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Settings");
 		{
@@ -947,7 +950,7 @@ void cMain::CreateCameraControls(wxPanel* right_side_panel, wxBoxSizer* right_si
 			first_row_sizer->Add(ss_and_start_stop_box_sizer, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, 2);
 		}
 	}
-	cam_static_box_sizer->Add(first_row_sizer, 0, wxEXPAND);
+	static_box_sizer->Add(first_row_sizer, 0, wxEXPAND);
 
 	wxSizer* const second_row_sizer = new wxBoxSizer(wxHORIZONTAL);
 	{
@@ -1008,9 +1011,9 @@ void cMain::CreateCameraControls(wxPanel* right_side_panel, wxBoxSizer* right_si
 		}
 		second_row_sizer->Add(cross_hair_sizer, 1, wxEXPAND);
 	}
-	cam_static_box_sizer->Add(second_row_sizer, 0, wxEXPAND);
+	static_box_sizer->Add(second_row_sizer, 0, wxEXPAND);
 
-	right_side_panel_sizer->Add(cam_static_box_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, 2);
+	right_side_panel_sizer->Add(static_box_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, 2);
 }
 
 void cMain::CreateMeasurement(wxPanel* right_side_panel, wxBoxSizer* right_side_panel_sizer)
@@ -1245,7 +1248,7 @@ auto cMain::OnEnableDarkMode(wxCommandEvent& evt) -> void
 {
 	if (m_MenuBar->menu_edit->IsChecked(MainFrameVariables::ID_MENUBAR_EDIT_ENABLE_DARK_MODE))
 	{
-		m_CamPreview->SetBackgroundColor(m_BlackAppearenceColor);
+		m_PreviewPanel->SetBackgroundColor(m_BlackAppearenceColor);
 		wxColour normalized_black = wxColour(100, 100, 100);
 		m_VerticalToolBar->tool_bar->SetBackgroundColour(normalized_black);
 		wxColour nb_color = wxColour(normalized_black.Red() + 40, normalized_black.Green() + 40, normalized_black.Blue() + 40);
@@ -1253,7 +1256,7 @@ auto cMain::OnEnableDarkMode(wxCommandEvent& evt) -> void
 	}
 	else
 	{
-		m_CamPreview->SetBackgroundColor(m_DefaultAppearenceColor);
+		m_PreviewPanel->SetBackgroundColor(m_DefaultAppearenceColor);
 
 		m_VerticalToolBar->tool_bar->SetBackgroundColour(m_DefaultAppearenceColor);
 		m_RightSidePanel->SetBackgroundColour(m_DefaultAppearenceColor);
@@ -1367,7 +1370,7 @@ void cMain::OnSetOutDirectoryBtn(wxCommandEvent& evt)
 
 void cMain::OnOpenSettings(wxCommandEvent& evt)
 {
-	m_CamPreview->SetFocus();
+	m_PreviewPanel->SetFocus();
 	m_Settings->ShowModal();
 	if (!m_Settings->IsActive())
 	{
@@ -1382,7 +1385,7 @@ auto cMain::InitializeSelectedCamera() -> void
 	auto curr_camera = m_Settings->GetSelectedCamera();
 	if (curr_camera == "None") return;
 
-	m_SelectedCameraStaticTXT->SetLabel(curr_camera);	
+	m_SelectedDeviceStaticTXT->SetLabel(curr_camera);	
 
 	m_StartStopLiveCapturingTglBtn->SetValue(true);
 	wxCommandEvent art_start_live_capturing(wxEVT_TOGGLEBUTTON, MainFrameVariables::ID_RIGHT_CAM_START_STOP_LIVE_CAPTURING_TGL_BTN);
@@ -1576,7 +1579,7 @@ void cMain::UnCheckAllTools()
 	/* Unchecking CrossHair Button */
 	m_VerticalToolBar->tool_bar->ToggleTool(MainFrameVariables::ID_MENUBAR_TOOLS_CROSSHAIR, false);
 	m_MenuBar->menu_tools->Check(MainFrameVariables::ID_MENUBAR_TOOLS_CROSSHAIR, false);
-	m_CamPreview->SetCrossHairButtonActive(false);
+	//m_CamPreview->SetCrossHairButtonActive(false);
 	m_CrossHairPosXTxtCtrl->Disable();
 	m_CrossHairPosYTxtCtrl->Disable();
 }
@@ -1788,7 +1791,7 @@ void cMain::OnStartCapturingButton(wxCommandEvent& evt)
 		(
 			this,
 			m_Settings.get(),
-			m_CamPreview.get(),
+			m_PreviewPanel.get(),
 			//m_XimeaControl.get(),
 			out_dir,
 			exposure_time,
@@ -1797,25 +1800,25 @@ void cMain::OnStartCapturingButton(wxCommandEvent& evt)
 		);
 		ProgressThread* progress_thread = new ProgressThread(m_Settings.get(), this);
 
-		if (worker_thread->CreateThread() != wxTHREAD_NO_ERROR)
+		if (worker_thread->Create() != wxTHREAD_NO_ERROR)
 		{
 			delete worker_thread;
 			worker_thread = nullptr;
 			return;
 		}
-		if (progress_thread->CreateThread() != wxTHREAD_NO_ERROR)
+		if (progress_thread->Create() != wxTHREAD_NO_ERROR)
 		{
 			delete progress_thread;
 			progress_thread = nullptr;
 			return;
 		}
-		if (progress_thread->GetThread()->Run() != wxTHREAD_NO_ERROR)
+		if (progress_thread->Run() != wxTHREAD_NO_ERROR)
 		{
 			delete progress_thread;
 			progress_thread = nullptr;
 			return;
 		}
-		if (worker_thread->GetThread()->Run() != wxTHREAD_NO_ERROR)
+		if (worker_thread->Run() != wxTHREAD_NO_ERROR)
 		{
 			delete progress_thread;
 			progress_thread = nullptr;
@@ -1839,19 +1842,19 @@ void cMain::StartLiveCapturing()
 	LiveCapturing* live_capturing = new LiveCapturing
 	(
 		this, 
-		m_CamPreview.get(), 
+		m_PreviewPanel.get(), 
 		//m_XimeaControl.get(),
 		//curr_camera.ToStdString(),
 		exposure_time
 	);
 
-	if (live_capturing->CreateThread() != wxTHREAD_NO_ERROR)
+	if (live_capturing->Create() != wxTHREAD_NO_ERROR)
 	{
 		delete live_capturing;
 		live_capturing = nullptr;
 		return;
 	}
-	if (live_capturing->GetThread()->Run() != wxTHREAD_NO_ERROR)
+	if (live_capturing->Run() != wxTHREAD_NO_ERROR)
 	{
 		delete live_capturing;
 		live_capturing = nullptr;
@@ -1873,11 +1876,11 @@ void cMain::OnCrossHairButton(wxCommandEvent& evt)
 		m_MenuBar->menu_tools->Check(MainFrameVariables::ID_MENUBAR_TOOLS_CROSSHAIR, true);
 		m_VerticalToolBar->tool_bar->ToggleTool(MainFrameVariables::ID_MENUBAR_TOOLS_CROSSHAIR, true);
 		m_IsCrossHairChecked = true;
-		m_CamPreview->SetCrossHairButtonActive(true);
+		//m_PreviewPanel->SetCrossHairButtonActive(true);
 		m_CrossHairPosXTxtCtrl->Enable();
 		m_CrossHairPosYTxtCtrl->Enable();
 		{
-			auto img_size = m_CamPreview->GetImageSize();
+			auto img_size = m_PreviewPanel->GetImageSize();
 			//m_CamPreview->SetXCrossHairPosFromParentWindow(img_size.GetWidth() / 2);
 			//m_CamPreview->SetYCrossHairPosFromParentWindow(img_size.GetHeight() / 2);
 			m_CrossHairPosXTxtCtrl->SetValue(wxString::Format(wxT("%i"), img_size.GetWidth() / 2));
@@ -2077,7 +2080,7 @@ bool cMain::Cancelled()
 void cMain::OnValueDisplayingCheck(wxCommandEvent& evt)
 {
 	m_IsValueDisplayingChecked = m_MenuBar->menu_tools->IsChecked(MainFrameVariables::ID_MENUBAR_TOOLS_VALUE_DISPLAYING);
-	m_CamPreview->SetValueDisplayingActive(m_IsValueDisplayingChecked);
+	m_PreviewPanel->SetValueDisplayingActive(m_IsValueDisplayingChecked);
 }
 
 void cMain::UpdateAllAxisGlobalPositions()
@@ -2158,25 +2161,25 @@ void cMain::OnXPosCrossHairTextCtrl(wxCommandEvent& evt)
 {
 	wxString str_x_pos = m_CrossHairPosXTxtCtrl->IsEmpty() ? wxString("1") : m_CrossHairPosXTxtCtrl->GetValue();
 	int x_pos = wxAtoi(str_x_pos);
-	m_CamPreview->SetXCrossHairPosFromParentWindow(x_pos);
+	//m_PreviewPanel->SetXCrossHairPosFromParentWindow(x_pos);
 }
 
 void cMain::OnYPosCrossHairTextCtrl(wxCommandEvent& evt)
 {
 	wxString str_y_pos = m_CrossHairPosYTxtCtrl->IsEmpty() ? wxString("1") : m_CrossHairPosYTxtCtrl->GetValue();
 	int y_pos = wxAtoi(str_y_pos);
-	m_CamPreview->SetYCrossHairPosFromParentWindow(y_pos);
+	//m_PreviewPanel->SetYCrossHairPosFromParentWindow(y_pos);
 }
 
 auto cMain::OnSetPosCrossHairTglBtn(wxCommandEvent& evt) -> void
 {
 	if (m_SetCrossHairPosTglBtn->GetValue())
 	{
-		m_CamPreview->SettingCrossHairPosFromParentWindow(true);
+		//m_PreviewPanel->SettingCrossHairPosFromParentWindow(true);
 	}
 	else
 	{	
-		m_CamPreview->SettingCrossHairPosFromParentWindow(false);
+		//m_PreviewPanel->SettingCrossHairPosFromParentWindow(false);
 	}
 }
 
@@ -2239,7 +2242,7 @@ void cMain::OnHomeOpticsY(wxCommandEvent& evt)
 LiveCapturing::LiveCapturing
 (
 	cMain* main_frame,
-	cCamPreview* cam_preview_window,
+	cPreviewPanel* cam_preview_window,
 	//XimeaControl* ximea_control,
 	//const std::string& selected_camera,
 	const int exposure_us
@@ -2469,7 +2472,7 @@ WorkerThread::WorkerThread
 (
 	cMain* main_frame,
 	cSettings* settings, 
-	cCamPreview* camera_preview_panel,
+	cPreviewPanel* camera_preview_panel,
 	//XimeaControl* ximea_control,
 	const wxString& path, 
 	const unsigned long& exp_time_us,
@@ -2479,7 +2482,7 @@ WorkerThread::WorkerThread
 	: 
 	m_MainFrame(main_frame),
 	m_Settings(settings), 
-	m_CameraPreview(camera_preview_panel), 
+	m_PreviewPanel(camera_preview_panel), 
 	//m_XimeaControl(ximea_control),
 	m_ImagePath(path), 
 	m_ExposureTimeUS(exp_time_us),
@@ -2491,7 +2494,7 @@ WorkerThread::~WorkerThread()
 {
 	m_MainFrame = nullptr;
 	m_Settings = nullptr;
-	m_CameraPreview = nullptr;
+	m_PreviewPanel = nullptr;
 	//m_XimeaControl = nullptr;
 	delete m_FirstAxis;
 	m_FirstAxis = nullptr;
@@ -2530,8 +2533,8 @@ wxThread::ExitCode WorkerThread::Entry()
 	auto cur_mins = str_time.substr(3, 2);
 	auto cur_secs = str_time.substr(6, 2);
 
-	auto cam_preview_data_ptr = m_CameraPreview->GetDataPtr();
-	auto cam_preview_image_ptr = m_CameraPreview->GetImagePtr();
+	auto cam_preview_data_ptr = m_PreviewPanel->GetDataPtr();
+	auto cam_preview_image_ptr = m_PreviewPanel->GetImagePtr();
 
 	//if (!m_XimeaControl->IsCameraConnected())
 	//{
@@ -2689,7 +2692,7 @@ auto WorkerThread::CaptureAndSaveImage
 				short_data_ptr[y * image_size.GetWidth() + x] = current_value;
 				/* Matlab implementation of JetColormap */
 				/* Because XIMEA camera can produce 12-bit per pixel maximum, we use RGB12bit converter */
-				m_CameraPreview->CalculateMatlabJetColormapPixelRGB12bit(current_value, red, green, blue);
+				m_PreviewPanel->CalculateMatlabJetColormapPixelRGB12bit(current_value, red, green, blue);
 				image_ptr->SetRGB(x, y, red, green, blue);
 			}
 		}

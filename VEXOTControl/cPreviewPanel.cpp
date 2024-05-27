@@ -1,19 +1,19 @@
-#include "cCamPreview.h"
+#include "cPreviewPanel.h"
 
-BEGIN_EVENT_TABLE(cCamPreview, wxPanel)
-	EVT_PAINT(cCamPreview::PaintEvent)
-	EVT_SIZE(cCamPreview::OnSize)
-	EVT_MOTION(cCamPreview::OnMouseMoved)
-	EVT_MOUSEWHEEL(cCamPreview::OnMouseWheelMoved)
-	EVT_LEFT_DOWN(cCamPreview::OnPreviewMouseLeftPressed)
-	EVT_LEFT_UP(cCamPreview::OnPreviewMouseLeftReleased)
+BEGIN_EVENT_TABLE(cPreviewPanel, wxPanel)
+	EVT_PAINT(cPreviewPanel::PaintEvent)
+	EVT_SIZE(cPreviewPanel::OnSize)
+	EVT_MOTION(cPreviewPanel::OnMouseMoved)
+	EVT_MOUSEWHEEL(cPreviewPanel::OnMouseWheelMoved)
+	EVT_LEFT_DOWN(cPreviewPanel::OnPreviewMouseLeftPressed)
+	EVT_LEFT_UP(cPreviewPanel::OnPreviewMouseLeftReleased)
 END_EVENT_TABLE()
 
-cCamPreview::cCamPreview
+cPreviewPanel::cPreviewPanel
 (
 	wxFrame* parent_frame, 
 	wxSizer* parent_sizer,
-	std::unique_ptr<CameraPreviewVariables::InputPreviewPanelArgs> input_preview_panel_args
+	std::unique_ptr<PreviewPanelVariables::InputPreviewPanelArgs> input_preview_panel_args
 ) 
 	: wxPanel(parent_frame)
 {
@@ -31,12 +31,12 @@ cCamPreview::cCamPreview
 	InitDefaultComponents();
 }
 
-auto cCamPreview::SetBackgroundColor(wxColour bckg_colour) -> void
+auto cPreviewPanel::SetBackgroundColor(wxColour bckg_colour) -> void
 {
 	SetBackgroundColour(bckg_colour);
 }
 
-auto cCamPreview::SetCrossHairButtonActive(bool activate) -> void
+auto cPreviewPanel::SetCrossHairButtonActive(bool activate) -> void
 {
 	m_CrossHairTool->ActivateToolButton(activate, activate);
 	//m_CrossHairTool->SetCursorPosOnCanvas(m_CursorPosOnCanvas);
@@ -44,12 +44,12 @@ auto cCamPreview::SetCrossHairButtonActive(bool activate) -> void
 	Refresh();
 }
 
-auto cCamPreview::SetValueDisplayingActive(bool activate) -> void
+auto cPreviewPanel::SetValueDisplayingActive(bool activate) -> void
 {
 	m_DisplayPixelValues = activate;
 }
 
-void cCamPreview::SetXCrossHairPosFromParentWindow(const int& x_pos)
+void cPreviewPanel::SetXCrossHairPosFromParentWindow(const int& x_pos)
 {
 	int corrected_x_pos = x_pos - 1;
 	if (corrected_x_pos >= 0 && corrected_x_pos < m_ImageSize.GetWidth())
@@ -60,7 +60,7 @@ void cCamPreview::SetXCrossHairPosFromParentWindow(const int& x_pos)
 	}
 }
 
-void cCamPreview::SetYCrossHairPosFromParentWindow(const int& y_pos)
+void cPreviewPanel::SetYCrossHairPosFromParentWindow(const int& y_pos)
 {
 	int corrected_y_pos = y_pos - 1;
 	if (corrected_y_pos >= 0 && corrected_y_pos < m_ImageSize.GetHeight())
@@ -71,13 +71,13 @@ void cCamPreview::SetYCrossHairPosFromParentWindow(const int& y_pos)
 	}
 }
 
-auto cCamPreview::SettingCrossHairPosFromParentWindow(bool set) -> void
+auto cPreviewPanel::SettingCrossHairPosFromParentWindow(bool set) -> void
 {
 	m_CrossHairTool->ActivateSetPositionFromParentWindow(set);
 	//m_SettingCrossHairPos = set;
 }
 
-auto cCamPreview::SetImageSize(const wxSize& img_size) -> void
+auto cPreviewPanel::SetImageSize(const wxSize& img_size) -> void
 {
 	m_Image = std::make_shared<wxImage>();
 	m_ImageData = std::make_shared<unsigned short[]>(img_size.GetWidth() * img_size.GetHeight());
@@ -85,22 +85,22 @@ auto cCamPreview::SetImageSize(const wxSize& img_size) -> void
 	m_ImageSize = img_size;
 }
 
-auto cCamPreview::GetDataPtr() const -> unsigned short*
+auto cPreviewPanel::GetDataPtr() const -> unsigned short*
 {
 	return m_ImageData.get();
 }
 
-auto cCamPreview::GetImagePtr() const -> wxImage*
+auto cPreviewPanel::GetImagePtr() const -> wxImage*
 {
 	return m_Image.get();
 }
 
-auto cCamPreview::GetImageSize() const -> wxSize
+auto cPreviewPanel::GetImageSize() const -> wxSize
 {
 	return m_ImageSize;
 }
 
-auto cCamPreview::InitializeSelectedCamera(const std::string& camera_sn) -> void
+auto cPreviewPanel::InitializeSelectedCamera(const std::string& camera_sn) -> void
 {
 	//if (m_XimeaCameraControl->CloseCamera())
 	//{
@@ -109,7 +109,7 @@ auto cCamPreview::InitializeSelectedCamera(const std::string& camera_sn) -> void
 	//}
 }
 
-void cCamPreview::SetCameraCapturedImage()
+void cPreviewPanel::SetCameraCapturedImage()
 {
 	/* 
 	Saving previous values for correct displaying of the image in the same place, 
@@ -150,7 +150,7 @@ void cCamPreview::SetCameraCapturedImage()
 	Refresh();
 }
 
-void cCamPreview::CaptureAndSaveDataFromCamera
+void cPreviewPanel::CaptureAndSaveDataFromCamera
 (
 	const unsigned long& exposure_time_us, 
 	const wxString& path, 
@@ -197,7 +197,7 @@ void cCamPreview::CaptureAndSaveDataFromCamera
 	//SetCameraCapturedImage(image_ptr);
 }
 
-void cCamPreview::CalculateMatlabJetColormapPixelRGB8bit
+void cPreviewPanel::CalculateMatlabJetColormapPixelRGB8bit
 (
 	const unsigned char& value, 
 	unsigned char& r, 
@@ -238,7 +238,7 @@ void cCamPreview::CalculateMatlabJetColormapPixelRGB8bit
 	}
 }
 
-void cCamPreview::CalculateMatlabJetColormapPixelRGB12bit(const unsigned short& value, unsigned char& r, unsigned char& g, unsigned char& b)
+void cPreviewPanel::CalculateMatlabJetColormapPixelRGB12bit(const unsigned short& value, unsigned char& r, unsigned char& g, unsigned char& b)
 {
 	unsigned short x0_12bit{ 498 }, x1_12bit{ 1526 }, x2_12bit{ 2553 }, x3_12bit{ 3581 }, x4_12bit{ 4095 };
 	if (value < x0_12bit)
@@ -280,7 +280,7 @@ void cCamPreview::CalculateMatlabJetColormapPixelRGB12bit(const unsigned short& 
 	}
 }
 
-void cCamPreview::CalculateMatlabJetColormapPixelRGB16bit
+void cPreviewPanel::CalculateMatlabJetColormapPixelRGB16bit
 (
 	const uint16_t& value, 
 	unsigned char& r, 
@@ -321,7 +321,7 @@ void cCamPreview::CalculateMatlabJetColormapPixelRGB16bit
 	}
 }
 
-void cCamPreview::OnMouseMoved(wxMouseEvent& evt)
+void cPreviewPanel::OnMouseMoved(wxMouseEvent& evt)
 {
 	if (m_IsImageSet)
 	{
@@ -347,7 +347,7 @@ void cCamPreview::OnMouseMoved(wxMouseEvent& evt)
 	}
 }
 
-void cCamPreview::OnMouseWheelMoved(wxMouseEvent& evt)
+void cPreviewPanel::OnMouseWheelMoved(wxMouseEvent& evt)
 {
 	if (m_Zoom <= 1.0 && evt.GetWheelRotation() < 0)
 	{
@@ -378,7 +378,7 @@ void cCamPreview::OnMouseWheelMoved(wxMouseEvent& evt)
 	}
 }
 
-void cCamPreview::AddZoom(const double& zoom, bool zoom_in_center_of_window)
+void cPreviewPanel::AddZoom(const double& zoom, bool zoom_in_center_of_window)
 {
 	wxRealPoint center = zoom_in_center_of_window ?
 		wxRealPoint(GetSize().x / 2.0, GetSize().y / 2.0) :
@@ -389,7 +389,7 @@ void cCamPreview::AddZoom(const double& zoom, bool zoom_in_center_of_window)
 	SetZoom(m_Zoom * zoom, center);
 }
 
-void cCamPreview::SetZoom(const double& zoom, const wxRealPoint& center_)
+void cPreviewPanel::SetZoom(const double& zoom, const wxRealPoint& center_)
 {
 	wxRealPoint position_on_image{};
 	position_on_image.x = (center_.x - m_PanOffset.x) / m_Zoom;
@@ -405,7 +405,7 @@ void cCamPreview::SetZoom(const double& zoom, const wxRealPoint& center_)
 	Refresh();
 }
 
-void cCamPreview::ProcessPan(const wxRealPoint& point_, bool refresh_)
+void cPreviewPanel::ProcessPan(const wxRealPoint& point_, bool refresh_)
 {
 	m_PanDeltaPoints = m_PanStartPoint - point_;
 	//LOG2F("PanStartPoint x: ", m_PanStartPoint.x, " y: ", m_PanStartPoint.y);
@@ -414,7 +414,7 @@ void cCamPreview::ProcessPan(const wxRealPoint& point_, bool refresh_)
 	if (refresh_) Refresh();
 }
 
-void cCamPreview::FinishPan(bool refresh)
+void cPreviewPanel::FinishPan(bool refresh)
 {
 	if (m_Panning)
 	{
@@ -429,7 +429,7 @@ void cCamPreview::FinishPan(bool refresh)
 	}
 }
 
-void cCamPreview::CheckIfMouseAboveImage()
+void cPreviewPanel::CheckIfMouseAboveImage()
 {
 	m_IsCursorInsideImage = false;
 	wxRealPoint cursor_pos_on_image =
@@ -444,7 +444,7 @@ void cCamPreview::CheckIfMouseAboveImage()
 		m_IsCursorInsideImage = true;
 }
 
-void cCamPreview::CalculatePositionOnImage()
+void cPreviewPanel::CalculatePositionOnImage()
 {
 	m_NotCheckedCursorPosOnImage.x = m_CursorPosOnCanvas.x / m_Zoom - m_StartDrawPos.x;
 	m_NotCheckedCursorPosOnImage.y = m_CursorPosOnCanvas.y / m_Zoom - m_StartDrawPos.y;
@@ -457,7 +457,7 @@ void cCamPreview::CalculatePositionOnImage()
 	m_CheckedCursorPosOnImage.y = m_NotCheckedCursorPosOnImage.y < (double)m_ImageSize.GetHeight() ? m_CheckedCursorPosOnImage.y : (double)m_ImageSize.GetHeight() - 1.0;
 }
 
-void cCamPreview::OnPreviewMouseLeftPressed(wxMouseEvent& evt)
+void cPreviewPanel::OnPreviewMouseLeftPressed(wxMouseEvent& evt)
 {
 	if (m_ParentArguments->set_pos_tgl_btn->GetValue())
 	{
@@ -476,7 +476,7 @@ void cCamPreview::OnPreviewMouseLeftPressed(wxMouseEvent& evt)
 	}
 }
 
-void cCamPreview::OnPreviewMouseLeftReleased(wxMouseEvent& evt)
+void cPreviewPanel::OnPreviewMouseLeftReleased(wxMouseEvent& evt)
 {
 	if (m_Panning)
 	{
@@ -485,7 +485,7 @@ void cCamPreview::OnPreviewMouseLeftReleased(wxMouseEvent& evt)
 	}
 }
 
-void cCamPreview::ChangeCursorInDependenceOfCurrentParameters()
+void cPreviewPanel::ChangeCursorInDependenceOfCurrentParameters()
 {
 	auto current_cursor = wxCURSOR_DEFAULT;
 
@@ -496,7 +496,7 @@ void cCamPreview::ChangeCursorInDependenceOfCurrentParameters()
 	SetCursor(current_cursor);
 }
 
-void cCamPreview::DrawCrossHair(wxGraphicsContext* graphics_context)
+void cPreviewPanel::DrawCrossHair(wxGraphicsContext* graphics_context)
 {
 	graphics_context->SetPen(*wxRED_PEN);
 	m_CrossHairTool->DrawCrossHair(graphics_context, m_ImageData.get());
@@ -504,7 +504,7 @@ void cCamPreview::DrawCrossHair(wxGraphicsContext* graphics_context)
 		m_CrossHairTool->DrawPixelValues(graphics_context, m_ImageData.get());
 }
 
-void cCamPreview::InitDefaultComponents()
+void cPreviewPanel::InitDefaultComponents()
 {
 	//m_GraphicsBitmapImage = std::make_unique<wxGraphicsBitmap>();
 	/* Tools */
@@ -516,13 +516,13 @@ void cCamPreview::InitDefaultComponents()
 	//m_XimeaCameraControl = std::make_unique<XimeaControl>();
 }
 
-void cCamPreview::PaintEvent(wxPaintEvent& evt)
+void cPreviewPanel::PaintEvent(wxPaintEvent& evt)
 {
 	wxBufferedPaintDC dc(this);
 	Render(dc);
 }
 
-void cCamPreview::Render(wxBufferedPaintDC& dc)
+void cPreviewPanel::Render(wxBufferedPaintDC& dc)
 {
 	dc.Clear();
 	wxGraphicsContext* gc_image{};
@@ -545,7 +545,7 @@ void cCamPreview::Render(wxBufferedPaintDC& dc)
 	}
 }
 
-void cCamPreview::CreateGraphicsBitmapImage(wxGraphicsContext* gc_)
+void cPreviewPanel::CreateGraphicsBitmapImage(wxGraphicsContext* gc_)
 {
 	if (!m_IsGraphicsBitmapSet && m_IsImageSet)
 	{
@@ -557,7 +557,7 @@ void cCamPreview::CreateGraphicsBitmapImage(wxGraphicsContext* gc_)
 	}
 }
 
-void cCamPreview::DrawCameraCapturedImage(wxGraphicsContext* gc_)
+void cPreviewPanel::DrawCameraCapturedImage(wxGraphicsContext* gc_)
 {
 	CreateGraphicsBitmapImage(gc_);
 	
@@ -574,7 +574,7 @@ void cCamPreview::DrawCameraCapturedImage(wxGraphicsContext* gc_)
 	}
 }
 
-void cCamPreview::OnSize(wxSizeEvent& evt)
+void cPreviewPanel::OnSize(wxSizeEvent& evt)
 {
 	int newWidth{ evt.GetSize().x }, newHeight{ evt.GetSize().y };
 	if (newWidth != m_CanvasSize.GetWidth() || newHeight != m_CanvasSize.GetHeight())
@@ -590,7 +590,7 @@ void cCamPreview::OnSize(wxSizeEvent& evt)
 	}
 }
 
-void cCamPreview::ChangeSizeOfImageInDependenceOnCanvasSize()
+void cPreviewPanel::ChangeSizeOfImageInDependenceOnCanvasSize()
 {
 	wxSize current_image_size{ m_ImageSize };
 	wxSize canvas_size{ GetSize().GetWidth(), GetSize().GetHeight() };
@@ -611,7 +611,7 @@ void cCamPreview::ChangeSizeOfImageInDependenceOnCanvasSize()
 
 }
 
-auto cCamPreview::UpdateCrossHairOnSize() -> void
+auto cPreviewPanel::UpdateCrossHairOnSize() -> void
 {
 	m_CrossHairTool->SetImageDimensions(m_ImageSize);
 	m_CrossHairTool->SetZoomOfOriginalSizeImage(m_ZoomOnOriginalSizeImage);

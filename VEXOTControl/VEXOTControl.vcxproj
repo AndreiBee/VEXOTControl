@@ -144,7 +144,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="cApp.h" />
-    <ClInclude Include="cCamPreview.h" />
+    <ClInclude Include="cPreviewPanel.h" />
     <ClInclude Include="cMain.h" />
     <ClInclude Include="cPreviewTools.h" />
     <ClInclude Include="cSettings.h" />
@@ -152,7 +152,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cApp.cpp" />
-    <ClCompile Include="cCamPreview.cpp" />
+    <ClCompile Include="cPreviewPanel.cpp" />
     <ClCompile Include="cMain.cpp" />
     <ClCompile Include="cPreviewTools.cpp" />
     <ClCompile Include="cSettings.cpp" />

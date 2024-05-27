@@ -607,6 +607,42 @@ void cSettings::CreateMotorsSelection(wxBoxSizer* panel_sizer)
 	}
 	main_panel_sizer->Add(motors_static_box_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, 2);
 
+	/* xPIN */
+	wxSizer* const xPIN_static_box_sizer = new wxStaticBoxSizer(wxHORIZONTAL, main_panel, "&xPIN");
+	{
+		auto xPIN_txt_ctrl_size = wxSize(80, 24);
+		m_xPIN->device = new wxTextCtrl
+		(
+			main_panel, 
+			SettingsVariables::ID_KETEK_TXT_CTRL, 
+			wxT("None"),
+			wxDefaultPosition, 
+			xPIN_txt_ctrl_size,
+			wxTE_CENTRE | wxTE_READONLY
+		);
+
+		{
+			for (auto i{ 0 }; i < m_WorkStations->work_stations_count; ++i)
+			{
+				if (m_WorkStations->work_station_data[i].work_station_name == m_WorkStations->initialized_work_station)
+				{
+					m_xPIN->selected_device_str = m_WorkStations->work_station_data[i].selectedxPINInDataFile;
+					m_WorkStations->initialized_work_station_num = i;
+					break;
+				}
+			}
+
+			m_xPIN->device->SetValue(m_xPIN->selected_device_str);
+		}
+
+		xPIN_static_box_sizer->AddStretchSpacer();
+		xPIN_static_box_sizer->Add(m_xPIN->device, 0, wxEXPAND);
+		xPIN_static_box_sizer->AddStretchSpacer();
+	}
+	main_panel_sizer->Add(xPIN_static_box_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, 2);
+	main_panel_sizer->AddSpacer(5);
+
+
 	/* Ketek */
 	wxSizer* const ketek_static_box_sizer = new wxStaticBoxSizer(wxHORIZONTAL, main_panel, "&Ketek");
 	{
@@ -626,7 +662,7 @@ void cSettings::CreateMotorsSelection(wxBoxSizer* panel_sizer)
 			{
 				if (m_WorkStations->work_station_data[i].work_station_name == m_WorkStations->initialized_work_station)
 				{
-					m_Ketek->selected_device_str = m_WorkStations->work_station_data[i].selected_ketek_in_data_file;
+					m_Ketek->selected_device_str = m_WorkStations->work_station_data[i].selectedKetekInDataFile;
 					m_WorkStations->initialized_work_station_num = i;
 					break;
 				}
@@ -673,6 +709,7 @@ void cSettings::InitComponents()
 {
 	m_WorkStations = std::make_unique<SettingsVariables::WorkStations>();
 	m_Motors = std::make_unique<SettingsVariables::MotorSettingsArray>();
+	m_xPIN = std::make_unique<SettingsVariables::MeasurementDevice>();
 	m_Ketek = std::make_unique<SettingsVariables::MeasurementDevice>();
 	m_PhysicalMotors = std::make_unique<MotorArray>();
 }
@@ -764,8 +801,8 @@ auto cSettings::UpdateMotorsAndCameraTXTCtrls(const short selected_work_station)
 			m_Motors->m_Optics[i - 1].motor_sn = m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[i];
 		}
 	}
-	m_Ketek->device->SetLabel(m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_ketek_in_data_file);
-	m_Ketek->selected_device_str = m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_ketek_in_data_file;
+	m_Ketek->device->SetLabel(m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selectedKetekInDataFile);
+	m_Ketek->selected_device_str = m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selectedKetekInDataFile;
 }
 
 void cSettings::OnRefreshBtn(wxCommandEvent& evt)
@@ -955,7 +992,7 @@ auto cSettings::ReadWorkStationFiles() -> void
 
 			rapidxml::xml_node<>* ketek_node = document->first_node("ketek");
 			if (!ketek_node) return;
-			m_WorkStations->work_station_data[i].selected_ketek_in_data_file = wxString(ketek_node->first_node()->value());
+			m_WorkStations->work_station_data[i].selectedKetekInDataFile = wxString(ketek_node->first_node()->value());
 
 			rapidxml::xml_node<>* work_station_node = document->first_node("station");
 

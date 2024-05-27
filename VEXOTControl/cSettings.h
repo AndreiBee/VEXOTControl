@@ -93,7 +93,7 @@ namespace SettingsVariables
 	{
 		wxArrayString selected_motors_in_data_file{};
 		//wxString selected_camera_in_data_file{};
-		wxString selected_ketek_in_data_file{};
+		wxString selectedxPINInDataFile{}, selectedKetekInDataFile{}, selectedTimepixInDataFile{}, selectedFLICameraInDataFile{};
 		wxString work_station_name{};
 	};
 
@@ -211,7 +211,8 @@ private:
 	std::unique_ptr<wxButton> m_OkBtn{}, m_CancelBtn{}, m_RefreshBtn{};
 	std::unique_ptr<SettingsVariables::MotorSettingsArray> m_Motors{};
 	std::unique_ptr<MotorArray> m_PhysicalMotors{};
-	std::unique_ptr<SettingsVariables::MeasurementDevice> m_Ketek{};
+	std::unique_ptr<SettingsVariables::MeasurementDevice> m_xPIN{}, m_Ketek{};
+
 	const int m_MotorsCount{ 6 };
 	std::unique_ptr<SettingsVariables::ProgressValues> m_Progress = std::make_unique<SettingsVariables::ProgressValues>();
 };
