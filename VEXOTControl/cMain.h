@@ -11,6 +11,7 @@
 #include <string>
 #include <memory>
 #include <chrono>
+#include <utility>
 
 #include "json.hpp"
 
@@ -373,6 +374,9 @@ private:
 	// Ketek
 	std::unique_ptr<Ketek> m_KetekHandler{};
 
+	/* Capturing */
+	std::vector<std::pair<wxString, bool>> m_StartedThreads{};
+
 	wxDECLARE_EVENT_TABLE();
 };
 /* ___ End cMain ___ */
@@ -383,11 +387,11 @@ class LiveCapturing final: public wxThread
 public:
 	LiveCapturing
 	(
-		cMain* main_frame,
-		cPreviewPanel* cam_preview_window,
-		//XimeaControl* ximea_control,
-		//const std::string& selected_camera,
-		const int exposure_us
+		cMain* mainFrame,
+		Ketek* ketekHandler,
+		wxString* threadKey,
+		bool* continueCapturing,
+		const int exposureSeconds
 	);
 	~LiveCapturing();
 
@@ -416,13 +420,10 @@ private:
 
 private:
 	cMain* m_MainFrame{};
-	cPreviewPanel* m_CamPreviewWindow{};
-	//XimeaControl* m_XimeaControl{};
-	//std::string m_SelectedCameraSN{};
-	int m_ExposureUS{};
-	//std::unique_ptr<XimeaControl> m_XimeaCameraControl{};
-	wxSize m_ImageSize{};
-	int m_ThreadID{ -1 };
+	Ketek* m_KetekHandler{};
+	wxString* m_ThreadID{};
+	bool* m_ContinueCapturing{};
+	int m_ExposureSeconds{};
 };
 /* ___ End Worker Thread ___ */
 

@@ -2,7 +2,7 @@
 
 auto Ketek::InitializeDevice(const std::string deviceSN) -> bool
 {
-    m_DeviceSerialNumber = "";
+    if (IsDeviceInitialized()) DeinitializeDevice();
     /* Setup logging here */
     // Configuring the Handel log file
     xiaSetLogLevel(MD_DEBUG);
@@ -80,8 +80,11 @@ auto Ketek::InitializeDevice(const std::string deviceSN) -> bool
     return true;
 }
 
-auto Ketek::StartExposure(const int exposure, unsigned long* const mca, bool * const continueCapturing) -> bool
+auto Ketek::CaptureData(const int exposure, unsigned long* const mca, bool * const continueCapturing) -> bool
 {
+    if (!IsDeviceInitialized()) return false;
+    if (!mca) return false;
+
     /* Start a run w/ the MCA cleared */
     auto status = xiaStartRun(0, 0);
     if (!CHECK_ERROR(status)) return false;
@@ -98,7 +101,7 @@ auto Ketek::StartExposure(const int exposure, unsigned long* const mca, bool * c
         {
             currentTime = std::chrono::high_resolution_clock::now();
             deltaTime = std::chrono::duration_cast<std::chrono::milliseconds>
-                (currentTime - startCheckingTime).count();
+                (currentTime - startCheckingTime).count() / 1'000.0;
             if (!*continueCapturing)
             {
                 xiaStopRun(0);
@@ -137,6 +140,7 @@ auto Ketek::DeinitializeDevice() -> bool
 	auto status = xiaExit();
     if (!CHECK_ERROR(status)) return false;
     xiaCloseLog();
+    m_DeviceSerialNumber = "";
 
     return true;
 }

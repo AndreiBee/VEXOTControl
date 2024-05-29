@@ -17,7 +17,7 @@ public:
 	Ketek(const std::string deviceSN) { InitializeDevice(deviceSN); };
 	auto InitializeDevice(const std::string deviceSN) -> bool;
 	auto IsDeviceInitialized() const -> bool { return !m_DeviceSerialNumber.empty(); };
-	auto StartExposure(const int exposure, unsigned long* const mca, bool* const continueCapturing) -> bool;
+	auto CaptureData(const int exposure, unsigned long* const mca, bool* const continueCapturing) -> bool;
 	auto GetDataSize() const -> unsigned long { return m_MCALength; };
 	auto DeinitializeDevice() -> bool;
 	~Ketek() { DeinitializeDevice(); };
@@ -28,7 +28,7 @@ private:
 	std::string m_InitializationFilePath{".\\KETEK.ini"};
 	std::string m_DeviceSerialNumber{};
 
-	double m_nMCA = 8192.0;
+	double m_nMCA = 8192.0; // BinSize
 	const unsigned long m_MCALength = 8192;
 	double m_Thresh = 48.0;
 	double m_Polarity = 1.0;

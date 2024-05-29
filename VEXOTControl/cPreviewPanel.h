@@ -10,6 +10,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <thread>
 #include <format>
 #include <algorithm>
 
@@ -17,6 +18,25 @@
 
 #include "cPreviewTools.h"
 //#include "XimeaControl.h"
+
+// Macros
+#ifdef _DEBUG
+#define LOG(message) wxLogDebug(message);
+#define LOGST(message, number) wxLogDebug(message + wxString::Format(wxT("%i"), number))
+#define LOGF(message, number) wxLogDebug(message + wxString::Format(wxT("%.2f"), number))
+#define LOGI(message, number) wxLogDebug(message + wxString::Format(wxT("%i"), number))
+#define LOG2I(first_message, first_number, second_message, second_number) wxLogDebug(first_message + wxString::Format(wxT("%i"), first_number) + second_message + wxString::Format(wxT("%i"), second_number))
+#define LOG2F(first_message, first_number, second_message, second_number) wxLogDebug(first_message + wxString::Format(wxT("%.2f"), first_number) + second_message + wxString::Format(wxT("%.2f"), second_number))
+#define LOG6F(first_message, first_number, second_message, second_number, third_message, third_number, fourth_message, fourth_number, fifth_message, fifth_number, sixth_message, sixth_number) wxLogDebug(first_message + wxString::Format(wxT("%.2f"), first_number) + second_message + wxString::Format(wxT("%.2f"), second_number) + third_message + wxString::Format(wxT("%.2f"), third_number) + fourth_message + wxString::Format(wxT("%.2f"), fourth_number) + fifth_message + wxString::Format(wxT("%.2f"), fifth_number) + sixth_message + wxString::Format(wxT("%.2f"), sixth_number))
+#else
+#define LOG(message)
+#define LOGST(message, number)
+#define LOGF(message, number)
+#define LOGI(message, number)
+#define LOG2I(first_message, first_number, second_message, second_number) 
+#define LOG2F(first_message, first_number, second_message, second_number) 
+#define LOG6F(first_message, first_number, second_message, second_number, third_message, third_number, fourth_message, fourth_number, fifth_message_fifth_number, sixth_message, sixth_number)
+#endif // _DEBUG
 
 namespace PreviewPanelVariables
 {
@@ -53,16 +73,16 @@ public:
 		wxSizer* parent_sizer, 
 		std::unique_ptr<PreviewPanelVariables::InputPreviewPanelArgs> input_preview_panel_args
 	);
+	auto SetCurrentDevice(const int device) -> void { m_CurrentDeivce = device; };
+	auto SetKETEKData(const unsigned long* const mcaData, const unsigned long dataSize) -> void;
+
 	auto SetBackgroundColor(wxColour bckg_colour) -> void;
 	auto SetCrossHairButtonActive(bool activate = false) -> void;
 	auto SetValueDisplayingActive(bool activate = false) -> void;
 	void SetXCrossHairPosFromParentWindow(const int& x_pos);
 	void SetYCrossHairPosFromParentWindow(const int& y_pos);
 	auto SettingCrossHairPosFromParentWindow(bool set = false) -> void;
-	auto SetImageSize(const wxSize& img_size) -> void;
-	auto GetDataPtr() const -> unsigned short*;
-	auto GetImagePtr() const -> wxImage*;
-	auto GetImageSize() const->wxSize;
+	auto SetImageSize() -> wxSize { return m_Image.GetSize(); };
 	auto InitializeSelectedCamera(const std::string& camera_sn) -> void;
 	auto SetCameraCapturedImage() -> void;
 	void CaptureAndSaveDataFromCamera
@@ -96,6 +116,15 @@ private:
 	void PaintEvent(wxPaintEvent& evt);
 	void Render(wxBufferedPaintDC& dc);
 	void DrawImage(wxGraphicsContext* gc);
+	auto AdjustKETEKImageMultithread
+	(
+		const unsigned long* const data, 
+		const double multiplicationValue,
+		const int startX, 
+		const int startY, 
+		const int finishX, 
+		const int finishY
+	) -> void;
 	void CreateGraphicsBitmapImage(wxGraphicsContext* gc_);
 	void DrawCameraCapturedImage(wxGraphicsContext* gc_);
 	void OnSize(wxSizeEvent& evt);
@@ -125,10 +154,10 @@ private:
 private:
 	int m_Width{}, m_Height{};
 	bool m_IsGraphicsBitmapSet{}, m_IsImageSet{};
-	std::unique_ptr<wxGraphicsBitmap> m_GraphicsBitmapImage{};
 
-	std::shared_ptr<wxImage> m_Image{};
-	std::shared_ptr<unsigned short[]> m_ImageData{};
+	wxImage m_Image{};
+	wxGraphicsBitmap m_GraphicsBitmapImage{};
+	std::unique_ptr<unsigned long[]> m_ImageData{};
 	
 	wxSize m_ImageSize{}, m_ImageOnCanvasSize{}, m_CanvasSize{};
 	wxRealPoint m_NotCheckedCursorPosOnImage{}, m_CheckedCursorPosOnImage{}, m_CursorPosOnCanvas{};
@@ -153,6 +182,8 @@ private:
 	bool m_DisplayPixelValues{};
 
 	std::unique_ptr<PreviewPanelVariables::InputPreviewPanelArgs> m_ParentArguments{};
+
+	int m_CurrentDeivce{};
 
 	DECLARE_EVENT_TABLE();
 };

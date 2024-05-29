@@ -31,6 +31,80 @@ cPreviewPanel::cPreviewPanel
 	InitDefaultComponents();
 }
 
+auto cPreviewPanel::SetKETEKData(const unsigned long* const mcaData, const unsigned long dataSize) -> void
+{
+	if (!mcaData) return;
+
+	if (dataSize != m_ImageSize.GetWidth())
+	{
+		m_ImageSize = wxSize(dataSize, 800);
+		m_Image = wxImage(m_ImageSize.GetWidth(), m_ImageSize.GetHeight());
+		m_ImageData = std::make_unique<unsigned long[]>(m_ImageSize.GetWidth());
+	}
+	else
+	{
+		m_Image.Clear();
+		memcpy(m_ImageData.get(), mcaData, m_ImageSize.GetWidth() * sizeof(unsigned long));
+	}
+
+	double multiplicator{};
+	auto maxValue = std::max_element(&m_ImageData[0], &m_ImageData[m_ImageSize.GetWidth()]);
+
+	if (*maxValue)
+		multiplicator = (double)m_ImageSize.GetHeight() / *maxValue;
+
+	LOGF("Multiplicator: ", multiplicator);
+
+	auto update_wxImage = [&]()
+		{
+			// Check number of threads on the current machine
+			auto numThreads = std::thread::hardware_concurrency();
+
+#ifdef _DEBUG
+			//numThreads = 1;
+#endif // _DEBUG
+
+			std::vector<std::thread> threads;
+			threads.reserve(numThreads);
+
+			unsigned int tileSize{};
+			tileSize = m_Image.GetWidth() % numThreads > 0 ? m_Image.GetWidth() / numThreads + 1 : m_Image.GetWidth() / numThreads;
+
+			for (auto i{ 0 }; i < numThreads; ++i)
+			{
+				wxPoint start{}, finish{};
+				start.x = i * tileSize;
+				start.y = 0;
+
+				finish.x = (i + 1) * tileSize > m_Image.GetWidth() ? m_Image.GetWidth() : (i + 1) * tileSize;
+				finish.y = m_Image.GetHeight();
+
+				threads.emplace_back
+				(
+					std::thread
+					(
+						&cPreviewPanel::AdjustKETEKImageMultithread,
+						this,
+						&m_ImageData[start.x],
+						multiplicator,
+						start.x, start.y, finish.x, finish.y
+					)
+				);
+			}
+			for (auto& thread : threads)
+			{
+				thread.join();
+			}
+		};
+
+	update_wxImage();
+
+	m_IsImageSet = true;
+	m_IsGraphicsBitmapSet = false;
+
+	Refresh();
+}
+
 auto cPreviewPanel::SetBackgroundColor(wxColour bckg_colour) -> void
 {
 	SetBackgroundColour(bckg_colour);
@@ -75,29 +149,6 @@ auto cPreviewPanel::SettingCrossHairPosFromParentWindow(bool set) -> void
 {
 	m_CrossHairTool->ActivateSetPositionFromParentWindow(set);
 	//m_SettingCrossHairPos = set;
-}
-
-auto cPreviewPanel::SetImageSize(const wxSize& img_size) -> void
-{
-	m_Image = std::make_shared<wxImage>();
-	m_ImageData = std::make_shared<unsigned short[]>(img_size.GetWidth() * img_size.GetHeight());
-	m_Image->Create(img_size);
-	m_ImageSize = img_size;
-}
-
-auto cPreviewPanel::GetDataPtr() const -> unsigned short*
-{
-	return m_ImageData.get();
-}
-
-auto cPreviewPanel::GetImagePtr() const -> wxImage*
-{
-	return m_Image.get();
-}
-
-auto cPreviewPanel::GetImageSize() const -> wxSize
-{
-	return m_ImageSize;
 }
 
 auto cPreviewPanel::InitializeSelectedCamera(const std::string& camera_sn) -> void
@@ -498,10 +549,10 @@ void cPreviewPanel::ChangeCursorInDependenceOfCurrentParameters()
 
 void cPreviewPanel::DrawCrossHair(wxGraphicsContext* graphics_context)
 {
-	graphics_context->SetPen(*wxRED_PEN);
-	m_CrossHairTool->DrawCrossHair(graphics_context, m_ImageData.get());
-	if (m_DisplayPixelValues)
-		m_CrossHairTool->DrawPixelValues(graphics_context, m_ImageData.get());
+	//graphics_context->SetPen(*wxRED_PEN);
+	//m_CrossHairTool->DrawCrossHair(graphics_context, m_ImageData.get());
+	//if (m_DisplayPixelValues)
+	//	m_CrossHairTool->DrawPixelValues(graphics_context, m_ImageData.get());
 }
 
 void cPreviewPanel::InitDefaultComponents()
@@ -545,13 +596,39 @@ void cPreviewPanel::Render(wxBufferedPaintDC& dc)
 	}
 }
 
+auto cPreviewPanel::AdjustKETEKImageMultithread
+(
+	const unsigned long* const data, 
+	const double multiplicationValue,
+	const int startX, 
+	const int startY, 
+	const int finishX, 
+	const int finishY
+) -> void
+{
+	if (!m_Image.IsOk()) return;
+	int currentValue = 0U;
+	unsigned char red{}, green{ 255 }, blue{};
+	unsigned long long position_in_data_pointer{};
+	auto imgHeight = m_ImageSize.GetHeight();
+	int y{};
+
+	for (auto x{ startX }; x < finishX; ++x)
+	{
+		currentValue = (int)(multiplicationValue * data[position_in_data_pointer]);
+		y = imgHeight - currentValue - 1;
+		m_Image.SetRGB(x, y, red, green, blue);
+		++position_in_data_pointer;
+	}
+}
+
 void cPreviewPanel::CreateGraphicsBitmapImage(wxGraphicsContext* gc_)
 {
 	if (!m_IsGraphicsBitmapSet && m_IsImageSet)
 	{
-		if (m_Image)
+		if (m_Image.IsOk())
 		{
-			m_GraphicsBitmapImage = std::make_unique<wxGraphicsBitmap>(gc_->CreateBitmapFromImage(*m_Image));;
+			m_GraphicsBitmapImage = gc_->CreateBitmapFromImage(m_Image);
 			m_IsGraphicsBitmapSet = true;
 		}
 	}
@@ -567,10 +644,9 @@ void cPreviewPanel::DrawCameraCapturedImage(wxGraphicsContext* gc_)
 
 		gc_->SetInterpolationQuality(interpolation_quality);
 		gc_->Scale(m_Zoom / m_ZoomOnOriginalSizeImage, m_Zoom / m_ZoomOnOriginalSizeImage);
-		if (m_GraphicsBitmapImage)
-			gc_->DrawBitmap(*m_GraphicsBitmapImage.get(),
-				m_StartDrawPos.x, m_StartDrawPos.y,
-				m_ImageSize.GetWidth(), m_ImageSize.GetHeight());
+		gc_->DrawBitmap(m_GraphicsBitmapImage,
+			m_StartDrawPos.x, m_StartDrawPos.y,
+			m_ImageSize.GetWidth(), m_ImageSize.GetHeight());
 	}
 }
 
