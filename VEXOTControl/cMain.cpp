@@ -1411,7 +1411,13 @@ auto cMain::InitializeSelectedDevice() -> void
 {
 	/* Ketek */
 	if (m_DeviceChoice->GetString(m_DeviceChoice->GetSelection()) == "KETEK")
-		m_SelectedDeviceStaticTXT->SetValue(m_Settings->GetSelectedKETEK());
+	{
+		m_KetekHandler = std::make_unique<Ketek>(m_Settings->GetSelectedKETEK().ToStdString());
+		if (m_KetekHandler->IsDeviceInitialized())
+			m_SelectedDeviceStaticTXT->SetValue(m_Settings->GetSelectedKETEK());
+		else
+			m_SelectedDeviceStaticTXT->SetValue(wxT("-"));
+	}
 }
 
 void cMain::OnFullScreen(wxCommandEvent& evt)

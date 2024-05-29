@@ -16,6 +16,7 @@
 
 #include "cPreviewPanel.h"
 #include "cSettings.h"
+#include "Ketek.h"
 
 #include "src/img/cross_hair.xpm"
 #include "src/img/center.xpm"
@@ -368,6 +369,9 @@ private:
 
 	/* wxPanels */
 	wxPanel* m_RightSidePanel{};
+
+	// Ketek
+	std::unique_ptr<Ketek> m_KetekHandler{};
 
 	wxDECLARE_EVENT_TABLE();
 };
