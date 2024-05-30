@@ -2,29 +2,29 @@
 <selected_motors>
 	<detector>
 		<motor>
-			<sn>12538</sn>
+			<sn>18808</sn>
 			<range>24.06</range>
 		</motor>
 	</detector>
 	<optics>
 		<motor>
+			<sn>15748</sn>
+			<range>24.12</range>
+		</motor>
+		<motor>
+			<sn>15715</sn>
+			<range>24.12</range>
+		</motor>
+		<motor>
+			<sn>18834</sn>
+			<range>24.12</range>
+		</motor>
+		<motor>
 			<sn>12598</sn>
 			<range>24.12</range>
 		</motor>
 		<motor>
-			<sn>13586</sn>
-			<range>24.12</range>
-		</motor>
-		<motor>
-			<sn>14598</sn>
-			<range>24.12</range>
-		</motor>
-		<motor>
-			<sn>15586</sn>
-			<range>24.12</range>
-		</motor>
-		<motor>
-			<sn>16586</sn>
+			<sn>12565</sn>
 			<range>24.12</range>
 		</motor>
 	</optics>

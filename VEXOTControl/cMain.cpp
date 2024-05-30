@@ -18,6 +18,13 @@ wxBEGIN_EVENT_TABLE(cMain, wxFrame)
 	EVT_BUTTON(MainFrameVariables::ID_RIGHT_SC_DET_X_INC_BTN, cMain::OnIncrementDetectorXAbsPos)
 	EVT_BUTTON(MainFrameVariables::ID_RIGHT_SC_DET_X_CENTER_BTN, cMain::OnCenterDetectorX)
 	EVT_BUTTON(MainFrameVariables::ID_RIGHT_SC_DET_X_HOME_BTN, cMain::OnHomeDetectorX)
+	/* Optics X */
+	EVT_TEXT_ENTER(MainFrameVariables::ID_RIGHT_SC_OPT_X_ABS_TE_CTL, cMain::OnEnterTextCtrlOpticsXAbsPos)
+	EVT_BUTTON(MainFrameVariables::ID_RIGHT_SC_OPT_X_SET_BTN, cMain::OnSetOpticsXAbsPos)
+	EVT_BUTTON(MainFrameVariables::ID_RIGHT_SC_OPT_X_DEC_BTN, cMain::OnDecrementOpticsXAbsPos)
+	EVT_BUTTON(MainFrameVariables::ID_RIGHT_SC_OPT_X_INC_BTN, cMain::OnIncrementOpticsXAbsPos)
+	EVT_BUTTON(MainFrameVariables::ID_RIGHT_SC_OPT_X_CENTER_BTN, cMain::OnCenterOpticsX)
+	EVT_BUTTON(MainFrameVariables::ID_RIGHT_SC_OPT_X_HOME_BTN, cMain::OnHomeOpticsX)
 	/* Optics Y */
 	EVT_TEXT_ENTER(MainFrameVariables::ID_RIGHT_SC_OPT_Y_ABS_TE_CTL, cMain::OnEnterTextCtrlOpticsYAbsPos)
 	EVT_BUTTON(MainFrameVariables::ID_RIGHT_SC_OPT_Y_SET_BTN, cMain::OnSetOpticsYAbsPos)
@@ -25,6 +32,27 @@ wxBEGIN_EVENT_TABLE(cMain, wxFrame)
 	EVT_BUTTON(MainFrameVariables::ID_RIGHT_SC_OPT_Y_INC_BTN, cMain::OnIncrementOpticsYAbsPos)
 	EVT_BUTTON(MainFrameVariables::ID_RIGHT_SC_OPT_Y_CENTER_BTN, cMain::OnCenterOpticsY)
 	EVT_BUTTON(MainFrameVariables::ID_RIGHT_SC_OPT_Y_HOME_BTN, cMain::OnHomeOpticsY)
+	/* Optics Z */
+	EVT_TEXT_ENTER(MainFrameVariables::ID_RIGHT_SC_OPT_Z_ABS_TE_CTL, cMain::OnEnterTextCtrlOpticsZAbsPos)
+	EVT_BUTTON(MainFrameVariables::ID_RIGHT_SC_OPT_Z_SET_BTN, cMain::OnSetOpticsZAbsPos)
+	EVT_BUTTON(MainFrameVariables::ID_RIGHT_SC_OPT_Z_DEC_BTN, cMain::OnDecrementOpticsZAbsPos)
+	EVT_BUTTON(MainFrameVariables::ID_RIGHT_SC_OPT_Z_INC_BTN, cMain::OnIncrementOpticsZAbsPos)
+	EVT_BUTTON(MainFrameVariables::ID_RIGHT_SC_OPT_Z_CENTER_BTN, cMain::OnCenterOpticsZ)
+	EVT_BUTTON(MainFrameVariables::ID_RIGHT_SC_OPT_Z_HOME_BTN, cMain::OnHomeOpticsZ)
+	/* Optics Pitch */
+	EVT_TEXT_ENTER(MainFrameVariables::ID_RIGHT_SC_OPT_PITCH_ABS_TE_CTL, cMain::OnEnterTextCtrlOpticsPitchAbsPos)
+	EVT_BUTTON(MainFrameVariables::ID_RIGHT_SC_OPT_PITCH_SET_BTN, cMain::OnSetOpticsPitchAbsPos)
+	EVT_BUTTON(MainFrameVariables::ID_RIGHT_SC_OPT_PITCH_DEC_BTN, cMain::OnDecrementOpticsPitchAbsPos)
+	EVT_BUTTON(MainFrameVariables::ID_RIGHT_SC_OPT_PITCH_INC_BTN, cMain::OnIncrementOpticsPitchAbsPos)
+	EVT_BUTTON(MainFrameVariables::ID_RIGHT_SC_OPT_PITCH_CENTER_BTN, cMain::OnCenterOpticsPitch)
+	EVT_BUTTON(MainFrameVariables::ID_RIGHT_SC_OPT_PITCH_HOME_BTN, cMain::OnHomeOpticsPitch)
+	/* Optics Yaw */
+	EVT_TEXT_ENTER(MainFrameVariables::ID_RIGHT_SC_OPT_YAW_ABS_TE_CTL, cMain::OnEnterTextCtrlOpticsYawAbsPos)
+	EVT_BUTTON(MainFrameVariables::ID_RIGHT_SC_OPT_YAW_SET_BTN, cMain::OnSetOpticsYawAbsPos)
+	EVT_BUTTON(MainFrameVariables::ID_RIGHT_SC_OPT_YAW_DEC_BTN, cMain::OnDecrementOpticsYawAbsPos)
+	EVT_BUTTON(MainFrameVariables::ID_RIGHT_SC_OPT_YAW_INC_BTN, cMain::OnIncrementOpticsYawAbsPos)
+	EVT_BUTTON(MainFrameVariables::ID_RIGHT_SC_OPT_YAW_CENTER_BTN, cMain::OnCenterOpticsYaw)
+	EVT_BUTTON(MainFrameVariables::ID_RIGHT_SC_OPT_YAW_HOME_BTN, cMain::OnHomeOpticsYaw)
 	/* Camera */
 	EVT_CHOICE(MainFrameVariables::ID_RIGHT_CAM_MANUFACTURER_CHOICE, cMain::ChangeCameraManufacturerChoice)
 	EVT_TEXT_ENTER(MainFrameVariables::ID_RIGHT_CAM_EXPOSURE_TE_CTL, cMain::ExposureValueChanged)
@@ -1019,6 +1047,7 @@ void cMain::CreateDeviceControls(wxPanel* right_side_panel, wxBoxSizer* right_si
 					MainFrameVariables::ID_RIGHT_CAM_CROSS_HAIR_SET_POS_TGL_BTN,
 					wxT("Set")
 				);
+			m_SetCrossHairPosTglBtn->Disable();
 
 			cross_hair_sizer->AddSpacer(2);
 			cross_hair_sizer->Add(m_SetCrossHairPosTglBtn.get(), 0, wxALIGN_CENTER);
@@ -1303,23 +1332,46 @@ void cMain::OnSingleShotCameraImage(wxCommandEvent& evt)
 			title,
 			wxICON_ERROR);
 	};
-
 	wxBusyCursor busy_cursor{};
+
+	auto timePointToWxString = []()
+		{
+			auto now = std::chrono::system_clock::now().time_since_epoch().count();
+			wxString formattedTime = wxString::Format(wxT("%lld"), now);
+			return formattedTime;
+		};
+
+
+
 	wxString exposure_time_str = m_DeviceExposure->GetValue().IsEmpty() 
-		? wxString("0") 
+		? wxString("1") 
 		: m_DeviceExposure->GetValue();
-	int exposure_time = abs(wxAtoi(exposure_time_str)) * 1000; // Because user input is in [ms], we need to recalculate exposure time to [us]
+	int exposure_time = abs(wxAtoi(exposure_time_str)); // Because user input is in [ms], we need to recalculate exposure time to [us]
 
 	auto start_live_capturing_after_ss = m_StartStopLiveCapturingTglBtn->GetValue();
 
-	if (m_StartStopLiveCapturingTglBtn->GetValue())
+	if (start_live_capturing_after_ss)
 	{
-		wxString exposure_time_str = m_DeviceExposure->GetValue().IsEmpty() 
-			? wxString("0") 
-			: m_DeviceExposure->GetValue();
-		unsigned long exposure_time = abs(wxAtoi(exposure_time_str)); // Because user input is in [ms], we need to recalculate the value to [us]
-		wxThread::This()->Sleep(exposure_time);
+		m_StartedThreads.back().second = false;
+
+		m_SingleShotBtn->Disable();
+		m_StartStopLiveCapturingTglBtn->Disable();
+		while (!m_StartedThreads.back().first.IsEmpty())
+		{
+			wxThread::This()->Sleep(10);
+		}
+
+		m_SingleShotBtn->Disable();
 	}
+
+	//if (m_StartStopLiveCapturingTglBtn->GetValue())
+	//{
+	//	wxString exposure_time_str = m_DeviceExposure->GetValue().IsEmpty() 
+	//		? wxString("0") 
+	//		: m_DeviceExposure->GetValue();
+	//	unsigned long exposure_time = abs(wxAtoi(exposure_time_str)); // Because user input is in [ms], we need to recalculate the value to [us]
+	//	wxThread::This()->Sleep(exposure_time);
+	//}
 	//m_StopLiveCapturing = true;
 	{
 		//while (!m_LiveCapturingEndedDrawingOnCamPreview)
@@ -1327,9 +1379,9 @@ void cMain::OnSingleShotCameraImage(wxCommandEvent& evt)
 		//	wxThread::This()->Sleep(10);
 		//}
 		wxString exposure_time_str = m_DeviceExposure->GetValue().IsEmpty() 
-			? wxString("0") 
+			? wxString("1") 
 			: m_DeviceExposure->GetValue();
-		unsigned long exposure_time = abs(wxAtoi(exposure_time_str)) * 1000; // Because user input is in [ms], we need to recalculate the value to [us]
+		unsigned long exposure_time = abs(wxAtoi(exposure_time_str)); // Because user input is in [ms], we need to recalculate the value to [us]
 
 		auto now = std::chrono::system_clock::now();
 		auto cur_time = std::chrono::system_clock::to_time_t(now);
@@ -1344,20 +1396,28 @@ void cMain::OnSingleShotCameraImage(wxCommandEvent& evt)
 			cur_hours + std::string("H_") + 
 			cur_mins + std::string("M_") + 
 			cur_secs + std::string("S_") + 
-			std::to_string(exposure_time) + std::string("us") 
+			std::to_string(exposure_time) + std::string("s") 
 			+ std::string(".tif");
 
-		/* Camera */
+		/* Ketek */
 		{
-			unsigned short* data_ptr{};
-			//data_ptr = m_XimeaControl->GetImage();
-			if (!data_ptr)
+			auto currThreadTimeStamp = timePointToWxString();
+			m_StartedThreads.push_back(std::make_pair(currThreadTimeStamp, true));
+			
+			auto mcaData = std::make_unique<unsigned long[]>(m_KetekHandler->GetDataSize());
+
+			m_KetekHandler->CaptureData(exposure_time, mcaData.get(), &m_StartedThreads.back().second);
+
+			if (!mcaData)
 			{
 				raise_exception_msg();
 				return;
 			}
+
+			MainFrameVariables::WriteMCAFile(file_name, mcaData.get());
 		}
 	}
+	m_StartStopLiveCapturingTglBtn->Enable();
 	/* Only if user has already started Live Capturing, continue Live Capturing */
 	if (start_live_capturing_after_ss)
 	{
@@ -1483,9 +1543,42 @@ void cMain::OnExit(wxCloseEvent& evt)
 
 void cMain::UpdateStagePositions()
 {
-	m_Detector[0].absolute_text_ctrl->SetValue(wxString::Format(wxT("%.3f"), m_Settings->GetActualDetectorXStagePos()));
+	m_Detector[0].absolute_text_ctrl->SetValue
+	(
+		wxString::Format(wxT("%.3f"), 
+			m_Settings->GetActualMotorPosition(SettingsVariables::DETECTOR_X))
+	);
 
-	m_Optics[1].absolute_text_ctrl->SetValue(wxString::Format(wxT("%.3f"), m_Settings->GetActualOpticsYStagePos()));
+	m_Optics[0].absolute_text_ctrl->SetValue
+	(
+		wxString::Format(wxT("%.3f"), 
+			m_Settings->GetActualMotorPosition(SettingsVariables::OPTICS_X))
+	);
+
+	m_Optics[1].absolute_text_ctrl->SetValue
+	(
+		wxString::Format(wxT("%.3f"), 
+			m_Settings->GetActualMotorPosition(SettingsVariables::OPTICS_Y))
+	);
+
+	m_Optics[2].absolute_text_ctrl->SetValue
+	(
+		wxString::Format(wxT("%.3f"), 
+			m_Settings->GetActualMotorPosition(SettingsVariables::OPTICS_Z))
+	);
+
+	m_Optics[3].absolute_text_ctrl->SetValue
+	(
+		wxString::Format(wxT("%.3f"), 
+			m_Settings->GetActualMotorPosition(SettingsVariables::OPTICS_PITCH))
+	);
+
+	m_Optics[4].absolute_text_ctrl->SetValue
+	(
+		wxString::Format(wxT("%.3f"), 
+			m_Settings->GetActualMotorPosition(SettingsVariables::OPTICS_YAW))
+	);
+
 }
 
 void cMain::OnExit(wxCommandEvent& evt)
@@ -1497,78 +1590,24 @@ void cMain::OnExit(wxCommandEvent& evt)
 void cMain::EnableUsedAndDisableNonUsedMotors()
 {
 	/* Detector X */
-	if (m_Settings->DetectorXHasSerialNumber()) m_Detector[0].EnableAllControls();
+	if (m_Settings->MotorHasSerialNumber(SettingsVariables::DETECTOR_X)) m_Detector[0].EnableAllControls();
 	else m_Detector[0].DisableAllControls();
+
 	/* Optics X */
-	if (m_Settings->OpticsXHasSerialNumber()) m_Optics[0].EnableAllControls();
+	if (m_Settings->MotorHasSerialNumber(SettingsVariables::OPTICS_X)) m_Optics[0].EnableAllControls();
 	else m_Optics[0].DisableAllControls();
 	/* Optics Y */
-	if (m_Settings->OpticsYHasSerialNumber()) m_Optics[1].EnableAllControls();
+	if (m_Settings->MotorHasSerialNumber(SettingsVariables::OPTICS_Y)) m_Optics[1].EnableAllControls();
 	else m_Optics[1].DisableAllControls();
 	/* Optics Z */
-	if (m_Settings->OpticsZHasSerialNumber()) m_Optics[2].EnableAllControls();
+	if (m_Settings->MotorHasSerialNumber(SettingsVariables::OPTICS_Z)) m_Optics[2].EnableAllControls();
 	else m_Optics[2].DisableAllControls();	
 	/* Optics Pitch */
-	if (m_Settings->OpticsPitchHasSerialNumber()) m_Optics[3].EnableAllControls();
+	if (m_Settings->MotorHasSerialNumber(SettingsVariables::OPTICS_PITCH)) m_Optics[3].EnableAllControls();
 	else m_Optics[3].DisableAllControls();	
 	/* Optics Yaw */
-	if (m_Settings->OpticsYawHasSerialNumber()) m_Optics[4].EnableAllControls();
+	if (m_Settings->MotorHasSerialNumber(SettingsVariables::OPTICS_YAW)) m_Optics[4].EnableAllControls();
 	else m_Optics[4].DisableAllControls();
-}
-
-void cMain::OnEnterTextCtrlDetectorXAbsPos(wxCommandEvent& evt)
-{
-	wxCommandEvent enter_evt(wxEVT_BUTTON, MainFrameVariables::ID_RIGHT_SC_DET_X_SET_BTN);
-	ProcessEvent(enter_evt);
-}
-
-void cMain::OnSetDetectorXAbsPos(wxCommandEvent& evt)
-{
-	double absolute_position{};
-	if (!m_Detector[0].absolute_text_ctrl->GetValue().ToDouble(&absolute_position)) return;
-	m_Settings->GoToAbsDetectorX((float)absolute_position);
-}
-
-void cMain::OnDecrementDetectorXAbsPos(wxCommandEvent& evt)
-{
-	double delta_position{};
-	if (!m_Detector[0].relative_text_ctrl->GetValue().ToDouble(&delta_position)) return;
-	m_Detector[0].absolute_text_ctrl->SetValue(
-		wxString::Format
-		(
-			wxT("%.3f"), 
-			m_Settings->GoOffsetDetectorX(-(float)delta_position)
-		));
-}
-
-void cMain::OnIncrementDetectorXAbsPos(wxCommandEvent& evt)
-{	
-	double delta_position{};
-	if (!m_Detector[0].relative_text_ctrl->GetValue().ToDouble(&delta_position)) return;
-	m_Detector[0].absolute_text_ctrl->SetValue(
-		wxString::Format
-		(
-			wxT("%.3f"), 
-			m_Settings->GoOffsetDetectorX((float)delta_position)
-		));
-}
-
-void cMain::OnCenterDetectorX(wxCommandEvent& evt)
-{
-	m_Detector[0].absolute_text_ctrl->SetValue(
-		wxString::Format(
-			wxT("%.3f"), 
-			m_Settings->CenterDetectorX()
-		));
-}
-
-void cMain::OnHomeDetectorX(wxCommandEvent& evt)
-{	
-	m_Detector[0].absolute_text_ctrl->ChangeValue(
-		wxString::Format(
-			wxT("%.3f"), 
-			m_Settings->HomeDetectorX()
-		));
 }
 
 void cMain::CreateVerticalToolBar()
@@ -1623,28 +1662,28 @@ void cMain::OnFirstStageChoice(wxCommandEvent& evt)
 	double start_stage_value{}, step_stage_value{}, finish_stage_value{};
 	switch (first_stage_selection)
 	{
-	/* Detector */
-	case 0:
-		if (!m_Detector[0].absolute_text_ctrl->GetValue().ToDouble(&start_stage_value)) return;
-		break;
-	/* Optics */
-	case 1:
-		if (!m_Optics[0].absolute_text_ctrl->GetValue().ToDouble(&start_stage_value)) return;
-		break;
-	case 2:
-		if (!m_Optics[1].absolute_text_ctrl->GetValue().ToDouble(&start_stage_value)) return;
-		break;
-	case 3:
-		if (!m_Optics[2].absolute_text_ctrl->GetValue().ToDouble(&start_stage_value)) return;
-		break;
-	case 4:
-		if (!m_Optics[3].absolute_text_ctrl->GetValue().ToDouble(&start_stage_value)) return;
-		break;
-	case 5:
-		if (!m_Optics[4].absolute_text_ctrl->GetValue().ToDouble(&start_stage_value)) return;
-		break;
-	default:
-		break;
+		/* Detector */
+		case 0:
+			if (!m_Detector[0].absolute_text_ctrl->GetValue().ToDouble(&start_stage_value)) return;
+			break;
+		/* Optics */
+		case 1:
+			if (!m_Optics[0].absolute_text_ctrl->GetValue().ToDouble(&start_stage_value)) return;
+			break;
+		case 2:
+			if (!m_Optics[1].absolute_text_ctrl->GetValue().ToDouble(&start_stage_value)) return;
+			break;
+		case 3:
+			if (!m_Optics[2].absolute_text_ctrl->GetValue().ToDouble(&start_stage_value)) return;
+			break;
+		case 4:
+			if (!m_Optics[3].absolute_text_ctrl->GetValue().ToDouble(&start_stage_value)) return;
+			break;
+		case 5:
+			if (!m_Optics[4].absolute_text_ctrl->GetValue().ToDouble(&start_stage_value)) return;
+			break;
+		default:
+			break;
 	}
 	/* Set Start To Current position of motor */
 	m_FirstStage->start->SetValue
@@ -1741,7 +1780,7 @@ void cMain::OnStartCapturingButton(wxCommandEvent& evt)
 		//m_XimeaControl->TurnOffLastThread();
 		{
 			wxString exposure_time_str = m_DeviceExposure->GetValue().IsEmpty()
-				? wxString("0")
+				? wxString("1")
 				: m_DeviceExposure->GetValue();
 			unsigned long exposure_time = abs(wxAtoi(exposure_time_str)); // Because user input is in [ms], we need to recalculate the value to [us]
 			wxThread::This()->Sleep(exposure_time);
@@ -1794,7 +1833,7 @@ void cMain::OnStartCapturingButton(wxCommandEvent& evt)
 		*/
 	}
 	{
-		CreateMetadataFile();
+		//CreateMetadataFile();
 		m_StartCalculationTime = std::chrono::steady_clock::now();
 		wxPoint start_point_progress_bar
 		{ 
@@ -1816,9 +1855,9 @@ void cMain::OnStartCapturingButton(wxCommandEvent& evt)
 		auto out_dir = m_OutDirTextCtrl->GetValue();
 
 		wxString exposure_time_str = m_DeviceExposure->GetValue().IsEmpty() 
-			? wxString("0") 
+			? wxString("1") 
 			: m_DeviceExposure->GetValue();
-		unsigned long exposure_time = abs(wxAtoi(exposure_time_str)) * 1000; // Because user input is in [ms], we need to recalculate the value to [us]
+		unsigned long exposure_time = abs(wxAtoi(exposure_time_str)); // Because user input is in [s]
 
 		WorkerThread* worker_thread = new WorkerThread
 		(
@@ -1986,7 +2025,7 @@ auto cMain::CreateMetadataFile() -> void
 	wxString exposure_time_str = m_DeviceExposure->GetValue().IsEmpty() 
 		? wxString("0") 
 		: m_DeviceExposure->GetValue();
-	unsigned long exposure_time = abs(wxAtoi(exposure_time_str)) * 1000; // Because user input is in [ms], we need to recalculate the value to [us]
+	unsigned long exposure_time = abs(wxAtoi(exposure_time_str)); // Because user input is in [ms], we need to recalculate the value to [us]
 
 	double det_x_pos{}, det_y_pos{}, det_z_pos{};
 	double opt_y_pos{};
@@ -2125,11 +2164,13 @@ void cMain::OnValueDisplayingCheck(wxCommandEvent& evt)
 void cMain::UpdateAllAxisGlobalPositions()
 {
 	/* Detectors */
-	m_Detector[0].absolute_text_ctrl->ChangeValue(wxString::Format(wxT("%.3f"), m_Settings->GetActualDetectorXStagePos()));
+	m_Detector[0].absolute_text_ctrl->ChangeValue(wxString::Format(wxT("%.3f"), m_Settings->GetActualMotorPosition(SettingsVariables::DETECTOR_X)));
 	/* Optics */
-	m_Optics[0].absolute_text_ctrl->ChangeValue(wxString::Format(wxT("%.3f"), m_Settings->GetActualOpticsXStagePos()));
-	m_Optics[1].absolute_text_ctrl->ChangeValue(wxString::Format(wxT("%.3f"), m_Settings->GetActualOpticsYStagePos()));
-	m_Optics[2].absolute_text_ctrl->ChangeValue(wxString::Format(wxT("%.3f"), m_Settings->GetActualOpticsZStagePos()));
+	m_Optics[0].absolute_text_ctrl->ChangeValue(wxString::Format(wxT("%.3f"), m_Settings->GetActualMotorPosition(SettingsVariables::OPTICS_X)));
+	m_Optics[1].absolute_text_ctrl->ChangeValue(wxString::Format(wxT("%.3f"), m_Settings->GetActualMotorPosition(SettingsVariables::OPTICS_Y)));
+	m_Optics[2].absolute_text_ctrl->ChangeValue(wxString::Format(wxT("%.3f"), m_Settings->GetActualMotorPosition(SettingsVariables::OPTICS_Z)));
+	m_Optics[3].absolute_text_ctrl->ChangeValue(wxString::Format(wxT("%.3f"), m_Settings->GetActualMotorPosition(SettingsVariables::OPTICS_PITCH)));
+	m_Optics[4].absolute_text_ctrl->ChangeValue(wxString::Format(wxT("%.3f"), m_Settings->GetActualMotorPosition(SettingsVariables::OPTICS_YAW)));
 }
 
 void cMain::ExposureValueChanged(wxCommandEvent& evt)
@@ -2230,61 +2271,6 @@ auto cMain::OnSetPosCrossHairTglBtn(wxCommandEvent& evt) -> void
 	{	
 		//m_PreviewPanel->SettingCrossHairPosFromParentWindow(false);
 	}
-}
-
-void cMain::OnEnterTextCtrlOpticsYAbsPos(wxCommandEvent& evt)
-{
-	wxCommandEvent enter_evt(wxEVT_BUTTON, MainFrameVariables::ID_RIGHT_SC_OPT_Y_SET_BTN);
-	ProcessEvent(enter_evt);
-}
-
-void cMain::OnSetOpticsYAbsPos(wxCommandEvent& evt)
-{
-	double absolute_position{};
-	if (!m_Optics[1].absolute_text_ctrl->GetValue().ToDouble(&absolute_position)) return;
-	m_Settings->GoToAbsOpticsY((float)absolute_position);
-}
-
-void cMain::OnDecrementOpticsYAbsPos(wxCommandEvent& evt)
-{
-	double delta_position{};
-	if (!m_Optics[1].relative_text_ctrl->GetValue().ToDouble(&delta_position)) return;
-	m_Optics[1].absolute_text_ctrl->SetValue(
-		wxString::Format
-		(
-			wxT("%.3f"), 
-			m_Settings->GoOffsetOpticsY(-(float)delta_position)
-		));
-}
-
-void cMain::OnIncrementOpticsYAbsPos(wxCommandEvent& evt)
-{
-	double delta_position{};
-	if (!m_Optics[1].relative_text_ctrl->GetValue().ToDouble(&delta_position)) return;
-	m_Optics[1].absolute_text_ctrl->SetValue(
-		wxString::Format
-		(
-			wxT("%.3f"), 
-			m_Settings->GoOffsetOpticsY((float)delta_position)
-		));
-}
-
-void cMain::OnCenterOpticsY(wxCommandEvent& evt)
-{
-	m_Optics[1].absolute_text_ctrl->SetValue(
-		wxString::Format(
-			wxT("%.3f"), 
-			m_Settings->CenterOpticsY()
-		));
-}
-
-void cMain::OnHomeOpticsY(wxCommandEvent& evt)
-{
-	m_Optics[1].absolute_text_ctrl->SetValue(
-		wxString::Format(
-			wxT("%.3f"), 
-			m_Settings->HomeOpticsY()
-		));
 }
 
 /* ___ Start Live Capturing Thread ___ */
@@ -2504,7 +2490,7 @@ wxThread::ExitCode WorkerThread::Entry()
 	//	m_MainFrame->WorkerThreadFinished(true);
 	//};
 
-	m_MainFrame->WorkerThreadFinished(false);
+	//m_MainFrame->WorkerThreadFinished(false);
 	m_Settings->SetCurrentProgress(0, m_FirstAxis->step_number);
 
 	auto now = std::chrono::system_clock::now();
@@ -2534,26 +2520,28 @@ wxThread::ExitCode WorkerThread::Entry()
 		first_axis_rounded_go_to = (int)((m_FirstAxis->start + i * m_FirstAxis->step) * 1000.f + .5f) / 1000.f;
 		switch (m_FirstAxis->axis_number)
 		{
-		/* Detector */
-		case 0:
-			first_axis_position = m_Settings->GoToAbsDetectorX(first_axis_rounded_go_to);
-			break;
-		case 1:
-			first_axis_position = m_Settings->GoToAbsDetectorY(first_axis_rounded_go_to);
-			break;
-		case 2:
-			first_axis_position = m_Settings->GoToAbsDetectorZ(first_axis_rounded_go_to);
-			break;
-		/* Optics */
-		case 3:
-			break;
-		case 4:
-			first_axis_position = m_Settings->GoToAbsOpticsY(first_axis_rounded_go_to);
-			break;
-		case 5:
-			break;
-		default:
-			break;
+			/* Detector */
+			case 0:
+				first_axis_position = m_Settings->GoToAbsPos(SettingsVariables::DETECTOR_X, first_axis_rounded_go_to);
+				break;
+			/* Optics */
+			case 1:
+				first_axis_position = m_Settings->GoToAbsPos(SettingsVariables::OPTICS_X, first_axis_rounded_go_to);
+				break;
+			case 2:
+				first_axis_position = m_Settings->GoToAbsPos(SettingsVariables::OPTICS_Y, first_axis_rounded_go_to);
+				break;
+			case 3:
+				first_axis_position = m_Settings->GoToAbsPos(SettingsVariables::OPTICS_Z, first_axis_rounded_go_to);
+				break;
+			case 4:
+				first_axis_position = m_Settings->GoToAbsPos(SettingsVariables::OPTICS_PITCH, first_axis_rounded_go_to);
+				break;
+			case 5:
+				first_axis_position = m_Settings->GoToAbsPos(SettingsVariables::OPTICS_YAW, first_axis_rounded_go_to);
+				break;
+			default:
+				break;
 		}
 
 		/* Take Capture */
@@ -2585,26 +2573,28 @@ wxThread::ExitCode WorkerThread::Entry()
 #ifdef ENABLE_SECOND_AXIS
 	switch (m_SecondAxis->axis_number)
 	{
-	/* Detector */
-	case 0:
-		m_Settings->GoToAbsDetectorX(m_FirstAxis->start);
-		break;
-	case 1:
-		m_Settings->GoToAbsDetectorY(m_FirstAxis->start);
-		break;
-	case 2:
-		m_Settings->GoToAbsDetectorZ(m_FirstAxis->start);
-		break;
-	/* Optics */
-	case 3:
-		break;
-	case 4:
-		m_Settings->GoToAbsOpticsY(m_FirstAxis->start);
-		break;
-	case 5:
-		break;
-	default:
-		break;
+		/* Detector */
+		case 0:
+			first_axis_position = m_Settings->GoToAbsPos(SettingsVariables::DETECTOR_X, first_axis_rounded_go_to);
+			break;
+		/* Optics */
+		case 1:
+			first_axis_position = m_Settings->GoToAbsPos(SettingsVariables::OPTICS_X, first_axis_rounded_go_to);
+			break;
+		case 2:
+			first_axis_position = m_Settings->GoToAbsPos(SettingsVariables::OPTICS_Y, first_axis_rounded_go_to);
+			break;
+		case 3:
+			first_axis_position = m_Settings->GoToAbsPos(SettingsVariables::OPTICS_Z, first_axis_rounded_go_to);
+			break;
+		case 4:
+			first_axis_position = m_Settings->GoToAbsPos(SettingsVariables::OPTICS_PITCH, first_axis_rounded_go_to);
+			break;
+		case 5:
+			first_axis_position = m_Settings->GoToAbsPos(SettingsVariables::OPTICS_YAW, first_axis_rounded_go_to);
+			break;
+		default:
+			break;
 	}
 #endif // FALSE
 

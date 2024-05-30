@@ -31,6 +31,9 @@ auto Ketek::InitializeDevice(const std::string deviceSN) -> bool
     status = xiaSetAcquisitionValues(0, (char*)"number_mca_channels", &m_nMCA);
     if (!CHECK_ERROR(status)) return false;
 
+    status = xiaSetAcquisitionValues(0, (char*)"mca_bin_width", (void*)&m_BinWidth);
+    if (!CHECK_ERROR(status)) return false;
+
     status = xiaSetAcquisitionValues(0, (char*)"trigger_threshold", &m_Thresh);
     if (!CHECK_ERROR(status)) return false;
 

@@ -35,6 +35,8 @@ auto cPreviewPanel::SetKETEKData(const unsigned long* const mcaData, const unsig
 {
 	if (!mcaData) return;
 
+	auto prevImageSize = m_ImageSize;
+
 	if (dataSize != m_ImageSize.GetWidth())
 	{
 		m_ImageSize = wxSize(dataSize, 800);
@@ -49,9 +51,11 @@ auto cPreviewPanel::SetKETEKData(const unsigned long* const mcaData, const unsig
 
 	double multiplicator{};
 	auto maxValue = std::max_element(&m_ImageData[0], &m_ImageData[m_ImageSize.GetWidth()]);
+	m_MaxPosValueInData.first = std::distance(&m_ImageData[0], maxValue);
+	m_MaxPosValueInData.second = *maxValue;
 
 	if (*maxValue)
-		multiplicator = (double)m_ImageSize.GetHeight() / *maxValue;
+		multiplicator = (double)(m_ImageSize.GetHeight() - 1) / *maxValue;
 
 	LOGF("Multiplicator: ", multiplicator);
 
@@ -98,6 +102,56 @@ auto cPreviewPanel::SetKETEKData(const unsigned long* const mcaData, const unsig
 		};
 
 	update_wxImage();
+
+	/*
+Saving previous values for correct displaying of the image in the same place,
+where it was before capturing.
+*/
+	{
+		auto temp_zoom = m_Zoom;
+		auto temp_pan_offset = m_PanOffset;
+		auto temp_start_draw_pos = m_StartDrawPos;
+		m_Zoom = 1.0;
+		m_PanOffset = {};
+		ChangeSizeOfImageInDependenceOnCanvasSize();
+		/* CrossHair */
+		{
+			//m_CrossHairTool->SetImageDataType(ToolsVariables::DATA_U16);
+			//m_CrossHairTool->SetImageDimensions(m_ImageSize);
+			//m_CrossHairTool->SetZoomOfOriginalSizeImage(m_ZoomOnOriginalSizeImage);
+			//m_CrossHairTool->UpdateZoomValue(m_Zoom);
+			//m_CrossHairTool->SetImageStartDrawPos(m_StartDrawPos);
+			////m_CrossHairTool->SetXPosFromParent(m_ImageSize.GetWidth() / 2);
+			////m_CrossHairTool->SetYPosFromParent(m_ImageSize.GetHeight() / 2);
+			//m_CrossHairTool->SetYPosFromParent(m_CrossHairTool->GetYPos());
+			//m_CrossHairTool->SetYPosFromParent(m_CrossHairTool->GetYPos());
+		}
+
+		if (m_IsImageSet)
+		{
+			m_Zoom = temp_zoom;
+			m_PanOffset = temp_pan_offset;
+			m_StartDrawPos = temp_start_draw_pos;
+			if (prevImageSize != m_ImageSize)
+			{
+				m_Zoom = 1.0;
+				m_PanOffset = {};
+				m_StartDrawPos = m_NotZoomedGraphicsBitmapOffset;
+				/* CrossHair */
+				//m_CrossHairTool->UpdateZoomValue(m_Zoom);
+				//m_CrossHairTool->SetImageStartDrawPos(m_StartDrawPos);
+				//m_CrossHairTool->SetXPosFromParent(m_ImageSize.GetWidth() / 2);
+				//m_CrossHairTool->SetYPosFromParent(m_ImageSize.GetHeight() / 2);
+			}
+			else
+			{
+				//m_CrossHairTool->UpdateZoomValue(m_Zoom);
+				//m_CrossHairTool->SetImageStartDrawPos(m_StartDrawPos);
+				//m_CrossHairTool->SetXPosFromParent(m_CrossHairTool->GetXPos());
+				//m_CrossHairTool->SetYPosFromParent(m_CrossHairTool->GetYPos());
+			}
+		}
+	}
 
 	m_IsImageSet = true;
 	m_IsGraphicsBitmapSet = false;
@@ -585,13 +639,19 @@ void cPreviewPanel::Render(wxBufferedPaintDC& dc)
 
 		if (m_IsImageSet)
 		{
-			/* CrossHair */
-			wxGraphicsContext* gc_cross = wxGraphicsContext::Create(dc);
-			if (gc_cross)
+			wxGraphicsContext* gc_max_value = wxGraphicsContext::Create(dc);
+			if (gc_max_value)
 			{
-				DrawCrossHair(gc_cross);
-				delete gc_cross;
+				DrawMaxValue(gc_max_value);
+				delete gc_max_value;
 			}
+			/* CrossHair */
+			//wxGraphicsContext* gc_cross = wxGraphicsContext::Create(dc);
+			//if (gc_cross)
+			//{
+			//	DrawCrossHair(gc_cross);
+			//	delete gc_cross;
+			//}
 		}
 	}
 }
@@ -616,6 +676,12 @@ auto cPreviewPanel::AdjustKETEKImageMultithread
 	for (auto x{ startX }; x < finishX; ++x)
 	{
 		currentValue = (int)(multiplicationValue * data[position_in_data_pointer]);
+#ifdef _DEBUG
+		if (currentValue)
+			LOGI("Current Value: ", currentValue);
+
+#endif // _DEBUG
+
 		y = imgHeight - currentValue - 1;
 		m_Image.SetRGB(x, y, red, green, blue);
 		++position_in_data_pointer;
@@ -647,6 +713,38 @@ void cPreviewPanel::DrawCameraCapturedImage(wxGraphicsContext* gc_)
 		gc_->DrawBitmap(m_GraphicsBitmapImage,
 			m_StartDrawPos.x, m_StartDrawPos.y,
 			m_ImageSize.GetWidth(), m_ImageSize.GetHeight());
+	}
+}
+
+auto cPreviewPanel::DrawMaxValue(wxGraphicsContext* gc) -> void
+{
+	if (!m_Image.IsOk() || !m_ImageData) return;
+
+	auto screenWidth = GetSize().GetWidth();
+	auto screenHeight = GetSize().GetHeight();
+	auto incrementX = 10.0;
+	auto startX = 10.0;
+	auto startY = screenHeight - incrementX;
+
+	wxFont font = wxFont(18, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
+	wxColour fontColour = wxColour(255, 0, 128, 100);
+	gc->SetFont(font, fontColour);
+
+	// Draw value
+	{
+		wxString curr_value{};
+		curr_value += "X: ";
+		curr_value += wxString::Format(wxT("%i"), m_MaxPosValueInData.first);
+		curr_value += " Value: ";
+		curr_value += wxString::Format(wxT("%ld"), m_MaxPosValueInData.second);
+		wxDouble widthText{}, heightText{};
+		gc->GetTextExtent(curr_value, &widthText, &heightText);
+		gc->DrawText
+		(
+			curr_value,
+			startX,
+			startY - heightText
+		);
 	}
 }
 

@@ -127,6 +127,7 @@ private:
 	) -> void;
 	void CreateGraphicsBitmapImage(wxGraphicsContext* gc_);
 	void DrawCameraCapturedImage(wxGraphicsContext* gc_);
+	auto DrawMaxValue(wxGraphicsContext* gc) -> void;
 	void OnSize(wxSizeEvent& evt);
 	void ChangeSizeOfImageInDependenceOnCanvasSize();
 	auto UpdateCrossHairOnSize() -> void;
@@ -158,6 +159,8 @@ private:
 	wxImage m_Image{};
 	wxGraphicsBitmap m_GraphicsBitmapImage{};
 	std::unique_ptr<unsigned long[]> m_ImageData{};
+
+	std::pair<unsigned short, unsigned long> m_MaxPosValueInData{};
 	
 	wxSize m_ImageSize{}, m_ImageOnCanvasSize{}, m_CanvasSize{};
 	wxRealPoint m_NotCheckedCursorPosOnImage{}, m_CheckedCursorPosOnImage{}, m_CursorPosOnCanvas{};

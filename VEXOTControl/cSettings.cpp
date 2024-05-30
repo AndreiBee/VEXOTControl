@@ -14,101 +14,85 @@ cSettings::cSettings(wxWindow* parent_frame)
 	CenterOnScreen();
 }
 
-bool cSettings::DetectorXHasSerialNumber() const
-{
-	return m_PhysicalMotors->MotorHasSerialNumber
-	(
-		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[0].ToStdString()
-	);
-}
-
-float cSettings::GetActualDetectorXStagePos() const
-{
-	return m_PhysicalMotors->GetActualStagePos
-	(
-		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[0].ToStdString()
-	);
-}
-
-bool cSettings::OpticsXHasSerialNumber() const
-{
-	return m_PhysicalMotors->MotorHasSerialNumber
-	(
-		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[1].ToStdString()
-	);
-}
-
-float cSettings::GetActualOpticsXStagePos() const
-{
-	return m_PhysicalMotors->GetActualStagePos
-	(
-		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[1].ToStdString()
-	);
-}
-
-bool cSettings::OpticsYHasSerialNumber() const
-{
-	return m_PhysicalMotors->MotorHasSerialNumber
-	(
-		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[2].ToStdString()
-	);
-}
-
-float cSettings::GetActualOpticsYStagePos() const
-{
-	return m_PhysicalMotors->GetActualStagePos
-	(
-		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[2].ToStdString()
-	);
-}
-
-bool cSettings::OpticsZHasSerialNumber() const
-{	
-	return m_PhysicalMotors->MotorHasSerialNumber
-	(
-		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[3].ToStdString()
-	);
-}
-
-float cSettings::GetActualOpticsZStagePos() const
-{
-	return m_PhysicalMotors->GetActualStagePos
-	(
-		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[3].ToStdString()
-	);
-}
-
-bool cSettings::OpticsPitchHasSerialNumber() const
-{	
-	return m_PhysicalMotors->MotorHasSerialNumber
-	(
-		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[4].ToStdString()
-	);
-}
-
-float cSettings::GetActualOpticsPitchStagePos() const
-{
-	return m_PhysicalMotors->GetActualStagePos
-	(
-		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[4].ToStdString()
-	);
-}
-
-bool cSettings::OpticsYawHasSerialNumber() const
-{
-	return m_PhysicalMotors->MotorHasSerialNumber
-	(
-		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[5].ToStdString()
-	);
-}
-
-float cSettings::GetActualOpticsYawStagePos() const
-{
-	return m_PhysicalMotors->GetActualStagePos
-	(
-		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[5].ToStdString()
-	);
-}
+//bool cSettings::OpticsXHasSerialNumber() const
+//{
+//	return m_PhysicalMotors->MotorHasSerialNumber
+//	(
+//		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[1].ToStdString()
+//	);
+//}
+//
+//float cSettings::GetActualOpticsXStagePos() const
+//{
+//	return m_PhysicalMotors->GetActualStagePos
+//	(
+//		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[1].ToStdString()
+//	);
+//}
+//
+//bool cSettings::OpticsYHasSerialNumber() const
+//{
+//	return m_PhysicalMotors->MotorHasSerialNumber
+//	(
+//		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[2].ToStdString()
+//	);
+//}
+//
+//float cSettings::GetActualOpticsYStagePos() const
+//{
+//	return m_PhysicalMotors->GetActualStagePos
+//	(
+//		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[2].ToStdString()
+//	);
+//}
+//
+//bool cSettings::OpticsZHasSerialNumber() const
+//{	
+//	return m_PhysicalMotors->MotorHasSerialNumber
+//	(
+//		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[3].ToStdString()
+//	);
+//}
+//
+//float cSettings::GetActualOpticsZStagePos() const
+//{
+//	return m_PhysicalMotors->GetActualStagePos
+//	(
+//		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[3].ToStdString()
+//	);
+//}
+//
+//bool cSettings::OpticsPitchHasSerialNumber() const
+//{	
+//	return m_PhysicalMotors->MotorHasSerialNumber
+//	(
+//		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[4].ToStdString()
+//	);
+//}
+//
+//float cSettings::GetActualOpticsPitchStagePos() const
+//{
+//	return m_PhysicalMotors->GetActualStagePos
+//	(
+//		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[4].ToStdString()
+//	);
+//}
+//
+//bool cSettings::OpticsYawHasSerialNumber() const
+//{
+//	return m_PhysicalMotors->MotorHasSerialNumber
+//	(
+//		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[5].ToStdString()
+//	);
+//}
+//
+//float cSettings::GetActualOpticsYawStagePos() const
+//{
+//	return m_PhysicalMotors->GetActualStagePos
+//	(
+//		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[5].ToStdString()
+//	);
+//}
 
 bool cSettings::IsCapturingFinished() const
 {
@@ -126,141 +110,141 @@ void cSettings::ResetCapturing()
 	m_Progress->is_finished = false;
 }
 
-float cSettings::GoToAbsDetectorX(float absolute_position)
-{
-	return m_PhysicalMotors->GoMotorToAbsPos
-	(
-		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[0].ToStdString(),
-		absolute_position
-	);
-}
-
-float cSettings::GoOffsetDetectorX(float delta)
-{
-	return m_PhysicalMotors->GoMotorOffset
-	(
-		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[0].ToStdString(),
-		delta
-	);
-}
-
-float cSettings::CenterDetectorX()
-{
-	return m_PhysicalMotors->GoMotorCenter
-	(
-		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[0].ToStdString()
-	);
-}
-
-float cSettings::HomeDetectorX()
-{
-	return m_PhysicalMotors->GoMotorHome
-	(
-		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[0].ToStdString()
-	);
-}
-
-float cSettings::GoToAbsDetectorY(float absolute_position)
-{
-	return m_PhysicalMotors->GoMotorToAbsPos
-	(
-		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[1].ToStdString(),
-		absolute_position
-	);
-}
-
-float cSettings::GoOffsetDetectorY(float delta)
-{
-	return m_PhysicalMotors->GoMotorOffset
-	(
-		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[1].ToStdString(),
-		delta
-	);
-}
-
-float cSettings::CenterDetectorY()
-{
-	return m_PhysicalMotors->GoMotorCenter
-	(
-		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[1].ToStdString()
-	);
-}
-
-float cSettings::HomeDetectorY()
-{
-	return m_PhysicalMotors->GoMotorHome
-	(
-		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[1].ToStdString()
-	);
-}
-
-float cSettings::GoToAbsDetectorZ(float absolute_position)
-{
-	return m_PhysicalMotors->GoMotorToAbsPos
-	(
-		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[2].ToStdString(),
-		absolute_position
-	);
-}
-
-float cSettings::GoOffsetDetectorZ(float delta)
-{
-	return m_PhysicalMotors->GoMotorOffset
-	(
-		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[2].ToStdString(),
-		delta
-	);
-}
-
-float cSettings::CenterDetectorZ()
-{
-	return m_PhysicalMotors->GoMotorCenter
-	(
-		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[2].ToStdString()
-	);
-}
-
-float cSettings::HomeDetectorZ()
-{
-	return m_PhysicalMotors->GoMotorHome
-	(
-		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[2].ToStdString()
-	);
-}
-
-float cSettings::GoToAbsOpticsY(float absolute_position)
-{
-	return m_PhysicalMotors->GoMotorToAbsPos
-	(
-		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[4].ToStdString(),
-		absolute_position
-	);
-}
-
-float cSettings::GoOffsetOpticsY(float delta)
-{
-	return m_PhysicalMotors->GoMotorOffset
-	(
-		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[4].ToStdString(),
-		delta
-	);
-}
-
-float cSettings::CenterOpticsY()
-{
-	return m_PhysicalMotors->GoMotorCenter
-	(
-		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[4].ToStdString()
-	);
-}
-
-float cSettings::HomeOpticsY()
-{
-	return m_PhysicalMotors->GoMotorHome
-	(
-		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[4].ToStdString()
-	);
-}
+//float cSettings::GoToAbsDetectorX(float absolute_position)
+//{
+//	return m_PhysicalMotors->GoMotorToAbsPos
+//	(
+//		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[0].ToStdString(),
+//		absolute_position
+//	);
+//}
+//
+//float cSettings::GoOffsetDetectorX(float delta)
+//{
+//	return m_PhysicalMotors->GoMotorOffset
+//	(
+//		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[0].ToStdString(),
+//		delta
+//	);
+//}
+//
+//float cSettings::CenterDetectorX()
+//{
+//	return m_PhysicalMotors->GoMotorCenter
+//	(
+//		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[0].ToStdString()
+//	);
+//}
+//
+//float cSettings::HomeDetectorX()
+//{
+//	return m_PhysicalMotors->GoMotorHome
+//	(
+//		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[0].ToStdString()
+//	);
+//}
+//
+//float cSettings::GoToAbsDetectorY(float absolute_position)
+//{
+//	return m_PhysicalMotors->GoMotorToAbsPos
+//	(
+//		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[1].ToStdString(),
+//		absolute_position
+//	);
+//}
+//
+//float cSettings::GoOffsetDetectorY(float delta)
+//{
+//	return m_PhysicalMotors->GoMotorOffset
+//	(
+//		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[1].ToStdString(),
+//		delta
+//	);
+//}
+//
+//float cSettings::CenterDetectorY()
+//{
+//	return m_PhysicalMotors->GoMotorCenter
+//	(
+//		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[1].ToStdString()
+//	);
+//}
+//
+//float cSettings::HomeDetectorY()
+//{
+//	return m_PhysicalMotors->GoMotorHome
+//	(
+//		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[1].ToStdString()
+//	);
+//}
+//
+//float cSettings::GoToAbsDetectorZ(float absolute_position)
+//{
+//	return m_PhysicalMotors->GoMotorToAbsPos
+//	(
+//		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[2].ToStdString(),
+//		absolute_position
+//	);
+//}
+//
+//float cSettings::GoOffsetDetectorZ(float delta)
+//{
+//	return m_PhysicalMotors->GoMotorOffset
+//	(
+//		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[2].ToStdString(),
+//		delta
+//	);
+//}
+//
+//float cSettings::CenterDetectorZ()
+//{
+//	return m_PhysicalMotors->GoMotorCenter
+//	(
+//		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[2].ToStdString()
+//	);
+//}
+//
+//float cSettings::HomeDetectorZ()
+//{
+//	return m_PhysicalMotors->GoMotorHome
+//	(
+//		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[2].ToStdString()
+//	);
+//}
+//
+//float cSettings::GoToAbsOpticsY(float absolute_position)
+//{
+//	return m_PhysicalMotors->GoMotorToAbsPos
+//	(
+//		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[4].ToStdString(),
+//		absolute_position
+//	);
+//}
+//
+//float cSettings::GoOffsetOpticsY(float delta)
+//{
+//	return m_PhysicalMotors->GoMotorOffset
+//	(
+//		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[4].ToStdString(),
+//		delta
+//	);
+//}
+//
+//float cSettings::CenterOpticsY()
+//{
+//	return m_PhysicalMotors->GoMotorCenter
+//	(
+//		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[4].ToStdString()
+//	);
+//}
+//
+//float cSettings::HomeOpticsY()
+//{
+//	return m_PhysicalMotors->GoMotorHome
+//	(
+//		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[4].ToStdString()
+//	);
+//}
 
 void cSettings::SetCurrentProgress(const int& curr_capturing_num, const int& whole_capturing_num)
 {
@@ -608,39 +592,39 @@ void cSettings::CreateMotorsSelection(wxBoxSizer* panel_sizer)
 	main_panel_sizer->Add(motors_static_box_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, 2);
 
 	/* xPIN */
-	wxSizer* const xPIN_static_box_sizer = new wxStaticBoxSizer(wxHORIZONTAL, main_panel, "&xPIN");
-	{
-		auto xPIN_txt_ctrl_size = wxSize(80, 24);
-		m_xPIN->device = new wxTextCtrl
-		(
-			main_panel, 
-			SettingsVariables::ID_KETEK_TXT_CTRL, 
-			wxT("None"),
-			wxDefaultPosition, 
-			xPIN_txt_ctrl_size,
-			wxTE_CENTRE | wxTE_READONLY
-		);
+	//wxSizer* const xPIN_static_box_sizer = new wxStaticBoxSizer(wxHORIZONTAL, main_panel, "&xPIN");
+	//{
+	//	auto xPIN_txt_ctrl_size = wxSize(80, 24);
+	//	m_xPIN->device = new wxTextCtrl
+	//	(
+	//		main_panel, 
+	//		SettingsVariables::ID_KETEK_TXT_CTRL, 
+	//		wxT("None"),
+	//		wxDefaultPosition, 
+	//		xPIN_txt_ctrl_size,
+	//		wxTE_CENTRE | wxTE_READONLY
+	//	);
 
-		{
-			for (auto i{ 0 }; i < m_WorkStations->work_stations_count; ++i)
-			{
-				if (m_WorkStations->work_station_data[i].work_station_name == m_WorkStations->initialized_work_station)
-				{
-					m_xPIN->selected_device_str = m_WorkStations->work_station_data[i].selectedxPINInDataFile;
-					m_WorkStations->initialized_work_station_num = i;
-					break;
-				}
-			}
+	//	{
+	//		for (auto i{ 0 }; i < m_WorkStations->work_stations_count; ++i)
+	//		{
+	//			if (m_WorkStations->work_station_data[i].work_station_name == m_WorkStations->initialized_work_station)
+	//			{
+	//				m_xPIN->selected_device_str = m_WorkStations->work_station_data[i].selectedxPINInDataFile;
+	//				m_WorkStations->initialized_work_station_num = i;
+	//				break;
+	//			}
+	//		}
 
-			m_xPIN->device->SetValue(m_xPIN->selected_device_str);
-		}
+	//		m_xPIN->device->SetValue(m_xPIN->selected_device_str);
+	//	}
 
-		xPIN_static_box_sizer->AddStretchSpacer();
-		xPIN_static_box_sizer->Add(m_xPIN->device, 0, wxEXPAND);
-		xPIN_static_box_sizer->AddStretchSpacer();
-	}
-	main_panel_sizer->Add(xPIN_static_box_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, 2);
-	main_panel_sizer->AddSpacer(5);
+	//	xPIN_static_box_sizer->AddStretchSpacer();
+	//	xPIN_static_box_sizer->Add(m_xPIN->device, 0, wxEXPAND);
+	//	xPIN_static_box_sizer->AddStretchSpacer();
+	//}
+	//main_panel_sizer->Add(xPIN_static_box_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, 2);
+	//main_panel_sizer->AddSpacer(5);
 
 
 	/* Ketek */
@@ -709,7 +693,7 @@ void cSettings::InitComponents()
 {
 	m_WorkStations = std::make_unique<SettingsVariables::WorkStations>();
 	m_Motors = std::make_unique<SettingsVariables::MotorSettingsArray>();
-	m_xPIN = std::make_unique<SettingsVariables::MeasurementDevice>();
+	//m_xPIN = std::make_unique<SettingsVariables::MeasurementDevice>();
 	m_Ketek = std::make_unique<SettingsVariables::MeasurementDevice>();
 	m_PhysicalMotors = std::make_unique<MotorArray>();
 }

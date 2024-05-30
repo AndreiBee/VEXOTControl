@@ -18,7 +18,13 @@ public:
 	auto InitializeDevice(const std::string deviceSN) -> bool;
 	auto IsDeviceInitialized() const -> bool { return !m_DeviceSerialNumber.empty(); };
 	auto CaptureData(const int exposure, unsigned long* const mca, bool* const continueCapturing) -> bool;
+
+	// Getters
 	auto GetDataSize() const -> unsigned long { return m_MCALength; };
+	auto GetBinSize() const -> double { return m_BinWidth; };
+	auto GetSerialNumber() const -> std::string { return m_DeviceSerialNumber ; };
+	auto GetGain() const -> double { return m_Gain; };
+
 	auto DeinitializeDevice() -> bool;
 	~Ketek() { DeinitializeDevice(); };
 
@@ -29,6 +35,7 @@ private:
 	std::string m_DeviceSerialNumber{};
 
 	double m_nMCA = 8192.0; // BinSize
+	double m_BinWidth = 0.0025;
 	const unsigned long m_MCALength = 8192;
 	double m_Thresh = 48.0;
 	double m_Polarity = 1.0;
