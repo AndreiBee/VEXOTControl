@@ -128,10 +128,11 @@ private:
 		const int finishY
 	) -> void;
 	void CreateGraphicsBitmapImage(wxGraphicsContext* gc_);
-	void DrawCameraCapturedImage(wxGraphicsContext* gc_);
+
+	void DrawCameraCapturedImage(wxGraphicsContext* gc_, const wxRealPoint luStart, const wxRealPoint rbFinish);
 	auto DrawMaxValue(wxGraphicsContext* gc) -> void;
 	auto DrawSumEvents(wxGraphicsContext* gc) -> void;
-	auto DrawHorizontalRuller(wxGraphicsContext* gc) -> void;
+	auto DrawHorizontalRuller(wxGraphicsContext* gc, const wxRealPoint luStart, const wxRealPoint rbFinish) -> void;
 	void OnSize(wxSizeEvent& evt);
 	void ChangeSizeOfImageInDependenceOnCanvasSize();
 	auto UpdateCrossHairOnSize() -> void;

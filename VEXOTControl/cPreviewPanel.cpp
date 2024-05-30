@@ -641,7 +641,10 @@ void cPreviewPanel::Render(wxBufferedPaintDC& dc)
 	gc_image = wxGraphicsContext::Create(dc);
 	if (gc_image)
 	{
-		DrawCameraCapturedImage(gc_image);
+		wxRealPoint luStart{ GetSize().GetWidth() / 6, GetSize().GetHeight() / 6 };
+		wxRealPoint rbFinish{ GetSize().GetWidth() * 4 / 6, GetSize().GetHeight() * 4 /6 };
+
+		DrawCameraCapturedImage(gc_image, luStart, rbFinish);
 		delete gc_image;
 
 		if (m_IsImageSet)
@@ -663,7 +666,7 @@ void cPreviewPanel::Render(wxBufferedPaintDC& dc)
 			wxGraphicsContext* gc_horizontal_ruller = wxGraphicsContext::Create(dc);
 			if (gc_horizontal_ruller)
 			{
-				DrawHorizontalRuller(gc_horizontal_ruller);
+				DrawHorizontalRuller(gc_horizontal_ruller, luStart, rbFinish);
 				delete gc_horizontal_ruller;
 			}
 
@@ -722,24 +725,21 @@ void cPreviewPanel::CreateGraphicsBitmapImage(wxGraphicsContext* gc_)
 	}
 }
 
-void cPreviewPanel::DrawCameraCapturedImage(wxGraphicsContext* gc_)
+void cPreviewPanel::DrawCameraCapturedImage(wxGraphicsContext* gc_, const wxRealPoint luStart, const wxRealPoint rbFinish)
 {
 	wxGraphicsPath path = gc_->CreatePath();
-	//int current_y_position_on_image = m_CrossHairOnImage.y;
 	int start_draw_y_position{};
 	double current_x{}, delta_x{}, current_y{};
 
-	auto offsetX = 50.0;
-	auto offsetY = 50.0;
-	auto graphHeight = GetSize().GetHeight() - 2 * offsetY;
-	//start_draw_y_position = m_CrossHairOnCanvas.y > (double)max_height ?
-	//	m_CrossHairOnCanvas.y + m_ImageStartDraw.y - curve_y_offset : 
-	//	m_CrossHairOnCanvas.y + m_ImageStartDraw.y + curve_y_offset + max_height;
+	//auto offsetX = 50.0;
+	//auto offsetY = 50.0;
+	//auto graphHeight = GetSize().GetHeight() - 2 * offsetY;
+	auto graphHeight = rbFinish.y - luStart.y;
 
-	start_draw_y_position = GetSize().GetHeight() - 50;
+	//start_draw_y_position = GetSize().GetHeight() - 50;
 
-	delta_x = (GetSize().GetWidth() - 2 * offsetX) / m_ImageSize.GetWidth();
-	current_x = offsetX;
+	delta_x = (rbFinish.x - luStart.x) / m_ImageSize.GetWidth();
+	current_x = luStart.x;
 
 	auto position_in_data = 0UL;;
 	for (auto x{ 0 }; x < m_ImageSize.GetWidth() - 1; ++x)
@@ -833,8 +833,100 @@ auto cPreviewPanel::DrawSumEvents(wxGraphicsContext* gc) -> void
 
 }
 
-auto cPreviewPanel::DrawHorizontalRuller(wxGraphicsContext* gc) -> void
+auto cPreviewPanel::DrawHorizontalRuller(wxGraphicsContext* gc, const wxRealPoint luStart, const wxRealPoint rbFinish) -> void
 {
+	if (!m_Image.IsOk() || !m_ImageData) return;
+
+	// Draw horizontal line
+	{
+		wxGraphicsPath path = gc->CreatePath();
+
+		path.MoveToPoint
+		(
+			luStart.x,
+			rbFinish.y + (GetSize().GetHeight() - rbFinish.y) / 2
+		);
+		path.AddLineToPoint
+		(
+			rbFinish.x,
+			rbFinish.y + (GetSize().GetHeight() - rbFinish.y) / 2
+		);
+		gc->StrokePath(path);
+	}
+
+	wxFont font = wxFont(16, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
+	wxColour fontColour = wxColour(181, 230, 29, 200);
+	gc->SetFont(font, fontColour);
+
+	// Draw scale values
+	{
+		wxString curr_value{};
+		wxDouble widthText{}, heightText{};
+		auto scaleValuesNumber = 10;
+		auto scaleFactor = m_ImageSize.GetWidth() * m_BinSize / scaleValuesNumber;
+		for (auto i{ 0 }; i < scaleValuesNumber; ++i)
+		{
+			curr_value = wxString::Format(wxT("%.2f"), (double)(i * scaleFactor));
+			gc->GetTextExtent(curr_value, &widthText, &heightText);
+			gc->DrawText
+			(
+				curr_value,
+				luStart.x + i * (rbFinish.x - luStart.x) / scaleValuesNumber - widthText / 2.0,
+				rbFinish.y + (GetSize().GetHeight() - rbFinish.y) / 4
+			);
+			gc->StrokeLine
+			(
+				luStart.x + i * (rbFinish.x - luStart.x) / scaleValuesNumber,
+				rbFinish.y + (GetSize().GetHeight() - rbFinish.y) / 4,
+				luStart.x + i * (rbFinish.x - luStart.x) / scaleValuesNumber,
+				rbFinish.y + (GetSize().GetHeight() - rbFinish.y) / 2
+			);
+		}
+	}
+
+	// Draw [keV]
+	{
+		wxString curr_value{};
+		curr_value += "[keV]";
+		curr_value += wxString::Format(wxT("%i"), m_SumData);
+		wxDouble widthText{}, heightText{};
+		gc->GetTextExtent(curr_value, &widthText, &heightText);
+		gc->DrawText
+		(
+			curr_value,
+			luStart.x + (rbFinish.x - luStart.x) / 2.0 - widthText / 2.0,
+			GetSize().GetHeight() - 5.0 - heightText
+		);
+	}
+
+	wxGraphicsPath path = gc->CreatePath();
+	int start_draw_y_position{};
+	double current_x{}, delta_x{}, current_y{};
+
+	//auto offsetX = 50.0;
+	//auto offsetY = 50.0;
+	//auto graphHeight = GetSize().GetHeight() - 2 * offsetY;
+	auto graphHeight = rbFinish.y - luStart.y;
+
+	//start_draw_y_position = GetSize().GetHeight() - 50;
+
+	delta_x = (rbFinish.x - luStart.x) / m_ImageSize.GetWidth();
+	current_x = luStart.x;
+
+	auto position_in_data = 0UL;;
+	for (auto x{ 0 }; x < m_ImageSize.GetWidth() - 1; ++x)
+	{
+		current_y = graphHeight * (double)m_ImageData[position_in_data] / (double)m_MaxPosValueInData.second;
+		path.MoveToPoint(current_x, (double)start_draw_y_position - current_y);
+		current_x += delta_x;
+		current_y = graphHeight * (double)m_ImageData[position_in_data + 1] / (double)m_MaxPosValueInData.second;
+		path.AddLineToPoint(current_x, (double)start_draw_y_position - current_y);
+		++position_in_data;
+	}
+
+	gc->SetPen(*wxGREEN_PEN);
+	gc->DrawPath(path);
+
 }
 
 void cPreviewPanel::OnSize(wxSizeEvent& evt)
