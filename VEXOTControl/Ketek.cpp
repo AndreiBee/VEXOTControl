@@ -122,7 +122,7 @@ auto Ketek::CaptureData(const int exposure, unsigned long* const mca, bool * con
     status = xiaGetRunData(0, (char*)"mca_length", &mcaLen);
     if (!CHECK_ERROR(status)) return false;
 
-    if (mcaLen > m_MCALength) return false;
+    if (mcaLen > (unsigned long)m_nMCA) return false;
 
     /* If you don't want to dynamically allocate memory here,
      * then be sure to declare mca as an array of length 8192,

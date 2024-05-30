@@ -39,7 +39,8 @@ auto cPreviewPanel::SetKETEKData(unsigned long* const mcaData, const unsigned lo
 
 	if (dataSize != m_ImageSize.GetWidth())
 	{
-		m_ImageSize = wxSize(dataSize, 800);
+		// Veronika said that she needs only half of the whole spectrum, so we can display only half of the range
+		m_ImageSize = wxSize(dataSize / 2, 800);
 		m_Image = wxImage(m_ImageSize.GetWidth(), m_ImageSize.GetHeight());
 		m_ImageData = std::make_unique<unsigned long[]>(m_ImageSize.GetWidth());
 	}
@@ -105,7 +106,7 @@ auto cPreviewPanel::SetKETEKData(unsigned long* const mcaData, const unsigned lo
 			}
 		};
 
-	update_wxImage();
+	//update_wxImage();
 
 	/*
 Saving previous values for correct displaying of the image in the same place,
@@ -707,18 +708,50 @@ void cPreviewPanel::CreateGraphicsBitmapImage(wxGraphicsContext* gc_)
 
 void cPreviewPanel::DrawCameraCapturedImage(wxGraphicsContext* gc_)
 {
-	CreateGraphicsBitmapImage(gc_);
-	
-	if (m_IsGraphicsBitmapSet)
-	{
-		auto interpolation_quality = m_Zoom / m_ZoomOnOriginalSizeImage >= 1.0 ? wxINTERPOLATION_NONE : wxINTERPOLATION_DEFAULT;
+	wxGraphicsPath path = gc_->CreatePath();
+	//int current_y_position_on_image = m_CrossHairOnImage.y;
+	int start_draw_y_position{};
+	double current_x{}, delta_x{}, current_y{};
 
-		gc_->SetInterpolationQuality(interpolation_quality);
-		gc_->Scale(m_Zoom / m_ZoomOnOriginalSizeImage, m_Zoom / m_ZoomOnOriginalSizeImage);
-		gc_->DrawBitmap(m_GraphicsBitmapImage,
-			m_StartDrawPos.x, m_StartDrawPos.y,
-			m_ImageSize.GetWidth(), m_ImageSize.GetHeight());
+	auto offsetX = 50.0;
+	auto offsetY = 50.0;
+	auto graphHeight = GetSize().GetHeight() - 2 * offsetY;
+	//start_draw_y_position = m_CrossHairOnCanvas.y > (double)max_height ?
+	//	m_CrossHairOnCanvas.y + m_ImageStartDraw.y - curve_y_offset : 
+	//	m_CrossHairOnCanvas.y + m_ImageStartDraw.y + curve_y_offset + max_height;
+
+	start_draw_y_position = GetSize().GetHeight() - 50;
+
+	delta_x = (GetSize().GetWidth() - 2 * offsetX) / m_ImageSize.GetWidth();
+	current_x = offsetX;
+
+	auto position_in_data = 0UL;;
+	for (auto x{ 0 }; x < m_ImageSize.GetWidth() - 1; ++x)
+	{
+		current_y = graphHeight * (double)m_ImageData[position_in_data] / (double)m_MaxPosValueInData.second;
+		path.MoveToPoint(current_x, (double)start_draw_y_position - current_y);
+		current_x += delta_x;
+		current_y = graphHeight * (double)m_ImageData[position_in_data + 1] / (double)m_MaxPosValueInData.second;
+		path.AddLineToPoint(current_x, (double)start_draw_y_position - current_y);
+		++position_in_data;
 	}
+
+	gc_->SetPen(*wxGREEN_PEN);
+	gc_->DrawPath(path);
+
+
+	//CreateGraphicsBitmapImage(gc_);
+	//
+	//if (m_IsGraphicsBitmapSet)
+	//{
+	//	auto interpolation_quality = m_Zoom / m_ZoomOnOriginalSizeImage >= 1.0 ? wxINTERPOLATION_NONE : wxINTERPOLATION_DEFAULT;
+
+	//	gc_->SetInterpolationQuality(interpolation_quality);
+	//	gc_->Scale(m_Zoom / m_ZoomOnOriginalSizeImage, m_Zoom / m_ZoomOnOriginalSizeImage);
+	//	gc_->DrawBitmap(m_GraphicsBitmapImage,
+	//		m_StartDrawPos.x, m_StartDrawPos.y,
+	//		m_ImageSize.GetWidth(), m_ImageSize.GetHeight());
+	//}
 }
 
 auto cPreviewPanel::DrawMaxValue(wxGraphicsContext* gc) -> void

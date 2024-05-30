@@ -1762,6 +1762,8 @@ void cMain::OnStartCapturingButton(wxCommandEvent& evt)
 			wxICON_ERROR);
 	};
 
+	if (m_SelectedDeviceStaticTXT->GetValue() == "-") return;
+
 	//m_StopLiveCapturing = true;		
 	if (m_StartedThreads.size() && m_StartedThreads.back().second)
 	{
@@ -1802,7 +1804,10 @@ void cMain::OnStartCapturingButton(wxCommandEvent& evt)
 		/* Checking first stage */
 		{
 			if (m_FirstStage->stage->GetCurrentSelection() == 0) return;
-			else first_axis->axis_number = m_FirstStage->stage->GetCurrentSelection() - 1;
+			else
+			{
+				first_axis->axis_number = m_FirstStage->stage->GetCurrentSelection() - 1;
+			}
 		}
 		/* Checking Start, Step and Finish values */
 		{
