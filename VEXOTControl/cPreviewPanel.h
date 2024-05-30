@@ -74,7 +74,7 @@ public:
 		std::unique_ptr<PreviewPanelVariables::InputPreviewPanelArgs> input_preview_panel_args
 	);
 	auto SetCurrentDevice(const int device) -> void { m_CurrentDeivce = device; };
-	auto SetKETEKData(const unsigned long* const mcaData, const unsigned long dataSize) -> void;
+	auto SetKETEKData(unsigned long* const mcaData, const unsigned long dataSize) -> void;
 
 	auto SetBackgroundColor(wxColour bckg_colour) -> void;
 	auto SetCrossHairButtonActive(bool activate = false) -> void;

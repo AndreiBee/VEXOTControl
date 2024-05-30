@@ -31,7 +31,7 @@ cPreviewPanel::cPreviewPanel
 	InitDefaultComponents();
 }
 
-auto cPreviewPanel::SetKETEKData(const unsigned long* const mcaData, const unsigned long dataSize) -> void
+auto cPreviewPanel::SetKETEKData(unsigned long* const mcaData, const unsigned long dataSize) -> void
 {
 	if (!mcaData) return;
 
@@ -46,16 +46,20 @@ auto cPreviewPanel::SetKETEKData(const unsigned long* const mcaData, const unsig
 	else
 	{
 		m_Image.Clear();
-		memcpy(m_ImageData.get(), mcaData, m_ImageSize.GetWidth() * sizeof(unsigned long));
 	}
+	memcpy(m_ImageData.get(), mcaData, m_ImageSize.GetWidth() * sizeof(unsigned long));
+	// Sending signal to wxThread, that we are done copying the data 
+	mcaData[0] = ULONG_MAX - mcaData[0];
 
 	double multiplicator{};
 	auto maxValue = std::max_element(&m_ImageData[0], &m_ImageData[m_ImageSize.GetWidth()]);
-	m_MaxPosValueInData.first = std::distance(&m_ImageData[0], maxValue);
-	m_MaxPosValueInData.second = *maxValue;
 
 	if (*maxValue)
-		multiplicator = (double)(m_ImageSize.GetHeight() - 1) / *maxValue;
+	{
+		m_MaxPosValueInData.first = std::distance(&m_ImageData[0], maxValue);
+		m_MaxPosValueInData.second = *maxValue;
+		multiplicator = abs((double)(m_ImageSize.GetHeight() - 1) / *maxValue);
+	}
 
 	LOGF("Multiplicator: ", multiplicator);
 
@@ -573,7 +577,8 @@ void cPreviewPanel::OnPreviewMouseLeftPressed(wxMouseEvent& evt)
 		m_ParentArguments->set_pos_tgl_btn->SetValue(false);
 		m_CrossHairTool->ActivateSetPositionFromParentWindow(false);
 	}
-	else if (m_Zoom > 1.0 && m_IsCursorInsideImage && m_CrossHairTool->CanProcessPanning())
+	//else if (m_Zoom > 1.0 && m_IsCursorInsideImage && m_CrossHairTool->CanProcessPanning())
+	else if (m_Zoom > 1.0 && m_IsCursorInsideImage)
 	{
 		m_Panning = true;
 		m_PanStartPoint = m_CursorPosOnCanvas;
@@ -677,12 +682,12 @@ auto cPreviewPanel::AdjustKETEKImageMultithread
 	{
 		currentValue = (int)(multiplicationValue * data[position_in_data_pointer]);
 #ifdef _DEBUG
-		if (currentValue)
-			LOGI("Current Value: ", currentValue);
+		//if (currentValue)
+			//LOGI("Current Value: ", currentValue);
 
 #endif // _DEBUG
 
-		y = imgHeight - currentValue - 1;
+		y = imgHeight - abs(currentValue) - 1;
 		m_Image.SetRGB(x, y, red, green, blue);
 		++position_in_data_pointer;
 	}
@@ -736,7 +741,7 @@ auto cPreviewPanel::DrawMaxValue(wxGraphicsContext* gc) -> void
 		curr_value += "X: ";
 		curr_value += wxString::Format(wxT("%i"), m_MaxPosValueInData.first);
 		curr_value += " Value: ";
-		curr_value += wxString::Format(wxT("%ld"), m_MaxPosValueInData.second);
+		curr_value += wxString::Format(wxT("%lu"), m_MaxPosValueInData.second);
 		wxDouble widthText{}, heightText{};
 		gc->GetTextExtent(curr_value, &widthText, &heightText);
 		gc->DrawText

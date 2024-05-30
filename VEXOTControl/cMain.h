@@ -108,6 +108,8 @@ namespace MainFrameVariables
 		ID_RIGHT_MT_START_MEASUREMENT,
 		/* Live Capturing */
 		ID_THREAD_LIVE_CAPTURING,
+		/* Worker Thread */
+		ID_THREAD_MAIN_CAPTURING,
 		/* Progress */
 		ID_THREAD_PROGRESS_CAPTURING,
 	};
@@ -214,7 +216,7 @@ namespace MainFrameVariables
 		int step_number{};
 	};
 
-	auto WriteMCAFile(const wxString filePath, const unsigned long* const mcaData, Ketek* handler) -> void
+	static auto WriteMCAFile(const wxString filePath, const unsigned long* const mcaData, Ketek* handler) -> void
 	{
 		auto replace_dot_to_comma = []
 		(
@@ -698,6 +700,7 @@ private:
 
 	/* Thread Live Capturing */
 	auto LiveCapturingThread(wxThreadEvent& evt) -> void;
+	auto WorkerThreadEvent(wxThreadEvent& evt) -> void;
 	/* Progress */
 	void UpdateProgress(wxThreadEvent& evt);
 	bool Cancelled();
@@ -831,25 +834,40 @@ class WorkerThread final: public wxThread
 public:
 	WorkerThread
 	(
-		cMain* main_frame,
-		cSettings* settings, 
-		cPreviewPanel* camera_preview_panel,
-		//XimeaControl* ximea_control,
-		const wxString& path, 
-		const unsigned long& exp_time_us,
-		MainFrameVariables::AxisMeasurement* first_axis, 
+		cMain* mainFrame,
+		cSettings* settings,
+		Ketek* ketekHandler,
+		wxString* threadKey,
+		bool* continueCapturing,
+		const wxString& path,
+		const unsigned long exposureSeconds,
+		MainFrameVariables::AxisMeasurement* first_axis,
 		MainFrameVariables::AxisMeasurement* second_axis
-	);
-	~WorkerThread();
+	)
+		: m_MainFrame(mainFrame), 
+		m_Settings(settings), 
+		m_KetekHandler(ketekHandler), 
+		m_ThreadID(threadKey), 
+		m_ContinueCapturing(continueCapturing), 
+		m_DataPath(path), 
+		m_ExposureTimeSeconds(exposureSeconds), 
+		m_FirstAxis(first_axis), 
+		m_SecondAxis(second_axis) {};
+
+	~WorkerThread() 
+	{
+		delete m_FirstAxis;
+		m_FirstAxis = nullptr;
+		delete m_SecondAxis;
+		m_SecondAxis = nullptr;
+	};
 
 	virtual void* Entry();
 
 private:
-	auto CaptureAndSaveImage
+	auto CaptureAndSaveData
 	(
-		const auto& camera_pointer, 
-		unsigned short* short_data_ptr, 
-		wxImage* image_ptr,
+		unsigned long* const mca,
 		const int& image_number,
 		const float& first_stage_position,
 		const float& second_stage_position,
@@ -857,15 +875,17 @@ private:
 		const std::string& minutes,
 		const std::string& seconds
 	) -> bool;
+
 	auto SaveImageOnDisk(const int& image_number) -> bool;
 
 private:
 	cMain* m_MainFrame{};
 	cSettings* m_Settings{};
-	cPreviewPanel* m_PreviewPanel{};
-	//XimeaControl* m_XimeaControl{};
-	wxString m_ImagePath{};
-	unsigned long m_ExposureTimeUS{};
+	Ketek* m_KetekHandler{};
+	wxString* m_ThreadID{};
+	bool* m_ContinueCapturing{};
+	wxString m_DataPath{};
+	unsigned long m_ExposureTimeSeconds{};
 	MainFrameVariables::AxisMeasurement* m_FirstAxis{}, * m_SecondAxis{};
 };
 /* ___ End Worker Thread ___ */
@@ -874,14 +894,29 @@ private:
 class ProgressThread final : public wxThread
 {
 public:
-	ProgressThread(cSettings* settings, cMain* main_frame);
+	ProgressThread
+	(
+		cMain* mainFrame,
+		cSettings* settings,
+		bool* continueWaiting
+	)
+		: m_Frame(mainFrame), 
+		m_Settings(settings), 
+		m_ContinueWaiting(continueWaiting) {};
+
 	virtual void* Entry();
-	~ProgressThread();
+
+	~ProgressThread() 
+	{
+		m_Frame = nullptr;
+		m_Settings = nullptr;
+	};
 
 private:
 	cSettings* m_Settings{};
 	cMain* m_Frame{};
 	int m_Progress{};
+	bool* m_ContinueWaiting{};
 	wxString m_ProgressMsg{};
 };
 /* ___ End  Progress Thread ___ */

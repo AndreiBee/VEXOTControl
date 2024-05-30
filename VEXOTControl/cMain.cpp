@@ -73,6 +73,8 @@ wxBEGIN_EVENT_TABLE(cMain, wxFrame)
 
 	/* Live Capturing */
 	EVT_THREAD(MainFrameVariables::ID_THREAD_LIVE_CAPTURING, cMain::LiveCapturingThread)
+	/* Worker Thread */
+	EVT_THREAD(MainFrameVariables::ID_THREAD_MAIN_CAPTURING, cMain::WorkerThreadEvent)
 	/* Progress */
 	EVT_THREAD(MainFrameVariables::ID_THREAD_PROGRESS_CAPTURING, cMain::UpdateProgress)
 wxEND_EVENT_TABLE()
@@ -952,7 +954,7 @@ void cMain::CreateDeviceControls(wxPanel* right_side_panel, wxBoxSizer* right_si
 				(
 					right_side_panel, 
 					MainFrameVariables::ID_RIGHT_CAM_EXPOSURE_TE_CTL, 
-					wxT("10"), 
+					wxT("1"), 
 					wxDefaultPosition, 
 					exposure_size, 
 					wxTE_CENTRE | wxTE_PROCESS_ENTER, 
@@ -1341,8 +1343,6 @@ void cMain::OnSingleShotCameraImage(wxCommandEvent& evt)
 			return formattedTime;
 		};
 
-
-
 	wxString exposure_time_str = m_DeviceExposure->GetValue().IsEmpty() 
 		? wxString("1") 
 		: m_DeviceExposure->GetValue();
@@ -1364,20 +1364,7 @@ void cMain::OnSingleShotCameraImage(wxCommandEvent& evt)
 		m_SingleShotBtn->Disable();
 	}
 
-	//if (m_StartStopLiveCapturingTglBtn->GetValue())
-	//{
-	//	wxString exposure_time_str = m_DeviceExposure->GetValue().IsEmpty() 
-	//		? wxString("0") 
-	//		: m_DeviceExposure->GetValue();
-	//	unsigned long exposure_time = abs(wxAtoi(exposure_time_str)); // Because user input is in [ms], we need to recalculate the value to [us]
-	//	wxThread::This()->Sleep(exposure_time);
-	//}
-	//m_StopLiveCapturing = true;
 	{
-		//while (!m_LiveCapturingEndedDrawingOnCamPreview)
-		//{
-		//	wxThread::This()->Sleep(10);
-		//}
 		wxString exposure_time_str = m_DeviceExposure->GetValue().IsEmpty() 
 			? wxString("1") 
 			: m_DeviceExposure->GetValue();
@@ -1397,7 +1384,7 @@ void cMain::OnSingleShotCameraImage(wxCommandEvent& evt)
 			cur_mins + std::string("M_") + 
 			cur_secs + std::string("S_") + 
 			std::to_string(exposure_time) + std::string("s") 
-			+ std::string(".tif");
+			+ std::string(".mca");
 
 		/* Ketek */
 		{
@@ -1414,7 +1401,9 @@ void cMain::OnSingleShotCameraImage(wxCommandEvent& evt)
 				return;
 			}
 
-			MainFrameVariables::WriteMCAFile(file_name, mcaData.get());
+			MainFrameVariables::WriteMCAFile(file_name, mcaData.get(), m_KetekHandler.get());
+
+			m_PreviewPanel->SetKETEKData(mcaData.get(), m_KetekHandler->GetDataSize());
 		}
 	}
 	m_StartStopLiveCapturingTglBtn->Enable();
@@ -1774,18 +1763,25 @@ void cMain::OnStartCapturingButton(wxCommandEvent& evt)
 	};
 
 	//m_StopLiveCapturing = true;		
-	if (m_StartStopLiveCapturingTglBtn->GetValue())
+	if (m_StartedThreads.size() && m_StartedThreads.back().second)
 	{
-		//m_XimeaControl->StopAcquisition();
-		//m_XimeaControl->TurnOffLastThread();
-		{
-			wxString exposure_time_str = m_DeviceExposure->GetValue().IsEmpty()
-				? wxString("1")
-				: m_DeviceExposure->GetValue();
-			unsigned long exposure_time = abs(wxAtoi(exposure_time_str)); // Because user input is in [ms], we need to recalculate the value to [us]
-			wxThread::This()->Sleep(exposure_time);
-		}
+		while (!m_StartedThreads.back().first.empty())
+			wxThread::This()->Sleep(500);
 	}
+
+	auto timePointToWxString = []()
+		{
+			auto now = std::chrono::system_clock::now().time_since_epoch().count();
+			wxString formattedTime = wxString::Format(wxT("%lld"), now);
+			return formattedTime;
+		};
+
+	wxString exposure_time_str = m_DeviceExposure->GetValue().IsEmpty() 
+		? wxString("1") 
+		: m_DeviceExposure->GetValue();
+	auto exposureSeconds = abs(wxAtoi(exposure_time_str)); // Because user input is in [ms], we need to recalculate the value to [us]
+	//m_XimeaControl->SetExposureTime(exposure_time);
+
 
 	//if (m_XimeaControl->IsCameraConnected()) m_XimeaControl->StopAcquisition();
 	//{
@@ -1850,35 +1846,35 @@ void cMain::OnStartCapturingButton(wxCommandEvent& evt)
 		//m_StartMeasurement->Disable();
 	}
 
+	auto currThreadTimeStamp = timePointToWxString();
+	m_StartedThreads.push_back(std::make_pair(currThreadTimeStamp, true));
+
 	/* Worker and Progress Threads */
 	{
 		auto out_dir = m_OutDirTextCtrl->GetValue();
-
-		wxString exposure_time_str = m_DeviceExposure->GetValue().IsEmpty() 
-			? wxString("1") 
-			: m_DeviceExposure->GetValue();
-		unsigned long exposure_time = abs(wxAtoi(exposure_time_str)); // Because user input is in [s]
 
 		WorkerThread* worker_thread = new WorkerThread
 		(
 			this,
 			m_Settings.get(),
-			m_PreviewPanel.get(),
-			//m_XimeaControl.get(),
+			m_KetekHandler.get(),
+			&m_StartedThreads.back().first,
+			&m_StartedThreads.back().second,
 			out_dir,
-			exposure_time,
+			exposureSeconds,
 			first_axis.release(), 
 			second_axis.release()
 		);
-		ProgressThread* progress_thread = new ProgressThread(m_Settings.get(), this);
 
-		if (worker_thread->Create() != wxTHREAD_NO_ERROR)
+		ProgressThread* progress_thread = new ProgressThread(this, m_Settings.get(), &m_StartedThreads.back().second);
+
+		if (worker_thread->Create(wxTHREAD_DETACHED) != wxTHREAD_NO_ERROR)
 		{
 			delete worker_thread;
 			worker_thread = nullptr;
 			return;
 		}
-		if (progress_thread->Create() != wxTHREAD_NO_ERROR)
+		if (progress_thread->Create(wxTHREAD_DETACHED) != wxTHREAD_NO_ERROR)
 		{
 			delete progress_thread;
 			progress_thread = nullptr;
@@ -1983,6 +1979,7 @@ auto cMain::LiveCapturingThread(wxThreadEvent& evt) -> void
 		m_StartStopLiveCapturingTglBtn->SetValue(false);
 		wxCommandEvent live_capturing_evt(wxEVT_TOGGLEBUTTON, MainFrameVariables::ID_RIGHT_CAM_START_STOP_LIVE_CAPTURING_TGL_BTN);
 		ProcessEvent(live_capturing_evt);
+		return;
 	}
 
 	auto img_ptr = evt.GetPayload<unsigned long*>();
@@ -1991,6 +1988,23 @@ auto cMain::LiveCapturingThread(wxThreadEvent& evt) -> void
 	m_PreviewPanel->SetKETEKData(img_ptr, dataSize);
 
 	//delete[] img_ptr;
+}
+
+auto cMain::WorkerThreadEvent(wxThreadEvent& evt) -> void
+{
+	auto curr_code = evt.GetInt();
+
+	// -1 == Camera is disconnected
+	if (curr_code == -1)
+	{
+		m_StartedThreads.back().second = false;
+		return;
+	}
+
+	auto img_ptr = evt.GetPayload<unsigned long*>();
+	auto dataSize = m_KetekHandler->GetDataSize();
+
+	m_PreviewPanel->SetKETEKData(img_ptr, dataSize);
 }
 
 void cMain::UpdateProgress(wxThreadEvent& evt)
@@ -2435,40 +2449,6 @@ LiveCapturing::~LiveCapturing()
 /* ___ End Live Capturing Thread ___ */
 
 /* ___ Start Worker Thread ___ */
-WorkerThread::WorkerThread
-(
-	cMain* main_frame,
-	cSettings* settings, 
-	cPreviewPanel* camera_preview_panel,
-	//XimeaControl* ximea_control,
-	const wxString& path, 
-	const unsigned long& exp_time_us,
-	MainFrameVariables::AxisMeasurement* first_axis, 
-	MainFrameVariables::AxisMeasurement* second_axis
-) 
-	: 
-	m_MainFrame(main_frame),
-	m_Settings(settings), 
-	m_PreviewPanel(camera_preview_panel), 
-	//m_XimeaControl(ximea_control),
-	m_ImagePath(path), 
-	m_ExposureTimeUS(exp_time_us),
-	m_FirstAxis(first_axis), 
-	m_SecondAxis(second_axis)
-{}
-
-WorkerThread::~WorkerThread()
-{
-	m_MainFrame = nullptr;
-	m_Settings = nullptr;
-	m_PreviewPanel = nullptr;
-	//m_XimeaControl = nullptr;
-	delete m_FirstAxis;
-	m_FirstAxis = nullptr;
-	delete m_SecondAxis;
-	m_SecondAxis = nullptr;
-}
-
 wxThread::ExitCode WorkerThread::Entry()
 {
 	constexpr auto raise_exception_msg = [](wxString camera_name) 
@@ -2500,21 +2480,20 @@ wxThread::ExitCode WorkerThread::Entry()
 	auto cur_mins = str_time.substr(3, 2);
 	auto cur_secs = str_time.substr(6, 2);
 
-	//auto cam_preview_data_ptr = m_PreviewPanel->GetDataPtr();
-	//auto cam_preview_image_ptr = m_PreviewPanel->GetImagePtr();
+	wxThreadEvent evt(wxEVT_THREAD, MainFrameVariables::ID_THREAD_MAIN_CAPTURING);
 
-	//if (!m_XimeaControl->IsCameraConnected())
-	//{
-	//	exit_thread(m_XimeaControl);
-	//	return (wxThread::ExitCode)0;
-	//}
-
-	//m_XimeaControl->SetExposureTime(m_ExposureTimeUS);
+	auto mcaData = std::make_unique<unsigned long[]>(m_KetekHandler->GetDataSize());
 
 	float first_axis_rounded_go_to{};
 	float first_axis_position{}, second_axis_position{};
 	for (auto i{ 0 }; i < m_FirstAxis->step_number; ++i)
 	{
+		if (!*m_ContinueCapturing)
+		{
+			evt.SetInt(-1);
+			wxQueueEvent(m_MainFrame, evt.Clone());
+			return 0;
+		}
 		m_Settings->SetCurrentProgress(i, m_FirstAxis->step_number);
 		/* Here we need to round values, for the correct positioning of motors */
 		first_axis_rounded_go_to = (int)((m_FirstAxis->start + i * m_FirstAxis->step) * 1000.f + .5f) / 1000.f;
@@ -2544,27 +2523,23 @@ wxThread::ExitCode WorkerThread::Entry()
 				break;
 		}
 
-		/* Take Capture */
-		//if (CaptureAndSaveImage
-		//(
-		//	//m_XimeaControl, 
-		//	cam_preview_data_ptr, 
-		//	cam_preview_image_ptr, 
-		//	i + 1,
-		//	first_axis_position,
-		//	second_axis_position,
-		//	cur_hours,
-		//	cur_mins,
-		//	cur_secs
-		//))
-			/* Update image on CameraPreview Panel */
-		//	m_CameraPreview->SetCameraCapturedImage();
-		//else
-		//{
-		//	raise_exception_msg("XIMEA");
-		//	//exit_thread(m_XimeaControl);
-		//	return (wxThread::ExitCode)0;
-		//}
+		if (!CaptureAndSaveData
+		(
+			mcaData.get(),
+			i + 1,
+			first_axis_position,
+			second_axis_position,
+			cur_hours, cur_mins, cur_secs
+		))
+		{
+			evt.SetInt(-1);
+			wxQueueEvent(m_MainFrame, evt.Clone());
+			return 0;
+		}
+
+		evt.SetInt(i);
+		evt.SetPayload(mcaData.get());
+		wxQueueEvent(m_MainFrame, evt.Clone());
 
 		/* Update Current Progress */
 		m_Settings->SetCurrentProgress(i, m_FirstAxis->step_number);
@@ -2598,15 +2573,19 @@ wxThread::ExitCode WorkerThread::Entry()
 	}
 #endif // FALSE
 
-	//exit_thread(m_XimeaControl);
+	auto signalValue = ULONG_MAX - mcaData[0];
+	
+	while (mcaData[0] != signalValue)
+		wxThread::Sleep(10);
+
+	evt.SetInt(-1);
+	wxQueueEvent(m_MainFrame, evt.Clone());
 	return (wxThread::ExitCode)0;
 }
 
-auto WorkerThread::CaptureAndSaveImage
+auto WorkerThread::CaptureAndSaveData
 (
-	const auto& camera_pointer,
-	unsigned short* short_data_ptr, 
-	wxImage* image_ptr,
+	unsigned long* const mca,
 	const int& image_number,
 	const float& first_stage_position,
 	const float& second_stage_position,
@@ -2615,75 +2594,42 @@ auto WorkerThread::CaptureAndSaveImage
 	const std::string& seconds
 ) -> bool
 {
-	auto image_size = wxSize{ (int)camera_pointer->GetImageWidth(), (int)camera_pointer->GetImageHeight() };
-	unsigned short* data_ptr{};
-	data_ptr = camera_pointer->GetImage();
-	//if (camera_pointer->WasAcquisitionStopped()) return false;
-	if (!data_ptr) return false;
+	if (!mca) return false;
+	if (!m_KetekHandler->CaptureData(m_ExposureTimeSeconds, mca, m_ContinueCapturing)) return false;
 
-	/* Save Image */
+	/* Save Data */
 	{
-		cv::Mat cv_img
-		(
-			cv::Size(image_size.GetWidth(), image_size.GetHeight()),
-			CV_16U, 
-			data_ptr, 
-			cv::Mat::AUTO_STEP
-		);
 		std::string first_axis_position_str = std::format("{:.3f}", first_stage_position);
 		std::replace(first_axis_position_str.begin(), first_axis_position_str.end(), '.', '_');
 
 		std::string second_axis_position_str = std::format("{:.3f}", second_stage_position);
 		std::replace(second_axis_position_str.begin(), second_axis_position_str.end(), '.', '_');
 		
-		std::string file_name = std::string(m_ImagePath.mb_str()) + std::string("\\") +
-			std::string("img_");
+		std::string file_name = std::string(m_DataPath.mb_str()) + std::string("\\") +
+			std::string("ktk_");
 		file_name += image_number < 10 ? std::string("0") : std::string("");
 		file_name += std::to_string(image_number) + std::string("_") + 
 			hours + std::string("H_") + 
 			minutes + std::string("M_") + 
 			seconds + std::string("S_") + 
-			std::to_string(m_ExposureTimeUS) + std::string("us") 
+			std::to_string(m_ExposureTimeSeconds) + std::string("s") 
 			+ std::string("_1A_") + first_axis_position_str 
 			+ std::string("_2A_") + second_axis_position_str 
-			+ std::string(".tif");
+			+ std::string(".mca");
 
-		if (!cv::imwrite(file_name, cv_img)) return false;
+		MainFrameVariables::WriteMCAFile(file_name, mca, m_KetekHandler);
 	}
 
-	/* Update Values in CamPreview Panel */
-	{
-		unsigned short current_value{};
-		unsigned char red{}, green{}, blue{};
-		for (auto y{ 0 }; y < image_size.GetHeight(); ++y)
-		{
-			for (auto x{ 0 }; x < image_size.GetWidth(); ++x)
-			{
-				current_value = data_ptr[y * image_size.GetWidth() + x];
-				short_data_ptr[y * image_size.GetWidth() + x] = current_value;
-				/* Matlab implementation of JetColormap */
-				/* Because XIMEA camera can produce 12-bit per pixel maximum, we use RGB12bit converter */
-				m_PreviewPanel->CalculateMatlabJetColormapPixelRGB12bit(current_value, red, green, blue);
-				image_ptr->SetRGB(x, y, red, green, blue);
-			}
-		}
-	}
 	return true;
 }
 /* ___ End Worker Thread ___ */
 
 /* ___ Start Progress Thread ___ */
-ProgressThread::ProgressThread(
-	cSettings* settings,
-	cMain* main_frame)
-	: m_Frame(main_frame), m_Settings(settings)
-{}
-
 wxThread::ExitCode ProgressThread::Entry()
 {
 	m_Progress = 0;
 	m_ProgressMsg = "";
-	while (!m_Settings->IsCapturingFinished())
+	while (*m_ContinueWaiting)
 	{
 		wxThreadEvent calc_event(wxEVT_THREAD, MainFrameVariables::ID_THREAD_PROGRESS_CAPTURING);
 		m_Settings->ProvideProgressInfo(&m_ProgressMsg, &m_Progress);
@@ -2700,12 +2646,6 @@ wxThread::ExitCode ProgressThread::Entry()
 	wxQueueEvent(m_Frame, evt.Clone());
 
 	return (wxThread::ExitCode)0;
-}
-
-ProgressThread::~ProgressThread()
-{
-	m_Frame = nullptr;
-	m_Settings = nullptr;
 }
 /* ___ End Progress Thread ___ */
 
