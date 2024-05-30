@@ -1400,10 +1400,11 @@ void cMain::OnSingleShotCameraImage(wxCommandEvent& evt)
 				raise_exception_msg();
 				return;
 			}
+			unsigned long long sum = std::accumulate(&mcaData[0], &mcaData[m_KetekHandler->GetDataSize()], sum);
 
-			MainFrameVariables::WriteMCAFile(file_name, mcaData.get(), m_KetekHandler.get());
+			MainFrameVariables::WriteMCAFile(file_name, mcaData.get(), m_KetekHandler.get(), sum);
 
-			m_PreviewPanel->SetKETEKData(mcaData.get(), m_KetekHandler->GetDataSize());
+			m_PreviewPanel->SetKETEKData(mcaData.get(), m_KetekHandler->GetDataSize(), sum);
 		}
 	}
 	m_StartStopLiveCapturingTglBtn->Enable();
@@ -1990,7 +1991,9 @@ auto cMain::LiveCapturingThread(wxThreadEvent& evt) -> void
 	auto img_ptr = evt.GetPayload<unsigned long*>();
 	auto dataSize = m_KetekHandler->GetDataSize();
 
-	m_PreviewPanel->SetKETEKData(img_ptr, dataSize);
+	unsigned long long sum = std::accumulate(&img_ptr[0], &img_ptr[dataSize], sum);
+
+	m_PreviewPanel->SetKETEKData(img_ptr, dataSize, sum);
 
 	//delete[] img_ptr;
 }
@@ -2009,7 +2012,9 @@ auto cMain::WorkerThreadEvent(wxThreadEvent& evt) -> void
 	auto img_ptr = evt.GetPayload<unsigned long*>();
 	auto dataSize = m_KetekHandler->GetDataSize();
 
-	m_PreviewPanel->SetKETEKData(img_ptr, dataSize);
+	unsigned long long sum = std::accumulate(&img_ptr[0], &img_ptr[dataSize], sum);
+
+	m_PreviewPanel->SetKETEKData(img_ptr, dataSize, sum);
 }
 
 void cMain::UpdateProgress(wxThreadEvent& evt)
@@ -2622,7 +2627,8 @@ auto WorkerThread::CaptureAndSaveData
 			+ std::string("_2A_") + second_axis_position_str 
 			+ std::string(".mca");
 
-		MainFrameVariables::WriteMCAFile(file_name, mca, m_KetekHandler);
+		unsigned long long sum = std::accumulate(&mca[0], &mca[m_KetekHandler->GetDataSize()], sum);
+		MainFrameVariables::WriteMCAFile(file_name, mca, m_KetekHandler, sum);
 	}
 
 	return true;

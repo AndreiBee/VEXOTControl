@@ -31,7 +31,7 @@ cPreviewPanel::cPreviewPanel
 	InitDefaultComponents();
 }
 
-auto cPreviewPanel::SetKETEKData(unsigned long* const mcaData, const unsigned long dataSize) -> void
+auto cPreviewPanel::SetKETEKData(unsigned long* const mcaData, const unsigned long dataSize, const unsigned long long sum) -> void
 {
 	if (!mcaData) return;
 
@@ -60,6 +60,7 @@ auto cPreviewPanel::SetKETEKData(unsigned long* const mcaData, const unsigned lo
 		m_MaxPosValueInData.first = std::distance(&m_ImageData[0], maxValue);
 		m_MaxPosValueInData.second = *maxValue;
 		multiplicator = abs((double)(m_ImageSize.GetHeight() - 1) / *maxValue);
+		m_SumData = sum;
 	}
 
 	LOGF("Multiplicator: ", multiplicator);
@@ -651,6 +652,21 @@ void cPreviewPanel::Render(wxBufferedPaintDC& dc)
 				DrawMaxValue(gc_max_value);
 				delete gc_max_value;
 			}
+
+			wxGraphicsContext* gc_events_count = wxGraphicsContext::Create(dc);
+			if (gc_events_count)
+			{
+				DrawSumEvents(gc_events_count);
+				delete gc_events_count;
+			}
+
+			wxGraphicsContext* gc_horizontal_ruller = wxGraphicsContext::Create(dc);
+			if (gc_horizontal_ruller)
+			{
+				DrawHorizontalRuller(gc_horizontal_ruller);
+				delete gc_horizontal_ruller;
+			}
+
 			/* CrossHair */
 			//wxGraphicsContext* gc_cross = wxGraphicsContext::Create(dc);
 			//if (gc_cross)
@@ -784,6 +800,41 @@ auto cPreviewPanel::DrawMaxValue(wxGraphicsContext* gc) -> void
 			startY - heightText
 		);
 	}
+}
+
+auto cPreviewPanel::DrawSumEvents(wxGraphicsContext* gc) -> void
+{
+	if (!m_Image.IsOk() || !m_ImageData) return;
+
+	auto screenWidth = GetSize().GetWidth();
+	auto screenHeight = GetSize().GetHeight();
+	auto incrementX = 10.0;
+	auto startX = screenWidth - 100.0;
+	auto startY = 10.0;
+
+	wxFont font = wxFont(18, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
+	wxColour fontColour = wxColour(255, 0, 128, 100);
+	gc->SetFont(font, fontColour);
+
+	// Draw value
+	{
+		wxString curr_value{};
+		curr_value += "Events: ";
+		curr_value += wxString::Format(wxT("%i"), m_SumData);
+		wxDouble widthText{}, heightText{};
+		gc->GetTextExtent(curr_value, &widthText, &heightText);
+		gc->DrawText
+		(
+			curr_value,
+			startX,
+			startY
+		);
+	}
+
+}
+
+auto cPreviewPanel::DrawHorizontalRuller(wxGraphicsContext* gc) -> void
+{
 }
 
 void cPreviewPanel::OnSize(wxSizeEvent& evt)

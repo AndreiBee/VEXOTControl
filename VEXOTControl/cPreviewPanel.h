@@ -74,7 +74,7 @@ public:
 		std::unique_ptr<PreviewPanelVariables::InputPreviewPanelArgs> input_preview_panel_args
 	);
 	auto SetCurrentDevice(const int device) -> void { m_CurrentDeivce = device; };
-	auto SetKETEKData(unsigned long* const mcaData, const unsigned long dataSize) -> void;
+	auto SetKETEKData(unsigned long* const mcaData, const unsigned long dataSize, const unsigned long long sum) -> void;
 
 	auto SetBackgroundColor(wxColour bckg_colour) -> void;
 	auto SetCrossHairButtonActive(bool activate = false) -> void;
@@ -111,6 +111,8 @@ public:
 		unsigned char& b
 	);
 
+	auto SetBinSize(const double binSize) -> void { m_BinSize = binSize; };
+
 private:
 	void InitDefaultComponents();
 	void PaintEvent(wxPaintEvent& evt);
@@ -128,6 +130,8 @@ private:
 	void CreateGraphicsBitmapImage(wxGraphicsContext* gc_);
 	void DrawCameraCapturedImage(wxGraphicsContext* gc_);
 	auto DrawMaxValue(wxGraphicsContext* gc) -> void;
+	auto DrawSumEvents(wxGraphicsContext* gc) -> void;
+	auto DrawHorizontalRuller(wxGraphicsContext* gc) -> void;
 	void OnSize(wxSizeEvent& evt);
 	void ChangeSizeOfImageInDependenceOnCanvasSize();
 	auto UpdateCrossHairOnSize() -> void;
@@ -161,6 +165,8 @@ private:
 	std::unique_ptr<unsigned long[]> m_ImageData{};
 
 	std::pair<unsigned short, unsigned long> m_MaxPosValueInData{};
+	unsigned long long m_SumData{};
+	double m_BinSize{};
 	
 	wxSize m_ImageSize{}, m_ImageOnCanvasSize{}, m_CanvasSize{};
 	wxRealPoint m_NotCheckedCursorPosOnImage{}, m_CheckedCursorPosOnImage{}, m_CursorPosOnCanvas{};

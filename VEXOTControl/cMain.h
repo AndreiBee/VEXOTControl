@@ -12,6 +12,7 @@
 #include <memory>
 #include <chrono>
 #include <utility>
+#include <algorithm>
 
 #include "json.hpp"
 
@@ -216,7 +217,7 @@ namespace MainFrameVariables
 		int step_number{};
 	};
 
-	static auto WriteMCAFile(const wxString filePath, const unsigned long* const mcaData, Ketek* handler) -> void
+	static auto WriteMCAFile(const wxString filePath, const unsigned long* const mcaData, Ketek* handler, const unsigned long long sumValues) -> void
 	{
 		auto replace_dot_to_comma = []
 		(
@@ -262,7 +263,7 @@ namespace MainFrameVariables
 				outStream << "Energy (0-4095) = " << 0 << '\n';
 				outStream << "Trigger (0-4095) = " << 30 << '\n';
 				outStream << "Baseline Average Length = " << 512 << '\n';
-				outStream << "Events = " << 264005 << '\n';
+				outStream << "Events = " << sumValues << '\n';
 				outStream << "ICR: = " << "2,4866 kcps" << '\n';
 				outStream << "OCR: = " << "2,2000 kcps" << '\n';
 				outStream << "Live Time: = " << "1,0 s" << '\n';
