@@ -32,6 +32,7 @@ namespace MainFrameVariables
 	enum
 	{
 		/* Menu Bar */
+		ID_MENUBAR_FILE_OPEN,
 		ID_MENUBAR_FILE_QUIT,
 		ID_MENUBAR_EDIT_ENABLE_DARK_MODE,
 		ID_MENUBAR_EDIT_SETTINGS,
@@ -244,7 +245,7 @@ namespace MainFrameVariables
 				outStream << "User Name = " << "VM" << '\n';
 				outStream << "Current Date = " << "" << '\n';
 				auto binSize = replace_dot_to_comma(std::to_string(handler->GetBinSize()), std::string("."), std::string(","));
-				outStream << "BinSize = " << binSize << '\n';
+				outStream << "Bin Size = " << binSize << '\n';
 				outStream << "Board Type = " << "KETEK DPP2" << '\n';
 				outStream << "Serial = " << handler->GetSerialNumber() << '\n';
 				outStream << "Channel = " << 0 << '\n';
@@ -334,6 +335,8 @@ private:
 	void OnSingleShotCameraImage(wxCommandEvent& evt);
 	void OnSetOutDirectoryBtn(wxCommandEvent& evt);
 
+	auto OnOpenMCAFile(wxCommandEvent& evt) -> void;
+	auto ParseMCAFile(const wxString filePath) -> void;
 	void OnOpenSettings(wxCommandEvent& evt);
 	auto InitializeSelectedCamera() -> void;
 	auto InitializeSelectedDevice() -> void;

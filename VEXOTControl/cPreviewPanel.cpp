@@ -31,7 +31,12 @@ cPreviewPanel::cPreviewPanel
 	InitDefaultComponents();
 }
 
-auto cPreviewPanel::SetKETEKData(unsigned long* const mcaData, const unsigned long dataSize, const unsigned long long sum) -> void
+auto cPreviewPanel::SetKETEKData
+(
+	unsigned long* const mcaData, 
+	const unsigned long dataSize, 
+	const unsigned long long sum
+) -> void
 {
 	if (!mcaData) return;
 
@@ -164,6 +169,72 @@ where it was before capturing.
 	m_IsGraphicsBitmapSet = false;
 
 	Refresh();
+}
+
+auto cPreviewPanel::SetKETEKReferenceData
+(
+	unsigned long* const mcaData, 
+	const unsigned long dataSize, 
+	const unsigned long long sum
+) -> void
+{
+	if (!mcaData) return;
+
+	auto prevImageSize = m_ImageSize;
+
+	if (dataSize != m_ImageSize.GetWidth())
+	{
+		// Veronika said that she needs only half of the whole spectrum, so we can display only half of the range
+		m_ImageSize = wxSize(dataSize / 2, m_RBFinish.y - m_LUStart.y);
+		//m_Image = wxImage(m_ImageSize.GetWidth(), m_ImageSize.GetHeight());
+		m_ReferenceData = std::make_unique<unsigned long[]>(m_ImageSize.GetWidth());
+	}
+
+	memcpy(m_ReferenceData.get(), mcaData, m_ImageSize.GetWidth() * sizeof(unsigned long));
+	// Sending signal to wxThread, that we are done copying the data 
+	mcaData[0] = ULONG_MAX - mcaData[0];
+
+	auto maxValue = std::max_element(&m_ReferenceData[0], &m_ReferenceData[m_ImageSize.GetWidth()]);
+
+	if (*maxValue)
+	{
+		//m_MaxPosValueInData.first = std::distance(&m_ImageData[0], maxValue);
+		//m_MaxPosValueInData.second = *maxValue;
+		//m_SumData = sum;
+		m_MaxEventsCountOnGraph = *maxValue > m_MaxEventsCountOnGraph ? ((*maxValue + 9) / 10) * 10 : m_MaxEventsCountOnGraph;
+	}
+
+	/*
+	Saving previous values for correct displaying of the image in the same place,
+	where it was before capturing.
+	*/
+	{
+		auto temp_zoom = m_Zoom;
+		auto temp_pan_offset = m_PanOffset;
+		auto temp_start_draw_pos = m_StartDrawPos;
+		m_Zoom = 1.0;
+		m_PanOffset = {};
+		ChangeSizeOfImageInDependenceOnCanvasSize();
+
+		if (m_IsImageSet)
+		{
+			m_Zoom = temp_zoom;
+			m_PanOffset = temp_pan_offset;
+			m_StartDrawPos = temp_start_draw_pos;
+			if (prevImageSize != m_ImageSize)
+			{
+				m_Zoom = 1.0;
+				m_PanOffset = {};
+				m_StartDrawPos = m_NotZoomedGraphicsBitmapOffset;
+			}
+		}
+	}
+
+	m_IsImageSet = true;
+	m_IsGraphicsBitmapSet = false;
+
+	Refresh();
+
 }
 
 auto cPreviewPanel::SetBackgroundColor(wxColour bckg_colour) -> void
@@ -435,35 +506,34 @@ void cPreviewPanel::CalculateMatlabJetColormapPixelRGB16bit
 
 void cPreviewPanel::OnMouseMoved(wxMouseEvent& evt)
 {
-	if (m_IsImageSet)
+	if (!m_ImageData && !m_ReferenceData) return;
+
+	//m_CursorPosOnCanvas.x = m_ZoomOnOriginalSizeImage * evt.GetPosition().x;
+	//m_CursorPosOnCanvas.y = m_ZoomOnOriginalSizeImage * evt.GetPosition().y;
+	m_CursorPosOnCanvas.x = evt.GetPosition().x;
+	m_CursorPosOnCanvas.y = evt.GetPosition().y;
+
+
+	/* Mouse position on Image */
+	CalculatePositionOnImage();
+	CheckIfMouseAboveImage();
+
+
+	ChangeCursorInDependenceOfCurrentParameters();
+
+	if (m_Panning)
 	{
-		//m_CursorPosOnCanvas.x = m_ZoomOnOriginalSizeImage * evt.GetPosition().x;
-		//m_CursorPosOnCanvas.y = m_ZoomOnOriginalSizeImage * evt.GetPosition().y;
-		m_CursorPosOnCanvas.x = evt.GetPosition().x;
-		m_CursorPosOnCanvas.y = evt.GetPosition().y;
-
-
-		/* Mouse position on Image */
-		CalculatePositionOnImage();
-		CheckIfMouseAboveImage();
-
-
-		ChangeCursorInDependenceOfCurrentParameters();
-
-		if (m_Panning)
-		{
-			ProcessPan(m_CursorPosOnCanvas, true);
-			m_CrossHairTool->SetImageStartDrawPos(wxRealPoint
-			(
-				m_StartDrawPos.x * m_Zoom / m_ZoomOnOriginalSizeImage,
-				m_StartDrawPos.y * m_Zoom / m_ZoomOnOriginalSizeImage
-			));
-		}
-
-		if (m_CursorPosOnCanvas.x < m_LUStart.x || m_CursorPosOnCanvas.x > m_RBFinish.x) return;
-		if (m_CursorPosOnCanvas.y < m_LUStart.y || m_CursorPosOnCanvas.y > m_RBFinish.y) return;
-		Refresh();
+		ProcessPan(m_CursorPosOnCanvas, true);
+		m_CrossHairTool->SetImageStartDrawPos(wxRealPoint
+		(
+			m_StartDrawPos.x * m_Zoom / m_ZoomOnOriginalSizeImage,
+			m_StartDrawPos.y * m_Zoom / m_ZoomOnOriginalSizeImage
+		));
 	}
+
+	if (m_CursorPosOnCanvas.x < m_LUStart.x || m_CursorPosOnCanvas.x > m_RBFinish.x) return;
+	if (m_CursorPosOnCanvas.y < m_LUStart.y || m_CursorPosOnCanvas.y > m_RBFinish.y) return;
+	Refresh();
 }
 
 void cPreviewPanel::OnMouseWheelMoved(wxMouseEvent& evt)
@@ -652,9 +722,25 @@ void cPreviewPanel::Render(wxBufferedPaintDC& dc)
 	if (gc_image)
 	{
 		DrawVerticalLineBelowCursor(gc_image, m_LUStart, m_RBFinish);
-
-		DrawCameraCapturedImage(gc_image, m_LUStart, m_RBFinish);
+		DrawCapturedValueBelowCursor(gc_image, m_LUStart, m_RBFinish);
+		DrawReferenceValueBelowCursor(gc_image, m_LUStart, m_RBFinish);
+		DrawReferenceData(gc_image, m_LUStart, m_RBFinish);
+		DrawCapturedData(gc_image, m_LUStart, m_RBFinish);
 		delete gc_image;
+
+		wxGraphicsContext* gc_horizontal_ruller = wxGraphicsContext::Create(dc);
+		if (gc_horizontal_ruller)
+		{
+			DrawHorizontalRuller(gc_horizontal_ruller, m_LUStart, m_RBFinish);
+			delete gc_horizontal_ruller;
+		}
+
+		wxGraphicsContext* gc_vertical_ruller = wxGraphicsContext::Create(dc);
+		if (gc_vertical_ruller)
+		{
+			DrawVerticalRuller(gc_vertical_ruller, m_LUStart, m_RBFinish);
+			delete gc_vertical_ruller;
+		}
 
 		if (m_IsImageSet)
 		{
@@ -672,19 +758,6 @@ void cPreviewPanel::Render(wxBufferedPaintDC& dc)
 				delete gc_events_count;
 			}
 
-			wxGraphicsContext* gc_horizontal_ruller = wxGraphicsContext::Create(dc);
-			if (gc_horizontal_ruller)
-			{
-				DrawHorizontalRuller(gc_horizontal_ruller, m_LUStart, m_RBFinish);
-				delete gc_horizontal_ruller;
-			}
-
-			wxGraphicsContext* gc_vertical_ruller = wxGraphicsContext::Create(dc);
-			if (gc_vertical_ruller)
-			{
-				DrawVerticalRuller(gc_vertical_ruller, m_LUStart, m_RBFinish);
-				delete gc_vertical_ruller;
-			}
 
 
 			/* CrossHair */
@@ -744,7 +817,7 @@ void cPreviewPanel::CreateGraphicsBitmapImage(wxGraphicsContext* gc_)
 
 auto cPreviewPanel::DrawVerticalLineBelowCursor(wxGraphicsContext* gc, const wxRealPoint luStart, const wxRealPoint rbFinish) -> void
 {
-	if (!m_ImageData) return;
+	if (!m_ImageData && !m_ReferenceData) return;
 
 	if (m_CursorPosOnCanvas.x < luStart.x || m_CursorPosOnCanvas.x > rbFinish.x) return;
 	if (m_CursorPosOnCanvas.y < luStart.y || m_CursorPosOnCanvas.y > rbFinish.y) return;
@@ -767,8 +840,15 @@ auto cPreviewPanel::DrawVerticalLineBelowCursor(wxGraphicsContext* gc, const wxR
 		gc->StrokePath(path);
 	}
 
+
+}
+
+auto cPreviewPanel::DrawCapturedValueBelowCursor(wxGraphicsContext* gc, const wxRealPoint luStart, const wxRealPoint rbFinish) -> void
+{
+	if (!m_ImageData) return;
+
 	wxFont font = wxFont(18, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
-	wxColour fontColour = wxColour(255, 255, 255, 100);
+	wxColour fontColour = wxColour(0, 255, 0, 100);
 	gc->SetFont(font, fontColour);
 
 	auto positionInData = (int)((m_CursorPosOnCanvas.x - luStart.x) * m_ImageSize.GetWidth() / (rbFinish.x - luStart.x));
@@ -791,12 +871,43 @@ auto cPreviewPanel::DrawVerticalLineBelowCursor(wxGraphicsContext* gc, const wxR
 			luStart.x - luStart.x / 4.0 - heightText
 		);
 	}
-
 }
 
-void cPreviewPanel::DrawCameraCapturedImage(wxGraphicsContext* gc_, const wxRealPoint luStart, const wxRealPoint rbFinish)
+auto cPreviewPanel::DrawReferenceValueBelowCursor(wxGraphicsContext* gc, const wxRealPoint luStart, const wxRealPoint rbFinish) -> void
 {
-	wxGraphicsPath path = gc_->CreatePath();
+	if (!m_ReferenceData) return;
+
+	wxFont font = wxFont(18, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
+	wxColour fontColour = wxColour(255, 0, 0, 100);
+	gc->SetFont(font, fontColour);
+
+	auto positionInData = (int)((m_CursorPosOnCanvas.x - luStart.x) * m_ImageSize.GetWidth() / (rbFinish.x - luStart.x));
+	positionInData = positionInData < 0 ? 0 : positionInData;
+	positionInData = positionInData >= m_ImageSize.GetWidth() ? m_ImageSize.GetWidth() - 1 : positionInData;
+
+	// Draw value
+	{
+		wxString curr_value{};
+		curr_value += "Energy: ";
+		curr_value += wxString::Format(wxT("%.2f"), (double)positionInData * m_ReferenceBinSize);
+		curr_value += " Count: ";
+		curr_value += wxString::Format(wxT("%lu"), m_ReferenceData[positionInData]);
+		wxDouble widthText{}, heightText{};
+		gc->GetTextExtent(curr_value, &widthText, &heightText);
+		gc->DrawText
+		(
+			curr_value,
+			m_CursorPosOnCanvas.x - widthText / 2.0,
+			luStart.x - luStart.x / 2.0 - heightText
+		);
+	}
+}
+
+void cPreviewPanel::DrawCapturedData(wxGraphicsContext* gc, const wxRealPoint luStart, const wxRealPoint rbFinish)
+{
+	if (!m_ImageData) return;
+
+	wxGraphicsPath path = gc->CreatePath();
 	int start_draw_y_position{};
 	double current_x{}, delta_x{}, current_y{};
 
@@ -821,22 +932,46 @@ void cPreviewPanel::DrawCameraCapturedImage(wxGraphicsContext* gc_, const wxReal
 		++position_in_data;
 	}
 
-	gc_->SetPen(*wxGREEN_PEN);
-	gc_->DrawPath(path);
+	gc->SetPen(*wxGREEN_PEN);
+	gc->DrawPath(path);
+}
 
+void cPreviewPanel::DrawReferenceData(wxGraphicsContext* gc, const wxRealPoint luStart, const wxRealPoint rbFinish)
+{
+	if (!m_ReferenceData) return;
 
-	//CreateGraphicsBitmapImage(gc_);
-	//
-	//if (m_IsGraphicsBitmapSet)
-	//{
-	//	auto interpolation_quality = m_Zoom / m_ZoomOnOriginalSizeImage >= 1.0 ? wxINTERPOLATION_NONE : wxINTERPOLATION_DEFAULT;
+	wxGraphicsPath path = gc->CreatePath();
+	int start_draw_y_position{};
+	double current_x{}, delta_x{}, current_y{};
 
-	//	gc_->SetInterpolationQuality(interpolation_quality);
-	//	gc_->Scale(m_Zoom / m_ZoomOnOriginalSizeImage, m_Zoom / m_ZoomOnOriginalSizeImage);
-	//	gc_->DrawBitmap(m_GraphicsBitmapImage,
-	//		m_StartDrawPos.x, m_StartDrawPos.y,
-	//		m_ImageSize.GetWidth(), m_ImageSize.GetHeight());
-	//}
+	//auto offsetX = 50.0;
+	//auto offsetY = 50.0;
+	//auto graphHeight = GetSize().GetHeight() - 2 * offsetY;
+	auto graphHeight = rbFinish.y - luStart.y;
+
+	start_draw_y_position = rbFinish.y;
+
+	if (m_ReferenceBinSize >= m_BinSize)
+		delta_x = (rbFinish.x - luStart.x) / m_ImageSize.GetWidth();
+	else
+		return;
+
+	current_x = luStart.x;
+
+	auto position_in_data = 0UL;;
+	for (auto x{ 0 }; x < m_ImageSize.GetWidth() - 1; ++x)
+	{
+		current_y = graphHeight * (double)m_ReferenceData[position_in_data] / (double)m_MaxEventsCountOnGraph;
+		path.MoveToPoint(current_x, (double)start_draw_y_position - current_y);
+		current_x += delta_x;
+		current_y = graphHeight * (double)m_ReferenceData[position_in_data + 1] / (double)m_MaxEventsCountOnGraph;
+		path.AddLineToPoint(current_x, (double)start_draw_y_position - current_y);
+		++position_in_data;
+	}
+
+	gc->SetPen(*wxRED_PEN);
+	gc->DrawPath(path);
+
 }
 
 auto cPreviewPanel::DrawMaxValue(wxGraphicsContext* gc) -> void
@@ -904,7 +1039,7 @@ auto cPreviewPanel::DrawSumEvents(wxGraphicsContext* gc) -> void
 
 auto cPreviewPanel::DrawHorizontalRuller(wxGraphicsContext* gc, const wxRealPoint luStart, const wxRealPoint rbFinish) -> void
 {
-	if (!m_ImageData) return;
+	if (!m_ImageData && !m_ReferenceData) return;
 
 	wxColour fontColour = wxColour(0, 162, 232, 200);
 	gc->SetPen(wxPen(fontColour));
@@ -972,7 +1107,7 @@ auto cPreviewPanel::DrawHorizontalRuller(wxGraphicsContext* gc, const wxRealPoin
 
 auto cPreviewPanel::DrawVerticalRuller(wxGraphicsContext* gc, const wxRealPoint luStart, const wxRealPoint rbFinish) -> void
 {
-	if (!m_ImageData) return;
+	if (!m_ImageData && !m_ReferenceData) return;
 
 	wxColour fontColour = wxColour(0, 162, 232, 200);
 	gc->SetPen(wxPen(fontColour));
@@ -1011,16 +1146,16 @@ auto cPreviewPanel::DrawVerticalRuller(wxGraphicsContext* gc, const wxRealPoint 
 			(
 				curr_value,
 				luStart.x / 2.0 + luStart.x / 4.0,
-				rbFinish.y - heightText / 2.0 - i * m_ImageSize.GetHeight() / scaleValuesNumber
+				rbFinish.y - heightText / 2.0 - i * (m_RBFinish.y - m_LUStart.y) / scaleValuesNumber
 			);
 
 			// Stroking horizontal line
 			gc->StrokeLine
 			(
 				luStart.x / 2.0,
-				rbFinish.y - i * m_ImageSize.GetHeight() / scaleValuesNumber,
+				rbFinish.y - i * (m_RBFinish.y - m_LUStart.y) / scaleValuesNumber,
 				luStart.x / 2.0 + luStart.x / 12.0,
-				rbFinish.y - i * m_ImageSize.GetHeight() / scaleValuesNumber
+				rbFinish.y - i * (m_RBFinish.y - m_LUStart.y) / scaleValuesNumber
 			);
 		}
 	}

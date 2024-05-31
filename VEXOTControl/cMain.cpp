@@ -1,6 +1,7 @@
 #include "cMain.h"
 
 wxBEGIN_EVENT_TABLE(cMain, wxFrame)
+	EVT_MENU(MainFrameVariables::ID_MENUBAR_FILE_OPEN, cMain::OnOpenMCAFile)
 	EVT_CLOSE(cMain::OnExit)
 	EVT_MENU(MainFrameVariables::ID_MENUBAR_FILE_QUIT, cMain::OnExit)
 	EVT_MENU(MainFrameVariables::ID_RIGHT_CAM_SINGLE_SHOT_BTN, cMain::OnSingleShotCameraImage)
@@ -142,6 +143,7 @@ void cMain::CreateMenuBarOnFrame()
 	this->SetMenuBar(m_MenuBar->menu_bar);
 
 	// File Menu
+	m_MenuBar->menu_file->Append(MainFrameVariables::ID_MENUBAR_FILE_OPEN, wxT("Open\tCtrl+O"));
 	m_MenuBar->menu_file->Append(MainFrameVariables::ID_MENUBAR_FILE_QUIT, wxT("Quit\tCtrl+Q"));
 	// Append File Menu to the Menu Bar
 	m_MenuBar->menu_bar->Append(m_MenuBar->menu_file, wxT("&File"));
@@ -988,6 +990,7 @@ void cMain::CreateDeviceControls(wxPanel* right_side_panel, wxBoxSizer* right_si
 					MainFrameVariables::ID_RIGHT_CAM_START_STOP_LIVE_CAPTURING_TGL_BTN, 
 					wxT("Start Live (L)")
 				);
+			m_StartStopLiveCapturingTglBtn->Disable();
 			ss_and_start_stop_box_sizer->Add(m_StartStopLiveCapturingTglBtn.get(), 0, wxEXPAND | wxTOP, 5);
 
 			first_row_sizer->AddStretchSpacer();
@@ -1430,8 +1433,95 @@ void cMain::OnSetOutDirectoryBtn(wxCommandEvent& evt)
 	m_FirstStage->EnableAllControls();
 	//m_SecondStage->EnableAllControls();
 	m_MenuBar->menu_edit->Enable(MainFrameVariables::ID_RIGHT_CAM_SINGLE_SHOT_BTN, true);
-	m_SingleShotBtn->Enable();
-	m_StartMeasurement->Enable();
+	if (m_SelectedDeviceStaticTXT->GetValue() != "-")
+	{
+		m_SingleShotBtn->Enable();
+		m_StartMeasurement->Enable();
+	}
+}
+
+auto cMain::OnOpenMCAFile(wxCommandEvent& evt) -> void
+{
+	wxString filePath{};
+
+#ifdef _DEBUG
+	filePath = "D:\\Projects\\RIGAKU\\VEXOTControl\\VEXOTControl\\src\\data\\035-019_01.mca";
+#else
+	wxFileDialog openFileDialog(this, _("Open file"), "", "",
+		"MCA files (*.mca)|*.mca|All files (*.*)|*.*",
+		wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+
+	if (openFileDialog.ShowModal() == wxID_CANCEL)
+		return; // the user changed idea...
+
+	// Proceed loading the file chosen by the user
+	wxString filePath = openFileDialog.GetPath();
+#endif // _DEBUG
+
+	ParseMCAFile(filePath);
+}
+
+auto cMain::ParseMCAFile(const wxString filePath) -> void
+{
+	std::ifstream file(filePath.ToStdString());
+	if (!file.is_open()) {
+		wxLogError("Cannot open file '%s'.", filePath);
+		return;
+	}
+
+	std::string line;
+	double binSize = 0.0;
+	std::unique_ptr<unsigned long[]> values;
+	bool foundBinSize = false;
+	bool found8192 = false;
+
+	while (std::getline(file, line)) 
+	{
+		if (line.find("Bin Size") != std::string::npos) 
+		{
+			std::replace(line.begin(), line.end(), ',', '.');
+			std::istringstream iss(line);
+			std::string key, equalSign;
+			iss >> key >> key >> equalSign >> binSize;
+			foundBinSize = true;
+		}
+
+		if (line == "8192") {
+			found8192 = true;
+			break;
+		}
+	}
+
+	if (!foundBinSize) {
+		wxLogError("BinSize parameter not found.");
+		return;
+	}
+
+	if (!found8192) {
+		wxLogError("8192 row not found.");
+		return;
+	}
+
+	auto numValues = 8192;
+
+	values = std::make_unique<unsigned long[]>(numValues);
+
+	unsigned long value;
+	int i{};
+	while (file >> value && i < numValues)
+	{
+		values[i] = value;
+		++i;
+	}
+
+	wxLogMessage("Successfully loaded data. BinSize: %f, Values count: %lu", binSize, numValues);
+
+	m_PreviewPanel->SetReferenceBinSize(binSize);
+
+	unsigned long long sum{};
+	sum = std::accumulate(&values[0], &values[numValues], sum);
+
+	m_PreviewPanel->SetKETEKReferenceData(values.get(), numValues, sum);
 }
 
 void cMain::OnOpenSettings(wxCommandEvent& evt)
@@ -1775,6 +1865,7 @@ void cMain::OnStartCapturingButton(wxCommandEvent& evt)
 	//m_StopLiveCapturing = true;		
 	if (m_StartedThreads.size() && m_StartedThreads.back().second)
 	{
+		m_StartedThreads.back().second = false;
 		while (!m_StartedThreads.back().first.empty())
 			wxThread::This()->Sleep(100);
 	}
@@ -1921,6 +2012,7 @@ void cMain::StartLiveCapturing()
 
 	if (m_StartedThreads.size() && m_StartedThreads.back().second)
 	{
+		m_StartedThreads.back().second = false;
 		while (!m_StartedThreads.back().first.empty())
 			wxThread::This()->Sleep(100);
 	}

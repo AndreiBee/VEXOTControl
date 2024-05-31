@@ -74,7 +74,19 @@ public:
 		std::unique_ptr<PreviewPanelVariables::InputPreviewPanelArgs> input_preview_panel_args
 	);
 	auto SetCurrentDevice(const int device) -> void { m_CurrentDeivce = device; };
-	auto SetKETEKData(unsigned long* const mcaData, const unsigned long dataSize, const unsigned long long sum) -> void;
+	auto SetKETEKData
+	(
+		unsigned long* const mcaData,
+		const unsigned long dataSize,
+		const unsigned long long sum
+	) -> void;
+
+	auto SetKETEKReferenceData
+	(
+		unsigned long* const mcaData,
+		const unsigned long dataSize,
+		const unsigned long long sum
+	) -> void;
 
 	auto SetBackgroundColor(wxColour bckg_colour) -> void;
 	auto SetCrossHairButtonActive(bool activate = false) -> void;
@@ -112,6 +124,7 @@ public:
 	);
 
 	auto SetBinSize(const double binSize) -> void { m_BinSize = binSize; };
+	auto SetReferenceBinSize(const double binSize) -> void { m_ReferenceBinSize = binSize; };
 
 private:
 	void InitDefaultComponents();
@@ -130,7 +143,10 @@ private:
 	void CreateGraphicsBitmapImage(wxGraphicsContext* gc_);
 
 	auto DrawVerticalLineBelowCursor(wxGraphicsContext* gc, const wxRealPoint luStart, const wxRealPoint rbFinish) -> void;
-	void DrawCameraCapturedImage(wxGraphicsContext* gc_, const wxRealPoint luStart, const wxRealPoint rbFinish);
+	auto DrawCapturedValueBelowCursor(wxGraphicsContext* gc, const wxRealPoint luStart, const wxRealPoint rbFinish) -> void;
+	auto DrawReferenceValueBelowCursor(wxGraphicsContext* gc, const wxRealPoint luStart, const wxRealPoint rbFinish) -> void;
+	void DrawCapturedData(wxGraphicsContext* gc, const wxRealPoint luStart, const wxRealPoint rbFinish);
+	void DrawReferenceData(wxGraphicsContext* gc, const wxRealPoint luStart, const wxRealPoint rbFinish);
 	auto DrawMaxValue(wxGraphicsContext* gc) -> void;
 	auto DrawSumEvents(wxGraphicsContext* gc) -> void;
 	auto DrawHorizontalRuller(wxGraphicsContext* gc, const wxRealPoint luStart, const wxRealPoint rbFinish) -> void;
@@ -169,12 +185,12 @@ private:
 	wxImage m_Image{};
 
 	wxGraphicsBitmap m_GraphicsBitmapImage{};
-	std::unique_ptr<unsigned long[]> m_ImageData{};
+	std::unique_ptr<unsigned long[]> m_ImageData{}, m_ReferenceData{};
 
 	unsigned long m_MaxEventsCountOnGraph{ 10 };
 	std::pair<unsigned short, unsigned long> m_MaxPosValueInData{};
 	unsigned long long m_SumData{};
-	double m_BinSize{};
+	double m_BinSize{}, m_ReferenceBinSize{};
 	
 	wxSize m_ImageSize{}, m_ImageOnCanvasSize{}, m_CanvasSize{};
 	wxRealPoint m_NotCheckedCursorPosOnImage{}, m_CheckedCursorPosOnImage{}, m_CursorPosOnCanvas{};
