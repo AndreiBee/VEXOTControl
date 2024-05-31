@@ -129,10 +129,12 @@ private:
 	) -> void;
 	void CreateGraphicsBitmapImage(wxGraphicsContext* gc_);
 
+	auto DrawVerticalLineBelowCursor(wxGraphicsContext* gc, const wxRealPoint luStart, const wxRealPoint rbFinish) -> void;
 	void DrawCameraCapturedImage(wxGraphicsContext* gc_, const wxRealPoint luStart, const wxRealPoint rbFinish);
 	auto DrawMaxValue(wxGraphicsContext* gc) -> void;
 	auto DrawSumEvents(wxGraphicsContext* gc) -> void;
 	auto DrawHorizontalRuller(wxGraphicsContext* gc, const wxRealPoint luStart, const wxRealPoint rbFinish) -> void;
+	auto DrawVerticalRuller(wxGraphicsContext* gc, const wxRealPoint luStart, const wxRealPoint rbFinish) -> void;
 	void OnSize(wxSizeEvent& evt);
 	void ChangeSizeOfImageInDependenceOnCanvasSize();
 	auto UpdateCrossHairOnSize() -> void;
@@ -161,10 +163,15 @@ private:
 	int m_Width{}, m_Height{};
 	bool m_IsGraphicsBitmapSet{}, m_IsImageSet{};
 
+	wxRealPoint m_LUStart{ GetSize().GetWidth() / 10.0, GetSize().GetHeight() / 10.0 };
+	wxRealPoint m_RBFinish{ GetSize().GetWidth() * 9 / 10.0, GetSize().GetHeight() * 9 / 10.0 };
+
 	wxImage m_Image{};
+
 	wxGraphicsBitmap m_GraphicsBitmapImage{};
 	std::unique_ptr<unsigned long[]> m_ImageData{};
 
+	unsigned long m_MaxEventsCountOnGraph{ 10 };
 	std::pair<unsigned short, unsigned long> m_MaxPosValueInData{};
 	unsigned long long m_SumData{};
 	double m_BinSize{};

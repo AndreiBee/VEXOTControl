@@ -40,13 +40,13 @@ auto cPreviewPanel::SetKETEKData(unsigned long* const mcaData, const unsigned lo
 	if (dataSize != m_ImageSize.GetWidth())
 	{
 		// Veronika said that she needs only half of the whole spectrum, so we can display only half of the range
-		m_ImageSize = wxSize(dataSize / 2, 800);
-		m_Image = wxImage(m_ImageSize.GetWidth(), m_ImageSize.GetHeight());
+		m_ImageSize = wxSize(dataSize / 2, m_RBFinish.y - m_LUStart.y);
+		//m_Image = wxImage(m_ImageSize.GetWidth(), m_ImageSize.GetHeight());
 		m_ImageData = std::make_unique<unsigned long[]>(m_ImageSize.GetWidth());
 	}
 	else
 	{
-		m_Image.Clear();
+		//m_Image.Clear();
 	}
 	memcpy(m_ImageData.get(), mcaData, m_ImageSize.GetWidth() * sizeof(unsigned long));
 	// Sending signal to wxThread, that we are done copying the data 
@@ -61,9 +61,10 @@ auto cPreviewPanel::SetKETEKData(unsigned long* const mcaData, const unsigned lo
 		m_MaxPosValueInData.second = *maxValue;
 		multiplicator = abs((double)(m_ImageSize.GetHeight() - 1) / *maxValue);
 		m_SumData = sum;
+		m_MaxEventsCountOnGraph = *maxValue > m_MaxEventsCountOnGraph ? ((*maxValue + 9) / 10) * 10 : m_MaxEventsCountOnGraph;
 	}
 
-	LOGF("Multiplicator: ", multiplicator);
+	//LOGF("Multiplicator: ", multiplicator);
 
 	auto update_wxImage = [&]()
 		{
@@ -436,8 +437,11 @@ void cPreviewPanel::OnMouseMoved(wxMouseEvent& evt)
 {
 	if (m_IsImageSet)
 	{
-		m_CursorPosOnCanvas.x = m_ZoomOnOriginalSizeImage * evt.GetPosition().x;
-		m_CursorPosOnCanvas.y = m_ZoomOnOriginalSizeImage * evt.GetPosition().y;
+		//m_CursorPosOnCanvas.x = m_ZoomOnOriginalSizeImage * evt.GetPosition().x;
+		//m_CursorPosOnCanvas.y = m_ZoomOnOriginalSizeImage * evt.GetPosition().y;
+		m_CursorPosOnCanvas.x = evt.GetPosition().x;
+		m_CursorPosOnCanvas.y = evt.GetPosition().y;
+
 
 		/* Mouse position on Image */
 		CalculatePositionOnImage();
@@ -455,6 +459,10 @@ void cPreviewPanel::OnMouseMoved(wxMouseEvent& evt)
 				m_StartDrawPos.y * m_Zoom / m_ZoomOnOriginalSizeImage
 			));
 		}
+
+		if (m_CursorPosOnCanvas.x < m_LUStart.x || m_CursorPosOnCanvas.x > m_RBFinish.x) return;
+		if (m_CursorPosOnCanvas.y < m_LUStart.y || m_CursorPosOnCanvas.y > m_RBFinish.y) return;
+		Refresh();
 	}
 }
 
@@ -466,6 +474,8 @@ void cPreviewPanel::OnMouseWheelMoved(wxMouseEvent& evt)
 	}
 	else
 	{
+		// I don't want to enable zooming!!!
+		return;
 		//m_CursorPosOnCanvas = evt.GetPosition();
 		if (evt.GetWheelRotation() > 0 && m_Zoom / m_ZoomOnOriginalSizeImage < 64.0)
 		{
@@ -641,10 +651,9 @@ void cPreviewPanel::Render(wxBufferedPaintDC& dc)
 	gc_image = wxGraphicsContext::Create(dc);
 	if (gc_image)
 	{
-		wxRealPoint luStart{ GetSize().GetWidth() / 6, GetSize().GetHeight() / 6 };
-		wxRealPoint rbFinish{ GetSize().GetWidth() * 4 / 6, GetSize().GetHeight() * 4 /6 };
+		DrawVerticalLineBelowCursor(gc_image, m_LUStart, m_RBFinish);
 
-		DrawCameraCapturedImage(gc_image, luStart, rbFinish);
+		DrawCameraCapturedImage(gc_image, m_LUStart, m_RBFinish);
 		delete gc_image;
 
 		if (m_IsImageSet)
@@ -666,9 +675,17 @@ void cPreviewPanel::Render(wxBufferedPaintDC& dc)
 			wxGraphicsContext* gc_horizontal_ruller = wxGraphicsContext::Create(dc);
 			if (gc_horizontal_ruller)
 			{
-				DrawHorizontalRuller(gc_horizontal_ruller, luStart, rbFinish);
+				DrawHorizontalRuller(gc_horizontal_ruller, m_LUStart, m_RBFinish);
 				delete gc_horizontal_ruller;
 			}
+
+			wxGraphicsContext* gc_vertical_ruller = wxGraphicsContext::Create(dc);
+			if (gc_vertical_ruller)
+			{
+				DrawVerticalRuller(gc_vertical_ruller, m_LUStart, m_RBFinish);
+				delete gc_vertical_ruller;
+			}
+
 
 			/* CrossHair */
 			//wxGraphicsContext* gc_cross = wxGraphicsContext::Create(dc);
@@ -725,6 +742,58 @@ void cPreviewPanel::CreateGraphicsBitmapImage(wxGraphicsContext* gc_)
 	}
 }
 
+auto cPreviewPanel::DrawVerticalLineBelowCursor(wxGraphicsContext* gc, const wxRealPoint luStart, const wxRealPoint rbFinish) -> void
+{
+	if (!m_ImageData) return;
+
+	if (m_CursorPosOnCanvas.x < luStart.x || m_CursorPosOnCanvas.x > rbFinish.x) return;
+	if (m_CursorPosOnCanvas.y < luStart.y || m_CursorPosOnCanvas.y > rbFinish.y) return;
+
+	gc->SetPen(*wxWHITE_PEN);
+	// Draw vertical line
+	{
+		wxGraphicsPath path = gc->CreatePath();
+
+		path.MoveToPoint
+		(
+			m_CursorPosOnCanvas.x,
+			luStart.y
+		);
+		path.AddLineToPoint
+		(
+			m_CursorPosOnCanvas.x,
+			rbFinish.y
+		);
+		gc->StrokePath(path);
+	}
+
+	wxFont font = wxFont(18, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
+	wxColour fontColour = wxColour(255, 255, 255, 100);
+	gc->SetFont(font, fontColour);
+
+	auto positionInData = (int)((m_CursorPosOnCanvas.x - luStart.x) * m_ImageSize.GetWidth() / (rbFinish.x - luStart.x));
+	positionInData = positionInData < 0 ? 0 : positionInData;
+	positionInData = positionInData >= m_ImageSize.GetWidth() ? m_ImageSize.GetWidth() - 1 : positionInData;
+
+	// Draw value
+	{
+		wxString curr_value{};
+		curr_value += "Energy: ";
+		curr_value += wxString::Format(wxT("%.2f"), (double)positionInData * m_BinSize);
+		curr_value += " Count: ";
+		curr_value += wxString::Format(wxT("%lu"), m_ImageData[positionInData]);
+		wxDouble widthText{}, heightText{};
+		gc->GetTextExtent(curr_value, &widthText, &heightText);
+		gc->DrawText
+		(
+			curr_value,
+			m_CursorPosOnCanvas.x - widthText / 2.0,
+			luStart.x - luStart.x / 4.0 - heightText
+		);
+	}
+
+}
+
 void cPreviewPanel::DrawCameraCapturedImage(wxGraphicsContext* gc_, const wxRealPoint luStart, const wxRealPoint rbFinish)
 {
 	wxGraphicsPath path = gc_->CreatePath();
@@ -736,7 +805,7 @@ void cPreviewPanel::DrawCameraCapturedImage(wxGraphicsContext* gc_, const wxReal
 	//auto graphHeight = GetSize().GetHeight() - 2 * offsetY;
 	auto graphHeight = rbFinish.y - luStart.y;
 
-	//start_draw_y_position = GetSize().GetHeight() - 50;
+	start_draw_y_position = rbFinish.y;
 
 	delta_x = (rbFinish.x - luStart.x) / m_ImageSize.GetWidth();
 	current_x = luStart.x;
@@ -744,10 +813,10 @@ void cPreviewPanel::DrawCameraCapturedImage(wxGraphicsContext* gc_, const wxReal
 	auto position_in_data = 0UL;;
 	for (auto x{ 0 }; x < m_ImageSize.GetWidth() - 1; ++x)
 	{
-		current_y = graphHeight * (double)m_ImageData[position_in_data] / (double)m_MaxPosValueInData.second;
+		current_y = graphHeight * (double)m_ImageData[position_in_data] / (double)m_MaxEventsCountOnGraph;
 		path.MoveToPoint(current_x, (double)start_draw_y_position - current_y);
 		current_x += delta_x;
-		current_y = graphHeight * (double)m_ImageData[position_in_data + 1] / (double)m_MaxPosValueInData.second;
+		current_y = graphHeight * (double)m_ImageData[position_in_data + 1] / (double)m_MaxEventsCountOnGraph;
 		path.AddLineToPoint(current_x, (double)start_draw_y_position - current_y);
 		++position_in_data;
 	}
@@ -772,24 +841,24 @@ void cPreviewPanel::DrawCameraCapturedImage(wxGraphicsContext* gc_, const wxReal
 
 auto cPreviewPanel::DrawMaxValue(wxGraphicsContext* gc) -> void
 {
-	if (!m_Image.IsOk() || !m_ImageData) return;
+	if (!m_ImageData) return;
 
 	auto screenWidth = GetSize().GetWidth();
 	auto screenHeight = GetSize().GetHeight();
 	auto incrementX = 10.0;
-	auto startX = 10.0;
-	auto startY = screenHeight - incrementX;
+	auto startX = 20.0;
+	auto startY = 70.0;
 
-	wxFont font = wxFont(18, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
-	wxColour fontColour = wxColour(255, 0, 128, 100);
+	wxFont font = wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
+	wxColour fontColour = wxColour(160, 240, 180, 100);
 	gc->SetFont(font, fontColour);
 
 	// Draw value
 	{
 		wxString curr_value{};
-		curr_value += "X: ";
-		curr_value += wxString::Format(wxT("%i"), m_MaxPosValueInData.first);
-		curr_value += " Value: ";
+		curr_value += "Energy: ";
+		curr_value += wxString::Format(wxT("%.4f"), (double)m_MaxPosValueInData.first * m_BinSize);
+		curr_value += " Counts: ";
 		curr_value += wxString::Format(wxT("%lu"), m_MaxPosValueInData.second);
 		wxDouble widthText{}, heightText{};
 		gc->GetTextExtent(curr_value, &widthText, &heightText);
@@ -804,23 +873,23 @@ auto cPreviewPanel::DrawMaxValue(wxGraphicsContext* gc) -> void
 
 auto cPreviewPanel::DrawSumEvents(wxGraphicsContext* gc) -> void
 {
-	if (!m_Image.IsOk() || !m_ImageData) return;
+	if (!m_ImageData) return;
 
 	auto screenWidth = GetSize().GetWidth();
 	auto screenHeight = GetSize().GetHeight();
 	auto incrementX = 10.0;
-	auto startX = screenWidth - 100.0;
-	auto startY = 10.0;
+	auto startX = 20.0;
+	auto startY = 20.0;
 
-	wxFont font = wxFont(18, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
-	wxColour fontColour = wxColour(255, 0, 128, 100);
+	wxFont font = wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
+	wxColour fontColour = wxColour(255, 128, 0, 100);
 	gc->SetFont(font, fontColour);
 
 	// Draw value
 	{
 		wxString curr_value{};
 		curr_value += "Events: ";
-		curr_value += wxString::Format(wxT("%i"), m_SumData);
+		curr_value += wxString::Format(wxT("%llu"), m_SumData);
 		wxDouble widthText{}, heightText{};
 		gc->GetTextExtent(curr_value, &widthText, &heightText);
 		gc->DrawText
@@ -835,8 +904,10 @@ auto cPreviewPanel::DrawSumEvents(wxGraphicsContext* gc) -> void
 
 auto cPreviewPanel::DrawHorizontalRuller(wxGraphicsContext* gc, const wxRealPoint luStart, const wxRealPoint rbFinish) -> void
 {
-	if (!m_Image.IsOk() || !m_ImageData) return;
+	if (!m_ImageData) return;
 
+	wxColour fontColour = wxColour(0, 162, 232, 200);
+	gc->SetPen(wxPen(fontColour));
 	// Draw horizontal line
 	{
 		wxGraphicsPath path = gc->CreatePath();
@@ -855,7 +926,6 @@ auto cPreviewPanel::DrawHorizontalRuller(wxGraphicsContext* gc, const wxRealPoin
 	}
 
 	wxFont font = wxFont(16, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
-	wxColour fontColour = wxColour(181, 230, 29, 200);
 	gc->SetFont(font, fontColour);
 
 	// Draw scale values
@@ -864,7 +934,7 @@ auto cPreviewPanel::DrawHorizontalRuller(wxGraphicsContext* gc, const wxRealPoin
 		wxDouble widthText{}, heightText{};
 		auto scaleValuesNumber = 10;
 		auto scaleFactor = m_ImageSize.GetWidth() * m_BinSize / scaleValuesNumber;
-		for (auto i{ 0 }; i < scaleValuesNumber; ++i)
+		for (auto i{ 0 }; i <= scaleValuesNumber; ++i)
 		{
 			curr_value = wxString::Format(wxT("%.2f"), (double)(i * scaleFactor));
 			gc->GetTextExtent(curr_value, &widthText, &heightText);
@@ -872,12 +942,13 @@ auto cPreviewPanel::DrawHorizontalRuller(wxGraphicsContext* gc, const wxRealPoin
 			(
 				curr_value,
 				luStart.x + i * (rbFinish.x - luStart.x) / scaleValuesNumber - widthText / 2.0,
-				rbFinish.y + (GetSize().GetHeight() - rbFinish.y) / 4
+				rbFinish.y + (GetSize().GetHeight() - rbFinish.y) / 8
 			);
+
 			gc->StrokeLine
 			(
 				luStart.x + i * (rbFinish.x - luStart.x) / scaleValuesNumber,
-				rbFinish.y + (GetSize().GetHeight() - rbFinish.y) / 4,
+				rbFinish.y + (GetSize().GetHeight() - rbFinish.y) / 2 - (GetSize().GetHeight() - rbFinish.y) / 12.0,
 				luStart.x + i * (rbFinish.x - luStart.x) / scaleValuesNumber,
 				rbFinish.y + (GetSize().GetHeight() - rbFinish.y) / 2
 			);
@@ -887,45 +958,89 @@ auto cPreviewPanel::DrawHorizontalRuller(wxGraphicsContext* gc, const wxRealPoin
 	// Draw [keV]
 	{
 		wxString curr_value{};
-		curr_value += "[keV]";
-		curr_value += wxString::Format(wxT("%i"), m_SumData);
+		curr_value = "[keV]";
 		wxDouble widthText{}, heightText{};
 		gc->GetTextExtent(curr_value, &widthText, &heightText);
 		gc->DrawText
 		(
 			curr_value,
 			luStart.x + (rbFinish.x - luStart.x) / 2.0 - widthText / 2.0,
-			GetSize().GetHeight() - 5.0 - heightText
+			rbFinish.y + (GetSize().GetHeight() - rbFinish.y) * 3 / 4.0 - heightText / 2.0
 		);
 	}
+}
 
-	wxGraphicsPath path = gc->CreatePath();
-	int start_draw_y_position{};
-	double current_x{}, delta_x{}, current_y{};
+auto cPreviewPanel::DrawVerticalRuller(wxGraphicsContext* gc, const wxRealPoint luStart, const wxRealPoint rbFinish) -> void
+{
+	if (!m_ImageData) return;
 
-	//auto offsetX = 50.0;
-	//auto offsetY = 50.0;
-	//auto graphHeight = GetSize().GetHeight() - 2 * offsetY;
-	auto graphHeight = rbFinish.y - luStart.y;
+	wxColour fontColour = wxColour(0, 162, 232, 200);
+	gc->SetPen(wxPen(fontColour));
 
-	//start_draw_y_position = GetSize().GetHeight() - 50;
-
-	delta_x = (rbFinish.x - luStart.x) / m_ImageSize.GetWidth();
-	current_x = luStart.x;
-
-	auto position_in_data = 0UL;;
-	for (auto x{ 0 }; x < m_ImageSize.GetWidth() - 1; ++x)
+	// Draw vertical line
 	{
-		current_y = graphHeight * (double)m_ImageData[position_in_data] / (double)m_MaxPosValueInData.second;
-		path.MoveToPoint(current_x, (double)start_draw_y_position - current_y);
-		current_x += delta_x;
-		current_y = graphHeight * (double)m_ImageData[position_in_data + 1] / (double)m_MaxPosValueInData.second;
-		path.AddLineToPoint(current_x, (double)start_draw_y_position - current_y);
-		++position_in_data;
+		wxGraphicsPath path = gc->CreatePath();
+
+		path.MoveToPoint
+		(
+			luStart.x / 2.0,
+			luStart.y
+		);
+		path.AddLineToPoint
+		(
+			luStart.x / 2.0,
+			rbFinish.y
+		);
+		gc->StrokePath(path);
 	}
 
-	gc->SetPen(*wxGREEN_PEN);
-	gc->DrawPath(path);
+	wxFont font = wxFont(16, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
+	gc->SetFont(font, fontColour);
+
+	// Draw scale values
+	wxString curr_value{};
+	wxDouble widthText{}, heightText{};
+	{
+		auto scaleValuesNumber = 10;
+		auto scaleFactor = m_MaxEventsCountOnGraph / scaleValuesNumber;
+		for (auto i{ 0 }; i <= scaleValuesNumber; ++i)
+		{
+			curr_value = wxString::Format(wxT("%i"), (int)(i * scaleFactor));
+			gc->GetTextExtent(curr_value, &widthText, &heightText);
+			gc->DrawText
+			(
+				curr_value,
+				luStart.x / 2.0 + luStart.x / 4.0,
+				rbFinish.y - heightText / 2.0 - i * m_ImageSize.GetHeight() / scaleValuesNumber
+			);
+
+			// Stroking horizontal line
+			gc->StrokeLine
+			(
+				luStart.x / 2.0,
+				rbFinish.y - i * m_ImageSize.GetHeight() / scaleValuesNumber,
+				luStart.x / 2.0 + luStart.x / 12.0,
+				rbFinish.y - i * m_ImageSize.GetHeight() / scaleValuesNumber
+			);
+		}
+	}
+
+	// Draw Value of the Left side of the image
+	{
+		curr_value = "[Events]";
+		gc->GetTextExtent(curr_value, &widthText, &heightText);
+		wxRealPoint draw_point =
+		{
+			luStart.x / 4 - heightText / 2,
+			luStart.y + (rbFinish.y - luStart.y) / 2 + widthText / 2.0
+		};
+
+		// Set up the transformation matrix for a 90-degree counterclockwise rotation
+		gc->Translate(draw_point.x, draw_point.y);
+		gc->Rotate(-M_PI / 2.0); // Rotate 90 degrees counterclockwise (pi/2 radians)
+		gc->Translate(-draw_point.x, -draw_point.y);
+		gc->DrawText(curr_value, draw_point.x, draw_point.y);
+	}
 
 }
 
@@ -941,6 +1056,8 @@ void cPreviewPanel::OnSize(wxSizeEvent& evt)
 		ChangeSizeOfImageInDependenceOnCanvasSize();
 		UpdateCrossHairOnSize();
 		m_IsGraphicsBitmapSet = false;
+		m_LUStart = { GetSize().GetWidth() / 10.0, GetSize().GetHeight() / 10.0 };
+		m_RBFinish = { GetSize().GetWidth() * 9 / 10.0, GetSize().GetHeight() * 9 / 10.0 };
 		Refresh();
 	}
 }

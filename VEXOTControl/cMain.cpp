@@ -1400,7 +1400,9 @@ void cMain::OnSingleShotCameraImage(wxCommandEvent& evt)
 				raise_exception_msg();
 				return;
 			}
-			unsigned long long sum = std::accumulate(&mcaData[0], &mcaData[m_KetekHandler->GetDataSize()], sum);
+
+			unsigned long long sum{};
+			sum = std::accumulate(&mcaData[0], &mcaData[m_KetekHandler->GetDataSize()], sum);
 
 			MainFrameVariables::WriteMCAFile(file_name, mcaData.get(), m_KetekHandler.get(), sum);
 
@@ -1466,10 +1468,15 @@ auto cMain::InitializeSelectedDevice() -> void
 		if (m_KetekHandler->IsDeviceInitialized())
 		{
 			m_PreviewPanel->SetCurrentDevice(PreviewPanelVariables::KETEK);
+			m_PreviewPanel->SetBinSize(m_KetekHandler->GetBinSize());
 			m_SelectedDeviceStaticTXT->SetValue(m_Settings->GetSelectedKETEK());
+			m_StartStopLiveCapturingTglBtn->Enable();
 		}
 		else
+		{
 			m_SelectedDeviceStaticTXT->SetValue(wxT("-"));
+			m_StartStopLiveCapturingTglBtn->Disable();
+		}
 
 		m_VerticalToolBar->tool_bar->Disable();
 	}
@@ -1769,7 +1776,7 @@ void cMain::OnStartCapturingButton(wxCommandEvent& evt)
 	if (m_StartedThreads.size() && m_StartedThreads.back().second)
 	{
 		while (!m_StartedThreads.back().first.empty())
-			wxThread::This()->Sleep(500);
+			wxThread::This()->Sleep(100);
 	}
 
 	auto timePointToWxString = []()
@@ -1912,6 +1919,12 @@ void cMain::StartLiveCapturing()
 			return formattedTime;
 		};
 
+	if (m_StartedThreads.size() && m_StartedThreads.back().second)
+	{
+		while (!m_StartedThreads.back().first.empty())
+			wxThread::This()->Sleep(100);
+	}
+
 	wxString exposure_time_str = m_DeviceExposure->GetValue().IsEmpty() 
 		? wxString("1") 
 		: m_DeviceExposure->GetValue();
@@ -1991,7 +2004,8 @@ auto cMain::LiveCapturingThread(wxThreadEvent& evt) -> void
 	auto img_ptr = evt.GetPayload<unsigned long*>();
 	auto dataSize = m_KetekHandler->GetDataSize();
 
-	unsigned long long sum = std::accumulate(&img_ptr[0], &img_ptr[dataSize], sum);
+	unsigned long long sum{};
+	sum = std::accumulate(&img_ptr[0], &img_ptr[m_KetekHandler->GetDataSize()], sum);
 
 	m_PreviewPanel->SetKETEKData(img_ptr, dataSize, sum);
 
@@ -2012,7 +2026,8 @@ auto cMain::WorkerThreadEvent(wxThreadEvent& evt) -> void
 	auto img_ptr = evt.GetPayload<unsigned long*>();
 	auto dataSize = m_KetekHandler->GetDataSize();
 
-	unsigned long long sum = std::accumulate(&img_ptr[0], &img_ptr[dataSize], sum);
+	unsigned long long sum{};
+	sum = std::accumulate(&img_ptr[0], &img_ptr[m_KetekHandler->GetDataSize()], sum);
 
 	m_PreviewPanel->SetKETEKData(img_ptr, dataSize, sum);
 }
@@ -2205,11 +2220,11 @@ void cMain::ExposureValueChanged(wxCommandEvent& evt)
 	//if (m_XimeaControl->IsCameraInitialized()) m_XimeaControl->StopAcquisition();	
 
 	{
-		wxString exposure_time_str = m_DeviceExposure->GetValue().IsEmpty() 
-			? wxString("0") 
-			: m_DeviceExposure->GetValue();
-		unsigned long exposure_time = abs(wxAtoi(exposure_time_str)); // Because user input is in [ms], we need to recalculate the value to [us]
-		wxThread::This()->Sleep(exposure_time);
+		//wxString exposure_time_str = m_DeviceExposure->GetValue().IsEmpty() 
+		//	? wxString("0") 
+		//	: m_DeviceExposure->GetValue();
+		//unsigned long exposure_time = abs(wxAtoi(exposure_time_str)); // Because user input is in [ms], we need to recalculate the value to [us]
+		//wxThread::This()->Sleep(exposure_time);
 	}
 	//m_StopLiveCapturing = false;
 	StartLiveCapturing();
@@ -2335,6 +2350,7 @@ wxThread::ExitCode LiveCapturing::Entry()
 		++imageNumber;
 	}
 
+	*m_ThreadID = "";
 	return (wxThread::ExitCode)0;
 }
 
@@ -2627,7 +2643,10 @@ auto WorkerThread::CaptureAndSaveData
 			+ std::string("_2A_") + second_axis_position_str 
 			+ std::string(".mca");
 
-		unsigned long long sum = std::accumulate(&mca[0], &mca[m_KetekHandler->GetDataSize()], sum);
+
+		unsigned long long sum{};
+		sum = std::accumulate(&mca[0], &mca[m_KetekHandler->GetDataSize()], sum);
+
 		MainFrameVariables::WriteMCAFile(file_name, mca, m_KetekHandler, sum);
 	}
 
