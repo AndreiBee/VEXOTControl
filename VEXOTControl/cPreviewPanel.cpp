@@ -721,11 +721,19 @@ void cPreviewPanel::Render(wxBufferedPaintDC& dc)
 	gc_image = wxGraphicsContext::Create(dc);
 	if (gc_image)
 	{
-		DrawVerticalLineBelowCursor(gc_image, m_LUStart, m_RBFinish);
-		DrawCapturedValueBelowCursor(gc_image, m_LUStart, m_RBFinish);
-		DrawReferenceValueBelowCursor(gc_image, m_LUStart, m_RBFinish);
 		DrawReferenceData(gc_image, m_LUStart, m_RBFinish);
 		DrawCapturedData(gc_image, m_LUStart, m_RBFinish);
+
+		if (m_CursorPosOnCanvas.x >= m_LUStart.x && m_CursorPosOnCanvas.x <= m_RBFinish.x)
+		{
+			if (m_CursorPosOnCanvas.y >= m_LUStart.y && m_CursorPosOnCanvas.y <= m_RBFinish.y)
+			{
+				DrawVerticalLineBelowCursor(gc_image, m_LUStart, m_RBFinish);
+				DrawReferenceValueBelowCursor(gc_image, m_LUStart, m_RBFinish);
+				DrawCapturedValueBelowCursor(gc_image, m_LUStart, m_RBFinish);
+			}
+		}
+
 		delete gc_image;
 
 		wxGraphicsContext* gc_horizontal_ruller = wxGraphicsContext::Create(dc);
@@ -819,9 +827,6 @@ auto cPreviewPanel::DrawVerticalLineBelowCursor(wxGraphicsContext* gc, const wxR
 {
 	if (!m_ImageData && !m_ReferenceData) return;
 
-	if (m_CursorPosOnCanvas.x < luStart.x || m_CursorPosOnCanvas.x > rbFinish.x) return;
-	if (m_CursorPosOnCanvas.y < luStart.y || m_CursorPosOnCanvas.y > rbFinish.y) return;
-
 	gc->SetPen(*wxWHITE_PEN);
 	// Draw vertical line
 	{
@@ -871,11 +876,38 @@ auto cPreviewPanel::DrawCapturedValueBelowCursor(wxGraphicsContext* gc, const wx
 			luStart.x - luStart.x / 4.0 - heightText
 		);
 	}
+
+	gc->SetPen(wxPen(wxColour(200, 140, 255, 220)));
+	// Draw Cross
+	{
+		auto crossWidth = 10.0;
+		auto graphHeight = rbFinish.y - luStart.y;
+		auto start_draw_y_position = rbFinish.y;
+		auto current_y = graphHeight * (double)m_ImageData[positionInData] / (double)m_MaxEventsCountOnGraph;
+		auto drawY = start_draw_y_position - current_y;
+		gc->StrokeLine
+		(
+			m_CursorPosOnCanvas.x - crossWidth / 2.0,
+			drawY - crossWidth / 2.0,
+			m_CursorPosOnCanvas.x + crossWidth / 2.0,
+			drawY + crossWidth / 2.0
+		);
+
+		gc->StrokeLine
+		(
+			m_CursorPosOnCanvas.x - crossWidth / 2.0,
+			drawY + crossWidth / 2.0,
+			m_CursorPosOnCanvas.x + crossWidth / 2.0,
+			drawY - crossWidth / 2.0
+		);
+	}
+
 }
 
 auto cPreviewPanel::DrawReferenceValueBelowCursor(wxGraphicsContext* gc, const wxRealPoint luStart, const wxRealPoint rbFinish) -> void
 {
 	if (!m_ReferenceData) return;
+	if (m_ReferenceBinSize < m_BinSize) return;
 
 	wxFont font = wxFont(18, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
 	wxColour fontColour = wxColour(255, 0, 0, 100);
@@ -899,6 +931,31 @@ auto cPreviewPanel::DrawReferenceValueBelowCursor(wxGraphicsContext* gc, const w
 			curr_value,
 			m_CursorPosOnCanvas.x - widthText / 2.0,
 			luStart.x - luStart.x / 2.0 - heightText
+		);
+	}
+
+	gc->SetPen(wxPen(wxColour(0, 255, 255, 220)));
+	// Draw Cross
+	{
+		auto crossWidth = 10.0;
+		auto graphHeight = rbFinish.y - luStart.y;
+		auto start_draw_y_position = rbFinish.y;
+		auto current_y = graphHeight * (double)m_ReferenceData[positionInData] / (double)m_MaxEventsCountOnGraph;
+		auto drawY = start_draw_y_position - current_y;
+		gc->StrokeLine
+		(
+			m_CursorPosOnCanvas.x - crossWidth / 2.0,
+			drawY - crossWidth / 2.0,
+			m_CursorPosOnCanvas.x + crossWidth / 2.0,
+			drawY + crossWidth / 2.0
+		);
+
+		gc->StrokeLine
+		(
+			m_CursorPosOnCanvas.x - crossWidth / 2.0,
+			drawY + crossWidth / 2.0,
+			m_CursorPosOnCanvas.x + crossWidth / 2.0,
+			drawY - crossWidth / 2.0
 		);
 	}
 }
@@ -1068,7 +1125,7 @@ auto cPreviewPanel::DrawHorizontalRuller(wxGraphicsContext* gc, const wxRealPoin
 		wxString curr_value{};
 		wxDouble widthText{}, heightText{};
 		auto scaleValuesNumber = 10;
-		auto scaleFactor = m_ImageSize.GetWidth() * m_BinSize / scaleValuesNumber;
+		auto scaleFactor = m_BinSize == 0.0 ? m_ImageSize.GetWidth() * m_ReferenceBinSize / scaleValuesNumber : m_ImageSize.GetWidth() * m_BinSize / scaleValuesNumber;
 		for (auto i{ 0 }; i <= scaleValuesNumber; ++i)
 		{
 			curr_value = wxString::Format(wxT("%.2f"), (double)(i * scaleFactor));
