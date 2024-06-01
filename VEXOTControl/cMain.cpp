@@ -1455,7 +1455,7 @@ auto cMain::OnOpenMCAFile(wxCommandEvent& evt) -> void
 		return; // the user changed idea...
 
 	// Proceed loading the file chosen by the user
-	wxString filePath = openFileDialog.GetPath();
+	filePath = openFileDialog.GetPath();
 #endif // _DEBUG
 
 	ParseMCAFile(filePath);
@@ -2319,6 +2319,8 @@ void cMain::ExposureValueChanged(wxCommandEvent& evt)
 		//wxThread::This()->Sleep(exposure_time);
 	}
 	//m_StopLiveCapturing = false;
+	if (!m_StartStopLiveCapturingTglBtn->GetValue()) return;
+
 	StartLiveCapturing();
 }
 
