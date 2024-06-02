@@ -2443,6 +2443,10 @@ wxThread::ExitCode LiveCapturing::Entry()
 		wxQueueEvent(m_MainFrame, evt.Clone());
 		++imageNumber;
 	}
+	auto signalValue = ULONG_MAX - mcaData[0];
+	
+	while (mcaData[0] != signalValue)
+		wxThread::Sleep(10);
 
 	*m_ThreadID = "";
 	return (wxThread::ExitCode)0;
