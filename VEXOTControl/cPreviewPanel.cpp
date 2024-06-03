@@ -873,7 +873,7 @@ auto cPreviewPanel::DrawCapturedValueBelowCursor(wxGraphicsContext* gc, const wx
 		(
 			curr_value,
 			m_CursorPosOnCanvas.x - widthText / 2.0,
-			luStart.x - luStart.x / 4.0 - heightText
+			luStart.y - luStart.y / 4.0 - heightText
 		);
 	}
 
@@ -930,7 +930,7 @@ auto cPreviewPanel::DrawReferenceValueBelowCursor(wxGraphicsContext* gc, const w
 		(
 			curr_value,
 			m_CursorPosOnCanvas.x - widthText / 2.0,
-			luStart.x - luStart.x / 2.0 - heightText
+			luStart.y - luStart.y / 2.0 - heightText
 		);
 	}
 

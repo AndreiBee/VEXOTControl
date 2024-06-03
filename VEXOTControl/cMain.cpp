@@ -100,12 +100,12 @@ cMain::cMain(const wxString& title_)
 		wxCommandEvent art_evt(wxEVT_MENU, MainFrameVariables::ID_MENUBAR_EDIT_ENABLE_DARK_MODE);
 		ProcessEvent(art_evt);
 	}
-#ifdef _DEBUG
+
+	// Artificiallly pressing Settings button
 	{
 		wxCommandEvent art_evt(wxEVT_MENU, MainFrameVariables::ID_MENUBAR_EDIT_SETTINGS);
 		ProcessEvent(art_evt);
 	}
-#endif // _DEBUG
 
 	{
 		//m_StartStopLiveCapturingTglBtn->SetValue(true);
@@ -277,7 +277,7 @@ void cMain::CreateLeftAndRightSide()
 
 void cMain::CreateLeftSide(wxSizer* left_side_sizer)
 {
-	left_side_sizer->Add(m_VerticalToolBar->tool_bar, 0, wxEXPAND);
+	//left_side_sizer->Add(m_VerticalToolBar->tool_bar, 0, wxEXPAND);
 	auto input_args = std::make_unique<PreviewPanelVariables::InputPreviewPanelArgs>
 		(
 			m_CrossHairPosXTxtCtrl.get(),
@@ -1569,6 +1569,7 @@ auto cMain::InitializeSelectedDevice() -> void
 		}
 
 		m_VerticalToolBar->tool_bar->Disable();
+		m_VerticalToolBar->tool_bar->Hide();
 	}
 }
 
@@ -2359,7 +2360,7 @@ void cMain::OnStartStopLiveCapturingTglBtn(wxCommandEvent& evt)
 			{
 				wxThread::This()->Sleep(1000);
 			}
-			m_StartedThreads.pop_back();
+			//m_StartedThreads.pop_back();
 			m_StartStopLiveCapturingTglBtn->Enable();
 		}
 
