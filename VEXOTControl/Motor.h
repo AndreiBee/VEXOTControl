@@ -20,6 +20,7 @@ namespace MotorVariables
 		float stagePos{};
 		float minStagePos{}, middleStagePos{}, maxStagePos{};
 		float motorRange{}, stageRange{};
+		float emRatio{}; // Electromechanical motor-gear ratio
 	};
 }
 
@@ -51,6 +52,7 @@ public:
 	auto SetState(status_t state);
 	auto SetCalbState(status_calb_t calb_state);
 	auto SetRange(const float min_motor_deg, const float max_motor_deg);
+	auto SetGearRatio(const float gearRatio) -> void { m_MotorSettings->emRatio = gearRatio; };
 
 
 	auto UpdateCurPosThroughStanda();
@@ -84,7 +86,7 @@ public:
 private:
 	std::unique_ptr<MotorVariables::Settings> m_MotorSettings{};
 	std::unique_ptr<StandaVariables::C_Settings> m_StandaSettings{};
-	const float deg_per_mm{ 800.f }; // Hardcoded
+	//const float deg_per_mm{ 800.f }; // Hardcoded
 	std::unique_ptr<char[]> m_DeviceName{};
 	unsigned int m_SerNum{};
 	const long long wait_delay_milliseconds{ 500 };
@@ -108,10 +110,15 @@ public:
 	float GoMotorToAbsPos(const std::string& motor_sn, float abs_pos);
 	float GoMotorOffset(const std::string& motor_sn, float offset);
 
+	auto AreAllMotorsInitialized() const -> bool { return m_UninitializedMotors.size(); };
+	auto GetUninitializedMotors() const -> std::vector<unsigned int> { return m_UninitializedMotors; };
+
 private:
 	std::vector<Motor> m_MotorsArray{};
 	std::map<unsigned int, float> m_NamesOfMotorsWithRanges{};
 	const float error_position = 0.0f;
+
+	std::vector<unsigned int> m_UninitializedMotors{};
 };
 
 #endif

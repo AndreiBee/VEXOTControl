@@ -132,6 +132,28 @@ void cSettings::CreateMainFrame()
 	CreateSettings();
 	BindControls();
 	UpdateMotorsAndCameraTXTCtrls();
+
+	if (!m_PhysicalMotors->AreAllMotorsInitialized())
+	{
+		wxString title = "Motors initialization error";
+		wxString motors{};
+
+		auto motor_arr = m_PhysicalMotors->GetUninitializedMotors();
+		for (const auto& motor : motor_arr)
+		{
+			motors += wxString::Format(wxT("%i"), motor);
+			motors += '\n';
+		}
+
+		wxMessageBox(
+			wxT
+			(
+				"Not all motors initialized correctly\nUninitialized motors:\n" + motors
+			),
+			title,
+			wxICON_ERROR);
+
+	}
 	//SelectMotorsAndRangesOnWXChoice();
 }
 
