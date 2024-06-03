@@ -243,7 +243,20 @@ namespace MainFrameVariables
 				outStream << "Setup = " << "" << '\n';
 				outStream << "Sample = " << "" << '\n';
 				outStream << "User Name = " << "VM" << '\n';
-				outStream << "Current Date = " << "" << '\n';
+				// Writing current date
+				{
+					// Get the current time
+					std::time_t now = std::time(nullptr);
+
+					// Convert it to a tm structure
+					std::tm* local_time = std::localtime(&now);
+
+					// Print the current date in YYYY-MM-DD format
+					auto currYear = (1900 + local_time->tm_year);
+					auto currMonth = (1 + local_time->tm_mon);
+					auto currDay = local_time->tm_mday;
+					outStream << "Current Date = " << currDay << "." << currMonth << "." << currYear << '\n';
+				}
 				auto binSize = replace_dot_to_comma(std::to_string(handler->GetBinSize()), std::string("."), std::string(","));
 				outStream << "Bin Size = " << binSize << '\n';
 				outStream << "Board Type = " << "KETEK DPP2" << '\n';
