@@ -86,13 +86,6 @@ auto Motor::SetRange(const float min_motor_deg, const float max_motor_deg)
 	m_MotorSettings->stageRange = (max_motor_deg - min_motor_deg) / m_MotorSettings->stepsPerMMRatio;
 }
 
-auto Motor::UpdateCurPosThroughStanda()
-{
-	m_MotorSettings->motorPos = m_StandaSettings->state.CurPosition;
-	//m_MotorSettings->stagePos = m_StandaSettings->state.CurPosition / deg_per_mm;
-	m_MotorSettings->stagePos = m_StandaSettings->state.CurPosition / m_MotorSettings->stepsPerMMRatio;
-}
-
 auto Motor::GoCenter()
 {
 	device_t device_c;
@@ -150,7 +143,7 @@ auto Motor::GoCenter()
 
 	close_device(&device_c);
 
-	UpdateCurPosThroughStanda();
+	UpdateCurrentPosition();
 }
 
 auto Motor::GoHomeAndZero()
@@ -200,7 +193,7 @@ auto Motor::GoHomeAndZero()
 
 	close_device(&device_c);
 
-	UpdateCurPosThroughStanda();
+	UpdateCurrentPosition();
 }
 
 auto Motor::GoToPos(const float stage_position)
@@ -275,7 +268,7 @@ auto Motor::GoToPos(const float stage_position)
 	}
 	close_device(&device_c);
 
-	UpdateCurPosThroughStanda();
+	UpdateCurrentPosition();
 }
 
 /* MotorArray */
@@ -413,7 +406,6 @@ auto MotorArray::SetStepsPerMMForTheMotor(const std::string motor_sn, const int 
 			break;
 		}
 	}
-
 }
 
 bool MotorArray::InitAllMotors()
@@ -521,7 +513,7 @@ bool MotorArray::InitAllMotors()
 		get_edges_settings_calb(device_c, &edges_settings_calb_c, &calibration_c);
 		m_MotorsArray[i].SetRange(edges_settings_calb_c.LeftBorder, edges_settings_calb_c.RightBorder);
 
-		m_MotorsArray[i].UpdateCurPosThroughStanda();
+		m_MotorsArray[i].UpdateCurrentPosition();
 
 		close_device(&device_c);
 	}

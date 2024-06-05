@@ -54,9 +54,20 @@ public:
 	auto SetState(status_t state);
 	auto SetCalbState(status_calb_t calb_state);
 	auto SetRange(const float min_motor_deg, const float max_motor_deg);
-	auto SetStepsPerMMRatio(const int stepsPerMMRatio) -> void { m_MotorSettings->stepsPerMMRatio = stepsPerMMRatio; };
 
-	auto UpdateCurPosThroughStanda();
+	auto SetStepsPerMMRatio(const int stepsPerMMRatio) -> void 
+	{ 
+		m_MotorSettings->stepsPerMMRatio = stepsPerMMRatio; 
+		UpdateStageRange(); 
+		UpdateCurrentPosition(); 
+	};
+
+	auto UpdateCurrentPosition() -> void
+	{
+		m_MotorSettings->motorPos = m_StandaSettings->state.CurPosition;
+		m_MotorSettings->stagePos = m_MotorSettings->motorPos / m_MotorSettings->stepsPerMMRatio;
+	}
+
 	auto GoCenter();
 	auto GoHomeAndZero();
 	auto GoToPos(const float stage_position);
@@ -83,6 +94,23 @@ public:
 		m_SerNum = other.m_SerNum;
 		return *this;
 	};
+
+private:
+	auto UpdateStageRange() -> void 
+	{
+		/* Min position */
+		m_MotorSettings->minStagePos = m_MotorSettings->minMotorPos / m_MotorSettings->stepsPerMMRatio;
+
+		/* Middle position */
+		m_MotorSettings->middleStagePos = m_MotorSettings->middleMotorPos / m_MotorSettings->stepsPerMMRatio;
+
+		/* Max position */
+		m_MotorSettings->maxStagePos = m_MotorSettings->maxMotorPos / m_MotorSettings->stepsPerMMRatio;
+
+		/* Set Whole Motor Range */
+		m_MotorSettings->stageRange = m_MotorSettings->motorRange / m_MotorSettings->stepsPerMMRatio;
+	};
+
 
 private:
 	std::unique_ptr<MotorVariables::Settings> m_MotorSettings{};

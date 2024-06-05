@@ -14,86 +14,6 @@ cSettings::cSettings(wxWindow* parent_frame)
 	CenterOnScreen();
 }
 
-//bool cSettings::OpticsXHasSerialNumber() const
-//{
-//	return m_PhysicalMotors->MotorHasSerialNumber
-//	(
-//		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[1].ToStdString()
-//	);
-//}
-//
-//float cSettings::GetActualOpticsXStagePos() const
-//{
-//	return m_PhysicalMotors->GetActualStagePos
-//	(
-//		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[1].ToStdString()
-//	);
-//}
-//
-//bool cSettings::OpticsYHasSerialNumber() const
-//{
-//	return m_PhysicalMotors->MotorHasSerialNumber
-//	(
-//		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[2].ToStdString()
-//	);
-//}
-//
-//float cSettings::GetActualOpticsYStagePos() const
-//{
-//	return m_PhysicalMotors->GetActualStagePos
-//	(
-//		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[2].ToStdString()
-//	);
-//}
-//
-//bool cSettings::OpticsZHasSerialNumber() const
-//{	
-//	return m_PhysicalMotors->MotorHasSerialNumber
-//	(
-//		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[3].ToStdString()
-//	);
-//}
-//
-//float cSettings::GetActualOpticsZStagePos() const
-//{
-//	return m_PhysicalMotors->GetActualStagePos
-//	(
-//		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[3].ToStdString()
-//	);
-//}
-//
-//bool cSettings::OpticsPitchHasSerialNumber() const
-//{	
-//	return m_PhysicalMotors->MotorHasSerialNumber
-//	(
-//		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[4].ToStdString()
-//	);
-//}
-//
-//float cSettings::GetActualOpticsPitchStagePos() const
-//{
-//	return m_PhysicalMotors->GetActualStagePos
-//	(
-//		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[4].ToStdString()
-//	);
-//}
-//
-//bool cSettings::OpticsYawHasSerialNumber() const
-//{
-//	return m_PhysicalMotors->MotorHasSerialNumber
-//	(
-//		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[5].ToStdString()
-//	);
-//}
-//
-//float cSettings::GetActualOpticsYawStagePos() const
-//{
-//	return m_PhysicalMotors->GetActualStagePos
-//	(
-//		m_WorkStations->work_station_data[m_WorkStations->initialized_work_station_num].selected_motors_in_data_file[5].ToStdString()
-//	);
-//}
-
 bool cSettings::IsCapturingFinished() const
 {
 	return m_Progress->is_finished;
@@ -132,6 +52,8 @@ void cSettings::CreateMainFrame()
 	CreateSettings();
 	BindControls();
 	UpdateMotorsAndCameraTXTCtrls();
+
+
 
 	if (!m_PhysicalMotors->AreAllMotorsInitialized())
 	{
@@ -788,16 +710,6 @@ auto cSettings::CompareXMLWithConnectedDevices()
 
 	auto physical_motors = m_PhysicalMotors->GetNamesWithRanges();
 
-	// Recalibrate motors in dependence on the steps_per_mm value
-	{
-		//for (const auto& motor : m_Motor)
-		//{
-		//	m_PhysicalMotors->SetStepsPerMMForTheMotor();
-		//	m_Motors->unique_motors_map.emplace(motor);
-		//}
-
-	}
-
 	unsigned short serial_numbers_in_xml = m_Motors->unique_motors_map.size();
 	m_Motors->unique_motors_map.clear();
 	for (const auto& motor : physical_motors)
@@ -879,6 +791,7 @@ auto cSettings::ReadWorkStationFiles() -> void
 					auto steps_node = node->next_sibling();
 					auto steps_per_mm = std::stoi(std::string(steps_node->value()));
 					m_WorkStations->work_station_data[i].motors_steps_per_mm.insert(std::make_pair(wxString(value), steps_per_mm));
+					m_PhysicalMotors->SetStepsPerMMForTheMotor(value, steps_per_mm);
 				}
 			}
 			for (rapidxml::xml_node<>* item = selected_motors_node->first_node()->next_sibling()->first_node(); item; item = item->next_sibling())
@@ -893,6 +806,7 @@ auto cSettings::ReadWorkStationFiles() -> void
 					auto steps_node = node->next_sibling();
 					auto steps_per_mm = std::stoi(std::string(steps_node->value()));
 					m_WorkStations->work_station_data[i].motors_steps_per_mm.insert(std::make_pair(wxString(value), steps_per_mm));
+					m_PhysicalMotors->SetStepsPerMMForTheMotor(value, steps_per_mm);
 				}
 			}
 
