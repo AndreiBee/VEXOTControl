@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <map>
+#include <utility>
 #include <set>
 #include <sstream>
 #include <fstream>
@@ -28,22 +29,22 @@ namespace SettingsVariables
 		ID_WORK_STATION_CHOICE,
 		/* Detector X */
 		ID_MOT_DET_X_MOTOR_TXT_CTRL,
-		ID_MOT_DET_X_RANGE_ST_TEXT,
+		ID_MOT_DET_X_STEPS_PER_MM_ST_TEXT,
 		/* Optics X */
 		ID_MOT_OPT_X_MOTOR_TXT_CTRL,
-		ID_MOT_OPT_X_RANGE_ST_TEXT,
+		ID_MOT_OPT_X_STEPS_PER_MM_ST_TEXT,
 		/* Optics Y */
 		ID_MOT_OPT_Y_MOTOR_TXT_CTRL,
-		ID_MOT_OPT_Y_RANGE_ST_TEXT,
+		ID_MOT_OPT_Y_STEPS_PER_MM_ST_TEXT,
 		/* Optics Z */
 		ID_MOT_OPT_Z_MOTOR_TXT_CTRL,
-		ID_MOT_OPT_Z_RANGE_ST_TEXT,	
+		ID_MOT_OPT_Z_STEPS_PER_MM_ST_TEXT,	
 		/* Optics Pitch */
 		ID_MOT_OPT_PITCH_MOTOR_TXT_CTRL,
-		ID_MOT_OPT_PITCH_RANGE_ST_TEXT,
+		ID_MOT_OPT_PITCH_STEPS_PER_MM_ST_TEXT,
 		/* Optics Yaw */
 		ID_MOT_OPT_YAW_MOTOR_TXT_CTRL,
-		ID_MOT_OPT_YAW_RANGE_ST_TEXT,
+		ID_MOT_OPT_YAW_STEPS_PER_MM_ST_TEXT,
 		/* Cameras */
 		ID_KETEK_TXT_CTRL,
 	};
@@ -60,7 +61,7 @@ namespace SettingsVariables
 	struct MotorSettings
 	{
 		wxTextCtrl* motor{}; 
-		wxStaticText* ranges{};
+		wxStaticText* steps_per_mm{};
 		wxString motor_sn{};
 		//uint8_t current_selection[2], prev_selection[2];
 		~MotorSettings()
@@ -101,6 +102,7 @@ namespace SettingsVariables
 	struct WorkStationData
 	{
 		wxArrayString selected_motors_in_data_file{};
+		std::map<wxString, int> motors_steps_per_mm{};
 		//wxString selected_camera_in_data_file{};
 		wxString selectedxPINInDataFile{}, selectedKetekInDataFile{}, selectedTimepixInDataFile{}, selectedFLICameraInDataFile{};
 		wxString work_station_name{};
@@ -285,7 +287,9 @@ private:
 private:
 	const wxString initialization_file_path = "src\\init.ini";
 	const wxString work_stations_path = "src\\";
+	
 	//const wxString xml_file_path = "src\\old_xml\\mtrs.xml";
+
 	std::unique_ptr<SettingsVariables::WorkStations> m_WorkStations{};
 	std::unique_ptr<wxButton> m_OkBtn{}, m_CancelBtn{}, m_RefreshBtn{};
 	std::unique_ptr<SettingsVariables::MotorSettingsArray> m_Motors{};

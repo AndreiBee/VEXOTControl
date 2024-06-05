@@ -8,7 +8,9 @@
 #include <thread>
 #include <chrono>
 #include <string>
+#include <filesystem>
 #include <ximc.h>
+
 
 
 namespace MotorVariables
@@ -20,7 +22,7 @@ namespace MotorVariables
 		float stagePos{};
 		float minStagePos{}, middleStagePos{}, maxStagePos{};
 		float motorRange{}, stageRange{};
-		float emRatio{}; // Electromechanical motor-gear ratio
+		float stepsPerMMRatio{ 800.f }; 
 	};
 }
 
@@ -52,8 +54,7 @@ public:
 	auto SetState(status_t state);
 	auto SetCalbState(status_calb_t calb_state);
 	auto SetRange(const float min_motor_deg, const float max_motor_deg);
-	auto SetGearRatio(const float gearRatio) -> void { m_MotorSettings->emRatio = gearRatio; };
-
+	auto SetStepsPerMMRatio(const int stepsPerMMRatio) -> void { m_MotorSettings->stepsPerMMRatio = stepsPerMMRatio; };
 
 	auto UpdateCurPosThroughStanda();
 	auto GoCenter();
@@ -86,7 +87,7 @@ public:
 private:
 	std::unique_ptr<MotorVariables::Settings> m_MotorSettings{};
 	std::unique_ptr<StandaVariables::C_Settings> m_StandaSettings{};
-	//const float deg_per_mm{ 800.f }; // Hardcoded
+	//int m_StepsPerMM{ 800 }; 
 	std::unique_ptr<char[]> m_DeviceName{};
 	unsigned int m_SerNum{};
 	const long long wait_delay_milliseconds{ 500 };
@@ -110,8 +111,10 @@ public:
 	float GoMotorToAbsPos(const std::string& motor_sn, float abs_pos);
 	float GoMotorOffset(const std::string& motor_sn, float offset);
 
-	auto AreAllMotorsInitialized() const -> bool { return m_UninitializedMotors.size(); };
+	auto AreAllMotorsInitialized() const -> bool { return !m_UninitializedMotors.size(); };
 	auto GetUninitializedMotors() const -> std::vector<unsigned int> { return m_UninitializedMotors; };
+
+	auto SetStepsPerMMForTheMotor(const std::string motor_sn, const int stepsPerMM) -> void;
 
 private:
 	std::vector<Motor> m_MotorsArray{};

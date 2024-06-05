@@ -3,29 +3,29 @@
 	<detector>
 		<motor>
 			<sn>18808</sn>
-			<range>24.06</range>
+			<steps_per_mm>800</steps_per_mm>
 		</motor>
 	</detector>
 	<optics>
 		<motor>
 			<sn>15748</sn>
-			<range>24.12</range>
+			<steps_per_mm>700</steps_per_mm>
 		</motor>
 		<motor>
 			<sn>15715</sn>
-			<range>24.12</range>
+			<steps_per_mm>600</steps_per_mm>
 		</motor>
 		<motor>
 			<sn>18834</sn>
-			<range>24.12</range>
+			<steps_per_mm>500</steps_per_mm>
 		</motor>
 		<motor>
 			<sn>12598</sn>
-			<range>24.12</range>
+			<steps_per_mm>400</steps_per_mm>
 		</motor>
 		<motor>
 			<sn>12565</sn>
-			<range>24.12</range>
+			<steps_per_mm>300</steps_per_mm>
 		</motor>
 	</optics>
 </selected_motors>

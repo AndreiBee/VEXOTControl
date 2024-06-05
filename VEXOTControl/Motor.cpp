@@ -68,29 +68,29 @@ auto Motor::SetRange(const float min_motor_deg, const float max_motor_deg)
 	/* Min position */
 	m_MotorSettings->minMotorPos = min_motor_deg;
 	//m_MotorSettings->minStagePos = min_motor_deg / deg_per_mm;
-	m_MotorSettings->minStagePos = min_motor_deg * m_MotorSettings->emRatio;
+	m_MotorSettings->minStagePos = min_motor_deg / m_MotorSettings->stepsPerMMRatio;
 
 	/* Middle position */
 	m_MotorSettings->middleMotorPos = (max_motor_deg - min_motor_deg) / 2.f;
 	//m_MotorSettings->middleStagePos = m_MotorSettings->middleMotorPos / deg_per_mm;
-	m_MotorSettings->middleStagePos = m_MotorSettings->middleMotorPos * m_MotorSettings->emRatio;
+	m_MotorSettings->middleStagePos = m_MotorSettings->middleMotorPos / m_MotorSettings->stepsPerMMRatio;
 
 	/* Max position */
 	m_MotorSettings->maxMotorPos = max_motor_deg;
 	//m_MotorSettings->maxStagePos = max_motor_deg / deg_per_mm;
-	m_MotorSettings->maxStagePos = max_motor_deg * m_MotorSettings->emRatio;
+	m_MotorSettings->maxStagePos = max_motor_deg / m_MotorSettings->stepsPerMMRatio;
 
 	/* Set Whole Motor Range */
 	m_MotorSettings->motorRange = max_motor_deg - min_motor_deg;
 	//m_MotorSettings->stageRange = (max_motor_deg - min_motor_deg) / deg_per_mm;
-	m_MotorSettings->stageRange = (max_motor_deg - min_motor_deg) * m_MotorSettings->emRatio;
+	m_MotorSettings->stageRange = (max_motor_deg - min_motor_deg) / m_MotorSettings->stepsPerMMRatio;
 }
 
 auto Motor::UpdateCurPosThroughStanda()
 {
 	m_MotorSettings->motorPos = m_StandaSettings->state.CurPosition;
 	//m_MotorSettings->stagePos = m_StandaSettings->state.CurPosition / deg_per_mm;
-	m_MotorSettings->stagePos = m_StandaSettings->state.CurPosition * m_MotorSettings->emRatio;
+	m_MotorSettings->stagePos = m_StandaSettings->state.CurPosition / m_MotorSettings->stepsPerMMRatio;
 }
 
 auto Motor::GoCenter()
@@ -228,7 +228,7 @@ auto Motor::GoToPos(const float stage_position)
 
 	{
 		//float motor_position = stage_position * deg_per_mm;
-		float motor_position = stage_position / m_MotorSettings->emRatio;
+		float motor_position = stage_position * m_MotorSettings->stepsPerMMRatio;
 		if ((m_StandaSettings->result = command_move_calb
 		(
 			device_c, 
@@ -397,14 +397,41 @@ float MotorArray::GoMotorOffset(const std::string& motor_sn, float offset)
 	return error_position;
 }
 
+auto MotorArray::SetStepsPerMMForTheMotor(const std::string motor_sn, const int stepsPerMM) -> void
+{
+	auto serial_num{ 0 };
+	try { serial_num = std::stoi(motor_sn);}
+	catch (std::invalid_argument const& ex) { return ; }
+
+	if (stepsPerMM <= 0) return;
+
+	for (auto motor{ 0 }; motor < m_MotorsArray.size(); ++motor)
+	{
+		if (m_MotorsArray[motor].GetDeviceSerNum() == serial_num)
+		{
+			m_MotorsArray[motor].SetStepsPerMMRatio((float)stepsPerMM);
+			break;
+		}
+	}
+
+}
+
 bool MotorArray::InitAllMotors()
 {
-	auto appendUnitializedMotor = [&](const unsigned int motorSN) 
+	auto appendUnitializedMotor = [&](const unsigned int motorSN, const int motorNum) 
 		{
 			m_UninitializedMotors.push_back(motorSN);
+			m_MotorsArray[motorNum].SetSerNum(0);
 		};
 
 	m_UninitializedMotors.clear();
+
+	const char* correction_table = "table.txt";
+	// Checking whether table.txt is inside the working directory
+	{
+		auto currPath = std::filesystem::current_path();
+		if (!std::filesystem::exists(currPath / correction_table)) return false;
+	}
 
 	result_t result_c;
 	result_c = set_bindy_key("keyfile.sqlite");
@@ -425,8 +452,11 @@ bool MotorArray::InitAllMotors()
 	device_t device_c;
 	status_t state_c;
 	status_calb_t state_calb_c;
+	emf_settings_t emfSettings{};
 	calibration_t calibration_c;
+	stage_settings_t stage_settings_c;
 	edges_settings_calb_t edges_settings_calb_c;
+	stage_information_t stage_information_c;
 	unsigned int device_sn{};
 	for (int i = 0; i < names_count; ++i)
 	{
@@ -441,23 +471,38 @@ bool MotorArray::InitAllMotors()
 
 		if ((result_c = get_status(device_c, &state_c)) != result_ok)
 		{
-			appendUnitializedMotor(device_sn);
+			appendUnitializedMotor(device_sn, i);
 			continue;
 		}
 
-		emf_settings_t emfSettings{};
+		if (result_c = get_stage_settings(device_c, &stage_settings_c) != result_ok)
+		{
+			appendUnitializedMotor(device_sn, i);
+			continue;
+		}
+
+		if (get_stage_information(device_c, &stage_information_c) != result_ok)
+		{
+			appendUnitializedMotor(device_sn, i);
+			continue;
+		}
+
 		if (result_c = get_emf_settings(device_c, &emfSettings) != result_ok)
 		{
-			appendUnitializedMotor(device_sn);
+			appendUnitializedMotor(device_sn, i);
 			continue;
 		}
-		m_MotorsArray[i].SetGearRatio(emfSettings.Km);
+		if (emfSettings.Km == 0.0f)
+		{
+			appendUnitializedMotor(device_sn, i);
+			continue;
+		}
+		//m_MotorsArray[i].SetGearRatio(emfSettings.Km);
 
-		const char* correction_table = "table.txt";
 		// The device_t device parameter in this function is a C pointer, unlike most library functions that use this parameter
 		if ((result_c = set_correction_table(device_c, correction_table)) != result_ok)
 		{
-			appendUnitializedMotor(device_sn);
+			appendUnitializedMotor(device_sn, i);
 			continue;
 		}
 
@@ -468,7 +513,7 @@ bool MotorArray::InitAllMotors()
 		/* Get Status */
 		if ((result_c = get_status_calb(device_c, &state_calb_c, &calibration_c)) != result_ok)
 		{
-			appendUnitializedMotor(device_sn);
+			appendUnitializedMotor(device_sn, i);
 			continue;
 		}
 		m_MotorsArray[i].SetState(state_c);
