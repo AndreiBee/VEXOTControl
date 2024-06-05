@@ -430,12 +430,14 @@ bool MotorArray::InitAllMotors()
 	if (result_c != result_ok) return false;
 
 	device_enumeration_t devenum_c;
-	const int probe_flags = ENUMERATE_PROBE | ENUMERATE_NETWORK;
-	const char* enumerate_hints = "addr=";
+	//const int probe_flags = ENUMERATE_PROBE | ENUMERATE_NETWORK;
+	const int probe_flags = ENUMERATE_NETWORK;
+	const char* enumerate_hints = "addr=10.0.0.134";
 	devenum_c = enumerate_devices(probe_flags, enumerate_hints);
 	if (!devenum_c) return false;
 
 	int names_count = get_device_count(devenum_c);
+
 	/* Here we need to clear motor list */
 	m_MotorsArray.clear();
 	m_MotorsArray.reserve(names_count);
@@ -466,30 +468,6 @@ bool MotorArray::InitAllMotors()
 			appendUnitializedMotor(device_sn, i);
 			continue;
 		}
-
-		if (result_c = get_stage_settings(device_c, &stage_settings_c) != result_ok)
-		{
-			appendUnitializedMotor(device_sn, i);
-			continue;
-		}
-
-		if (get_stage_information(device_c, &stage_information_c) != result_ok)
-		{
-			appendUnitializedMotor(device_sn, i);
-			continue;
-		}
-
-		if (result_c = get_emf_settings(device_c, &emfSettings) != result_ok)
-		{
-			appendUnitializedMotor(device_sn, i);
-			continue;
-		}
-		if (emfSettings.Km == 0.0f)
-		{
-			appendUnitializedMotor(device_sn, i);
-			continue;
-		}
-		//m_MotorsArray[i].SetGearRatio(emfSettings.Km);
 
 		// The device_t device parameter in this function is a C pointer, unlike most library functions that use this parameter
 		if ((result_c = set_correction_table(device_c, correction_table)) != result_ok)

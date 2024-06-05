@@ -35,7 +35,7 @@ private:
 	std::string m_DeviceSerialNumber{};
 
 	double m_nMCA = 8192.0; // BinSize
-	double m_BinWidth = 0.0025;
+	double m_BinWidth = 0.00375;
 	//const unsigned long m_MCALength = 8192;
 	double m_Thresh = 30.0;
 	double m_Polarity = 1.0;
