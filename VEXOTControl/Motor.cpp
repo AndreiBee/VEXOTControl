@@ -431,7 +431,7 @@ bool MotorArray::InitAllMotors()
 
 	device_enumeration_t devenum_c;
 	//const int probe_flags = ENUMERATE_PROBE | ENUMERATE_NETWORK;
-	const int probe_flags = ENUMERATE_NETWORK;
+	const int probe_flags = ENUMERATE_PROBE | ENUMERATE_NETWORK;
 	const char* enumerate_hints = "addr=10.0.0.134";
 	devenum_c = enumerate_devices(probe_flags, enumerate_hints);
 	if (!devenum_c) return false;

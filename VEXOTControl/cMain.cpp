@@ -68,7 +68,7 @@ wxBEGIN_EVENT_TABLE(cMain, wxFrame)
 	/* Second Stage */
 	EVT_CHOICE(MainFrameVariables::ID_RIGHT_MT_SECOND_STAGE_CHOICE, cMain::OnSecondStageChoice)
 	/* Start Capturing */
-	EVT_BUTTON(MainFrameVariables::ID_RIGHT_MT_START_MEASUREMENT, cMain::OnStartCapturingButton)
+	EVT_TOGGLEBUTTON(MainFrameVariables::ID_RIGHT_MT_START_STOP_MEASUREMENT_TGL_BTN, cMain::OnStartStopCapturingButton)
 	/* Start\Stop Live Capturing */
 	EVT_TOGGLEBUTTON(MainFrameVariables::ID_RIGHT_CAM_START_STOP_LIVE_CAPTURING_TGL_BTN, cMain::OnStartStopLiveCapturingTglBtn)
 
@@ -184,7 +184,7 @@ void cMain::InitDefaultStateWidgets()
 	m_MenuBar->menu_tools->Enable(MainFrameVariables::ID_MENUBAR_TOOLS_CROSSHAIR, false);
 	m_VerticalToolBar->tool_bar->EnableTool(MainFrameVariables::ID_MENUBAR_TOOLS_CROSSHAIR, false);
 
-	float default_absolute_value{ 0.0f }, default_relative_value{ 1.0f };
+	float default_absolute_value{ 0.0f }, default_relative_value{ 1.0f }, default_relative_value_pitch_yaw{ 0.1f };
 	/* Default Detector Widgets */
 	{
 		/* X */
@@ -217,13 +217,13 @@ void cMain::InitDefaultStateWidgets()
 		/* Pitch */
 		{
 			m_Optics[3].absolute_text_ctrl->ChangeValue(wxString::Format(wxT("%.3f"), default_absolute_value));
-			m_Optics[3].relative_text_ctrl->ChangeValue(wxString::Format(wxT("%.3f"), default_relative_value));
+			m_Optics[3].relative_text_ctrl->ChangeValue(wxString::Format(wxT("%.3f"), default_relative_value_pitch_yaw));
 			//m_Optics[0].DisableAllControls();
 		}
 		/* Yaw */
 		{
 			m_Optics[4].absolute_text_ctrl->ChangeValue(wxString::Format(wxT("%.3f"), default_absolute_value));
-			m_Optics[4].relative_text_ctrl->ChangeValue(wxString::Format(wxT("%.3f"), default_relative_value));
+			m_Optics[4].relative_text_ctrl->ChangeValue(wxString::Format(wxT("%.3f"), default_relative_value_pitch_yaw));
 			//m_Optics[0].DisableAllControls();
 		}
 	}
@@ -250,7 +250,7 @@ void cMain::InitDefaultStateWidgets()
 			m_SecondStage->DisableAllControls();
 		}
 		/* Start Capturing */
-		m_StartMeasurement->Disable();
+		m_StartStopMeasurementTglBtn->Disable();
 	}
 }
 
@@ -1277,15 +1277,15 @@ void cMain::CreateMeasurement(wxPanel* right_side_panel, wxBoxSizer* right_side_
 		wxSizer* const horizontal_sizer = new wxBoxSizer(wxHORIZONTAL);
 
 		wxSizer* const capturing_sizer = new wxStaticBoxSizer(wxHORIZONTAL, right_side_panel, "&Capturing");
-		m_StartMeasurement = std::make_unique<wxButton>
+		m_StartStopMeasurementTglBtn = std::make_unique<wxToggleButton>
 			(
 				right_side_panel,
-				MainFrameVariables::ID_RIGHT_MT_START_MEASUREMENT,
+				MainFrameVariables::ID_RIGHT_MT_START_STOP_MEASUREMENT_TGL_BTN,
 				wxT("Start Capturing")					
 			);
 		horizontal_sizer->AddStretchSpacer();
 		horizontal_sizer->Add(capturing_sizer);
-		capturing_sizer->Add(m_StartMeasurement.get());
+		capturing_sizer->Add(m_StartStopMeasurementTglBtn.get());
 		mmt_static_box_sizer->Add(horizontal_sizer, 0, wxEXPAND);
 	}
 
@@ -1315,10 +1315,11 @@ auto cMain::OnEnableDarkMode(wxCommandEvent& evt) -> void
 void cMain::CreateProgressBar()
 {
 	wxSize size_of_progress_bar{ 400, 190 };
+	auto previewPanelSize = m_PreviewPanel->GetSize();
 	wxPoint start_point_progress_bar
 	{ 
-		this->GetPosition().x + this->GetSize().x - size_of_progress_bar.x, 
-		this->GetPosition().y + this->GetSize().y - size_of_progress_bar.y 
+		GetPosition().x + previewPanelSize.x - size_of_progress_bar.x, 
+		GetPosition().y + GetSize().y - size_of_progress_bar.y 
 	};
 	m_ProgressBar = std::make_unique<ProgressBar>(this, start_point_progress_bar, size_of_progress_bar);
 }
@@ -1436,7 +1437,7 @@ void cMain::OnSetOutDirectoryBtn(wxCommandEvent& evt)
 	if (m_SelectedDeviceStaticTXT->GetValue() != "-")
 	{
 		m_SingleShotBtn->Enable();
-		m_StartMeasurement->Enable();
+		m_StartStopMeasurementTglBtn->Enable();
 	}
 }
 
@@ -1846,7 +1847,49 @@ void cMain::OnSecondStageChoice(wxCommandEvent& evt)
 	);
 }
 
-void cMain::OnStartCapturingButton(wxCommandEvent& evt)
+void cMain::OnStartStopCapturingButton(wxCommandEvent& evt)
+{
+	if (m_SelectedDeviceStaticTXT->GetValue() == "-") return;
+
+	if (m_StartStopLiveCapturingTglBtn->GetValue())
+	{
+		m_StartStopLiveCapturingTglBtn->SetValue(false);
+		wxCommandEvent live_capturing_evt(wxEVT_TOGGLEBUTTON, MainFrameVariables::ID_RIGHT_CAM_START_STOP_LIVE_CAPTURING_TGL_BTN);
+		ProcessEvent(live_capturing_evt);
+	}
+
+	if (m_StartStopMeasurementTglBtn->GetValue())
+	{
+		if (m_StartedThreads.size() && m_StartedThreads.back().second)
+		{
+			wxBusyCursor busy;
+			m_StartedThreads.back().second = false;
+			m_StartStopMeasurementTglBtn->Disable();
+			while (!m_StartedThreads.back().first.empty())
+				wxThread::This()->Sleep(100);
+			m_StartStopMeasurementTglBtn->Enable();
+		}
+
+		if (!StartCapturing())
+		{
+			m_StartStopMeasurementTglBtn->SetValue(false);
+			return;
+		}
+		m_StartStopMeasurementTglBtn->SetLabel("Stop Capturing");
+	}
+	else
+	{
+		m_StartedThreads.back().second = false;
+		m_StartStopMeasurementTglBtn->Disable();
+		while (!m_StartedThreads.back().first.empty())
+			wxThread::This()->Sleep(100);
+		m_StartStopMeasurementTglBtn->Enable();
+
+		m_StartStopMeasurementTglBtn->SetLabel("Start Capturing");
+	}
+}
+
+auto cMain::StartCapturing() -> bool
 {
 	constexpr auto raise_exception_msg = [](wxString axis) 
 	{
@@ -1861,16 +1904,6 @@ void cMain::OnStartCapturingButton(wxCommandEvent& evt)
 			wxICON_ERROR);
 	};
 
-	if (m_SelectedDeviceStaticTXT->GetValue() == "-") return;
-
-	//m_StopLiveCapturing = true;		
-	if (m_StartedThreads.size() && m_StartedThreads.back().second)
-	{
-		m_StartedThreads.back().second = false;
-		while (!m_StartedThreads.back().first.empty())
-			wxThread::This()->Sleep(100);
-	}
-
 	auto timePointToWxString = []()
 		{
 			auto now = std::chrono::system_clock::now().time_since_epoch().count();
@@ -1882,17 +1915,6 @@ void cMain::OnStartCapturingButton(wxCommandEvent& evt)
 		? wxString("1") 
 		: m_DeviceExposure->GetValue();
 	auto exposureSeconds = abs(wxAtoi(exposure_time_str)); // Because user input is in [ms], we need to recalculate the value to [us]
-	//m_XimeaControl->SetExposureTime(exposure_time);
-
-
-	//if (m_XimeaControl->IsCameraConnected()) m_XimeaControl->StopAcquisition();
-	//{
-	//	wxString exposure_time_str = m_CamExposure->GetValue().IsEmpty() 
-	//		? wxString("0") 
-	//		: m_CamExposure->GetValue();
-	//	unsigned long exposure_time = abs(wxAtoi(exposure_time_str)) * 1000; // Because user input is in [ms], we need to recalculate the value to [us]
-	//	wxThread::This()->Sleep(exposure_time / 1000);
-	//}
 
 	auto first_axis = std::make_unique<MainFrameVariables::AxisMeasurement>();
 	auto second_axis = std::make_unique<MainFrameVariables::AxisMeasurement>();
@@ -1903,7 +1925,7 @@ void cMain::OnStartCapturingButton(wxCommandEvent& evt)
 	{
 		/* Checking first stage */
 		{
-			if (m_FirstStage->stage->GetCurrentSelection() == 0) return;
+			if (m_FirstStage->stage->GetCurrentSelection() == 0) return false;
 			else
 			{
 				first_axis->axis_number = m_FirstStage->stage->GetCurrentSelection() - 1;
@@ -1911,11 +1933,11 @@ void cMain::OnStartCapturingButton(wxCommandEvent& evt)
 		}
 		/* Checking Start, Step and Finish values */
 		{
-			if (!m_FirstStage->start->GetValue().ToDouble(&start_first_stage_value)) return;
+			if (!m_FirstStage->start->GetValue().ToDouble(&start_first_stage_value)) return false;
 			first_axis->start = (int)(start_first_stage_value * 1000.0) / 1000.f;
-			if (!m_FirstStage->step->GetValue().ToDouble(&step_first_stage_value)) return;
+			if (!m_FirstStage->step->GetValue().ToDouble(&step_first_stage_value)) return false;
 			first_axis->step = (int)(step_first_stage_value * 1000.0) / 1000.f;
-			if (!m_FirstStage->finish->GetValue().ToDouble(&finish_first_stage_value)) return;
+			if (!m_FirstStage->finish->GetValue().ToDouble(&finish_first_stage_value)) return false;
 			first_axis->finish = (int)(finish_first_stage_value * 1000.0) / 1000.f;
 			if (
 				(finish_first_stage_value - start_first_stage_value < 0.0 && step_first_stage_value > 0.0)
@@ -1927,33 +1949,52 @@ void cMain::OnStartCapturingButton(wxCommandEvent& evt)
 				(int)(step_first_stage_value * 1000.0) + 1;
 		}
 		/* Checking second stage */
-		if (m_SecondStage->stage->GetCurrentSelection() - 1 == first_axis->axis_number) return;
+		if (m_SecondStage->stage->GetCurrentSelection() - 1 == first_axis->axis_number) return false;
 		/* 
 		if (m_SecondStage->stage->GetCurrentSelection() == 0) return;
 		else selected_second_stage = m_SecondStage->stage->GetCurrentSelection() - 1;		
 		*/
 	}
 	{
-		//CreateMetadataFile();
 		m_StartCalculationTime = std::chrono::steady_clock::now();
-		wxPoint start_point_progress_bar
-		{ 
-			this->GetPosition().x + this->GetSize().x - m_ProgressBar->GetSize().x, 
-			this->GetPosition().y + this->GetSize().y - m_ProgressBar->GetSize().y 
-		};
-		m_ProgressBar->SetPosition(start_point_progress_bar);
+
+		{
+			// Right bottom position
+			//wxPoint start_point_progress_bar
+			//{ 
+			//	GetPosition().x + GetSize().x - m_ProgressBar->GetSize().x, 
+			//	GetPosition().y + GetSize().y - m_ProgressBar->GetSize().y 
+			//};
+
+			wxDisplay display(wxDisplay::GetFromPoint(wxPoint(0, 0)));
+			if (!display.IsOk())
+			{
+				wxLogError("No display found.");
+				return false;
+			}
+
+			wxRect screenRect = display.GetGeometry();
+			wxSize screenSize = screenRect.GetSize();
+			wxPoint start_point_progress_bar
+			{
+				screenSize.GetWidth() / 2 - m_ProgressBar->GetSize().x / 2,
+				0
+			};
+
+			m_ProgressBar->SetPosition(start_point_progress_bar);
+		}
+
 		m_Settings->ResetCapturing();
 		m_ProgressBar->Show();
 
 		m_AppProgressIndicator = std::make_unique<wxAppProgressIndicator>(this, 100);
 
-		this->Disable();
+		//this->Disable();
 		//m_StartMeasurement->Disable();
 	}
 
 	auto currThreadTimeStamp = timePointToWxString();
 	m_StartedThreads.push_back(std::make_pair(currThreadTimeStamp, true));
-
 	/* Worker and Progress Threads */
 	{
 		auto out_dir = m_OutDirTextCtrl->GetValue();
@@ -1977,19 +2018,19 @@ void cMain::OnStartCapturingButton(wxCommandEvent& evt)
 		{
 			delete worker_thread;
 			worker_thread = nullptr;
-			return;
+			return false;
 		}
 		if (progress_thread->Create(wxTHREAD_DETACHED) != wxTHREAD_NO_ERROR)
 		{
 			delete progress_thread;
 			progress_thread = nullptr;
-			return;
+			return false;
 		}
 		if (progress_thread->Run() != wxTHREAD_NO_ERROR)
 		{
 			delete progress_thread;
 			progress_thread = nullptr;
-			return;
+			return false;
 		}
 		if (worker_thread->Run() != wxTHREAD_NO_ERROR)
 		{
@@ -1997,9 +2038,10 @@ void cMain::OnStartCapturingButton(wxCommandEvent& evt)
 			progress_thread = nullptr;
 			delete worker_thread;
 			worker_thread = nullptr;
-			return;
+			return false;
 		}
 	}
+	return true;
 }
 
 void cMain::StartLiveCapturing()
@@ -2011,6 +2053,7 @@ void cMain::StartLiveCapturing()
 			return formattedTime;
 		};
 
+	wxBusyCursor cursor;
 	if (m_StartedThreads.size() && m_StartedThreads.back().second)
 	{
 		m_StartedThreads.back().second = false;
@@ -2112,7 +2155,11 @@ auto cMain::WorkerThreadEvent(wxThreadEvent& evt) -> void
 	// -1 == Camera is disconnected
 	if (curr_code == -1)
 	{
-		m_StartedThreads.back().second = false;
+		//m_StartedThreads.back().second = false;
+		//m_StartedThreads.back().first = "";
+		m_StartStopMeasurementTglBtn->SetValue(false);
+		wxCommandEvent measurement_capturing_evt(wxEVT_TOGGLEBUTTON, MainFrameVariables::ID_RIGHT_MT_START_STOP_MEASUREMENT_TGL_BTN);
+		ProcessEvent(measurement_capturing_evt);
 		return;
 	}
 
@@ -2358,7 +2405,7 @@ void cMain::OnStartStopLiveCapturingTglBtn(wxCommandEvent& evt)
 			m_StartStopLiveCapturingTglBtn->Disable();
 			while (!m_StartedThreads.back().first.empty())
 			{
-				wxThread::This()->Sleep(1000);
+				wxThread::This()->Sleep(100);
 			}
 			//m_StartedThreads.pop_back();
 			m_StartStopLiveCapturingTglBtn->Enable();
@@ -2442,12 +2489,15 @@ wxThread::ExitCode LiveCapturing::Entry()
 		evt.SetInt(imageNumber);
 		evt.SetPayload(mcaData.get());
 		wxQueueEvent(m_MainFrame, evt.Clone());
+
+		{
+			auto signalValue = ULONG_MAX - mcaData[0];
+			while (mcaData[0] != signalValue)
+				wxThread::Sleep(10);
+		}
+
 		++imageNumber;
 	}
-	auto signalValue = ULONG_MAX - mcaData[0];
-	
-	while (mcaData[0] != signalValue)
-		wxThread::Sleep(10);
 
 	*m_ThreadID = "";
 	return (wxThread::ExitCode)0;
@@ -2615,6 +2665,7 @@ wxThread::ExitCode WorkerThread::Entry()
 	{
 		if (!*m_ContinueCapturing)
 		{
+			*m_ThreadID = "";
 			evt.SetInt(-1);
 			wxQueueEvent(m_MainFrame, evt.Clone());
 			return 0;
@@ -2657,6 +2708,7 @@ wxThread::ExitCode WorkerThread::Entry()
 			cur_hours, cur_mins, cur_secs
 		))
 		{
+			*m_ThreadID = "";
 			evt.SetInt(-1);
 			wxQueueEvent(m_MainFrame, evt.Clone());
 			return 0;
@@ -2668,6 +2720,10 @@ wxThread::ExitCode WorkerThread::Entry()
 
 		/* Update Current Progress */
 		m_Settings->SetCurrentProgress(i, m_FirstAxis->step_number);
+
+		auto signalValue = ULONG_MAX - mcaData[0];
+		while (mcaData[0] != signalValue && *m_ContinueCapturing)
+			wxThread::Sleep(10);
 	}
 
 #ifdef ENABLE_SECOND_AXIS
@@ -2698,11 +2754,7 @@ wxThread::ExitCode WorkerThread::Entry()
 	}
 #endif // FALSE
 
-	auto signalValue = ULONG_MAX - mcaData[0];
-	
-	while (mcaData[0] != signalValue)
-		wxThread::Sleep(10);
-
+	*m_ThreadID = "";
 	evt.SetInt(-1);
 	wxQueueEvent(m_MainFrame, evt.Clone());
 	return (wxThread::ExitCode)0;
@@ -2758,19 +2810,19 @@ wxThread::ExitCode ProgressThread::Entry()
 {
 	m_Progress = 0;
 	m_ProgressMsg = "";
+	wxThreadEvent evt(wxEVT_THREAD, MainFrameVariables::ID_THREAD_PROGRESS_CAPTURING);
 	while (*m_ContinueWaiting)
 	{
-		wxThreadEvent calc_event(wxEVT_THREAD, MainFrameVariables::ID_THREAD_PROGRESS_CAPTURING);
+		//wxThreadEvent calc_event(wxEVT_THREAD, MainFrameVariables::ID_THREAD_PROGRESS_CAPTURING);
 		m_Settings->ProvideProgressInfo(&m_ProgressMsg, &m_Progress);
 
-		calc_event.SetInt(m_Progress);
-		calc_event.SetString(m_ProgressMsg);
+		evt.SetInt(m_Progress);
+		evt.SetString(m_ProgressMsg);
 
-		wxQueueEvent(m_Frame, calc_event.Clone());
+		wxQueueEvent(m_Frame, evt.Clone());
 
 		wxThread::This()->Sleep(100);
 	}
-	wxThreadEvent evt(wxEVT_THREAD, MainFrameVariables::ID_THREAD_PROGRESS_CAPTURING);
 	evt.SetInt(-1);
 	wxQueueEvent(m_Frame, evt.Clone());
 

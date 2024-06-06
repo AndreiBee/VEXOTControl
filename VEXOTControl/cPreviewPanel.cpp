@@ -45,7 +45,7 @@ auto cPreviewPanel::SetKETEKData
 	if (dataSize != m_ImageSize.GetWidth())
 	{
 		// Veronika said that she needs only half of the whole spectrum, so we can display only half of the range
-		m_ImageSize = wxSize(dataSize / 2, m_RBFinish.y - m_LUStart.y);
+		m_ImageSize = wxSize(dataSize / 3, m_RBFinish.y - m_LUStart.y);
 		//m_Image = wxImage(m_ImageSize.GetWidth(), m_ImageSize.GetHeight());
 		m_ImageData = std::make_unique<unsigned long[]>(m_ImageSize.GetWidth());
 	}
@@ -67,58 +67,16 @@ auto cPreviewPanel::SetKETEKData
 		multiplicator = abs((double)(m_ImageSize.GetHeight() - 1) / *maxValue);
 		m_SumData = sum;
 		m_MaxEventsCountOnGraph = *maxValue > m_MaxEventsCountOnGraph ? ((*maxValue + 9) / 10) * 10 : m_MaxEventsCountOnGraph;
+		if (!m_ReferenceData)
+			m_MaxEventsCountOnGraph = ((*maxValue + 9) / 10) * 10;
 	}
 
 	//LOGF("Multiplicator: ", multiplicator);
 
-	auto update_wxImage = [&]()
-		{
-			// Check number of threads on the current machine
-			auto numThreads = std::thread::hardware_concurrency();
-
-#ifdef _DEBUG
-			//numThreads = 1;
-#endif // _DEBUG
-
-			std::vector<std::thread> threads;
-			threads.reserve(numThreads);
-
-			unsigned int tileSize{};
-			tileSize = m_Image.GetWidth() % numThreads > 0 ? m_Image.GetWidth() / numThreads + 1 : m_Image.GetWidth() / numThreads;
-
-			for (auto i{ 0 }; i < numThreads; ++i)
-			{
-				wxPoint start{}, finish{};
-				start.x = i * tileSize;
-				start.y = 0;
-
-				finish.x = (i + 1) * tileSize > m_Image.GetWidth() ? m_Image.GetWidth() : (i + 1) * tileSize;
-				finish.y = m_Image.GetHeight();
-
-				threads.emplace_back
-				(
-					std::thread
-					(
-						&cPreviewPanel::AdjustKETEKImageMultithread,
-						this,
-						&m_ImageData[start.x],
-						multiplicator,
-						start.x, start.y, finish.x, finish.y
-					)
-				);
-			}
-			for (auto& thread : threads)
-			{
-				thread.join();
-			}
-		};
-
-	//update_wxImage();
-
 	/*
-Saving previous values for correct displaying of the image in the same place,
-where it was before capturing.
-*/
+	Saving previous values for correct displaying of the image in the same place,
+	where it was before capturing.
+	*/
 	{
 		auto temp_zoom = m_Zoom;
 		auto temp_pan_offset = m_PanOffset;
@@ -126,18 +84,6 @@ where it was before capturing.
 		m_Zoom = 1.0;
 		m_PanOffset = {};
 		ChangeSizeOfImageInDependenceOnCanvasSize();
-		/* CrossHair */
-		{
-			//m_CrossHairTool->SetImageDataType(ToolsVariables::DATA_U16);
-			//m_CrossHairTool->SetImageDimensions(m_ImageSize);
-			//m_CrossHairTool->SetZoomOfOriginalSizeImage(m_ZoomOnOriginalSizeImage);
-			//m_CrossHairTool->UpdateZoomValue(m_Zoom);
-			//m_CrossHairTool->SetImageStartDrawPos(m_StartDrawPos);
-			////m_CrossHairTool->SetXPosFromParent(m_ImageSize.GetWidth() / 2);
-			////m_CrossHairTool->SetYPosFromParent(m_ImageSize.GetHeight() / 2);
-			//m_CrossHairTool->SetYPosFromParent(m_CrossHairTool->GetYPos());
-			//m_CrossHairTool->SetYPosFromParent(m_CrossHairTool->GetYPos());
-		}
 
 		if (m_IsImageSet)
 		{
@@ -149,18 +95,6 @@ where it was before capturing.
 				m_Zoom = 1.0;
 				m_PanOffset = {};
 				m_StartDrawPos = m_NotZoomedGraphicsBitmapOffset;
-				/* CrossHair */
-				//m_CrossHairTool->UpdateZoomValue(m_Zoom);
-				//m_CrossHairTool->SetImageStartDrawPos(m_StartDrawPos);
-				//m_CrossHairTool->SetXPosFromParent(m_ImageSize.GetWidth() / 2);
-				//m_CrossHairTool->SetYPosFromParent(m_ImageSize.GetHeight() / 2);
-			}
-			else
-			{
-				//m_CrossHairTool->UpdateZoomValue(m_Zoom);
-				//m_CrossHairTool->SetImageStartDrawPos(m_StartDrawPos);
-				//m_CrossHairTool->SetXPosFromParent(m_CrossHairTool->GetXPos());
-				//m_CrossHairTool->SetYPosFromParent(m_CrossHairTool->GetYPos());
 			}
 		}
 	}
@@ -185,8 +119,7 @@ auto cPreviewPanel::SetKETEKReferenceData
 	if (dataSize != m_ImageSize.GetWidth())
 	{
 		// Veronika said that she needs only half of the whole spectrum, so we can display only half of the range
-		m_ImageSize = wxSize(dataSize / 2, m_RBFinish.y - m_LUStart.y);
-		//m_Image = wxImage(m_ImageSize.GetWidth(), m_ImageSize.GetHeight());
+		m_ImageSize = wxSize(dataSize / 3, m_RBFinish.y - m_LUStart.y);
 		m_ReferenceData = std::make_unique<unsigned long[]>(m_ImageSize.GetWidth());
 	}
 
@@ -198,9 +131,6 @@ auto cPreviewPanel::SetKETEKReferenceData
 
 	if (*maxValue)
 	{
-		//m_MaxPosValueInData.first = std::distance(&m_ImageData[0], maxValue);
-		//m_MaxPosValueInData.second = *maxValue;
-		//m_SumData = sum;
 		m_MaxEventsCountOnGraph = *maxValue > m_MaxEventsCountOnGraph ? ((*maxValue + 9) / 10) * 10 : m_MaxEventsCountOnGraph;
 	}
 

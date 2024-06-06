@@ -6,6 +6,7 @@
 #include "wx/tglbtn.h"
 #include "wx/valnum.h"
 #include "wx/thread.h"
+#include "wx/display.h"
 #include "wx/appprogress.h"
 
 #include <string>
@@ -107,7 +108,7 @@ namespace MainFrameVariables
 		ID_RIGHT_MT_SECOND_STAGE_START,
 		ID_RIGHT_MT_SECOND_STAGE_STEP,
 		ID_RIGHT_MT_SECOND_STAGE_FINISH,
-		ID_RIGHT_MT_START_MEASUREMENT,
+		ID_RIGHT_MT_START_STOP_MEASUREMENT_TGL_BTN,
 		/* Live Capturing */
 		ID_THREAD_LIVE_CAPTURING,
 		/* Worker Thread */
@@ -375,6 +376,7 @@ private:
 
 	void OnSetDetectorXAbsPos(wxCommandEvent& evt)
 	{
+		wxBusyCursor cursor;
 		double absolute_position{};
 		if (!m_Detector[0].absolute_text_ctrl->GetValue().ToDouble(&absolute_position)) return;
 		m_Settings->GoToAbsPos(SettingsVariables::DETECTOR_X, (float)absolute_position);
@@ -382,6 +384,7 @@ private:
 
 	void OnDecrementDetectorXAbsPos(wxCommandEvent& evt) 
 	{
+		wxBusyCursor cursor;
 		double delta_position{};
 		if (!m_Detector[0].relative_text_ctrl->GetValue().ToDouble(&delta_position)) return;
 		m_Detector[0].absolute_text_ctrl->SetValue(
@@ -394,6 +397,7 @@ private:
 
 	void OnIncrementDetectorXAbsPos(wxCommandEvent& evt)
 	{
+		wxBusyCursor cursor;
 		double delta_position{};
 		if (!m_Detector[0].relative_text_ctrl->GetValue().ToDouble(&delta_position)) return;
 		m_Detector[0].absolute_text_ctrl->SetValue(
@@ -406,6 +410,7 @@ private:
 
 	void OnCenterDetectorX(wxCommandEvent& evt)
 	{
+		wxBusyCursor cursor;
 		m_Detector[0].absolute_text_ctrl->SetValue(
 			wxString::Format(
 				wxT("%.3f"), 
@@ -415,6 +420,7 @@ private:
 
 	void OnHomeDetectorX(wxCommandEvent& evt)
 	{
+		wxBusyCursor cursor;
 		m_Detector[0].absolute_text_ctrl->ChangeValue(
 			wxString::Format(
 				wxT("%.3f"), 
@@ -432,6 +438,7 @@ private:
 
 	void OnSetOpticsXAbsPos(wxCommandEvent& evt)
 	{
+		wxBusyCursor cursor;
 		double absolute_position{};
 		if (!m_Optics[0].absolute_text_ctrl->GetValue().ToDouble(&absolute_position)) return;
 		m_Settings->GoToAbsPos(SettingsVariables::OPTICS_X, (float)absolute_position);
@@ -439,6 +446,7 @@ private:
 
 	void OnDecrementOpticsXAbsPos(wxCommandEvent& evt)
 	{
+		wxBusyCursor cursor;
 		double delta_position{};
 		if (!m_Optics[0].relative_text_ctrl->GetValue().ToDouble(&delta_position)) return;
 		m_Optics[0].absolute_text_ctrl->SetValue(
@@ -451,6 +459,7 @@ private:
 
 	void OnIncrementOpticsXAbsPos(wxCommandEvent& evt)
 	{
+		wxBusyCursor cursor;
 		double delta_position{};
 		if (!m_Optics[0].relative_text_ctrl->GetValue().ToDouble(&delta_position)) return;
 		m_Optics[0].absolute_text_ctrl->SetValue(
@@ -464,6 +473,7 @@ private:
 
 	void OnCenterOpticsX(wxCommandEvent& evt) 
 	{
+		wxBusyCursor cursor;
 		m_Optics[0].absolute_text_ctrl->SetValue(
 			wxString::Format(
 				wxT("%.3f"), 
@@ -473,6 +483,7 @@ private:
 
 	void OnHomeOpticsX(wxCommandEvent& evt) 
 	{
+		wxBusyCursor cursor;
 		m_Optics[0].absolute_text_ctrl->ChangeValue(
 			wxString::Format(
 				wxT("%.3f"), 
@@ -489,6 +500,7 @@ private:
 
 	void OnSetOpticsYAbsPos(wxCommandEvent& evt) 
 	{
+		wxBusyCursor cursor;
 		double absolute_position{};
 		if (!m_Optics[1].absolute_text_ctrl->GetValue().ToDouble(&absolute_position)) return;
 		m_Settings->GoToAbsPos(SettingsVariables::OPTICS_Y, (float)absolute_position);
@@ -496,6 +508,7 @@ private:
 
 	void OnDecrementOpticsYAbsPos(wxCommandEvent& evt) 
 	{
+		wxBusyCursor cursor;
 		double delta_position{};
 		if (!m_Optics[1].relative_text_ctrl->GetValue().ToDouble(&delta_position)) return;
 		m_Optics[1].absolute_text_ctrl->SetValue(
@@ -508,6 +521,7 @@ private:
 
 	void OnIncrementOpticsYAbsPos(wxCommandEvent& evt) 
 	{
+		wxBusyCursor cursor;
 		double delta_position{};
 		if (!m_Optics[1].relative_text_ctrl->GetValue().ToDouble(&delta_position)) return;
 		m_Optics[1].absolute_text_ctrl->SetValue(
@@ -520,6 +534,7 @@ private:
 
 	void OnCenterOpticsY(wxCommandEvent& evt) 
 	{
+		wxBusyCursor cursor;
 		m_Optics[1].absolute_text_ctrl->SetValue(
 			wxString::Format(
 				wxT("%.3f"), 
@@ -529,6 +544,7 @@ private:
 
 	void OnHomeOpticsY(wxCommandEvent& evt) 
 	{
+		wxBusyCursor cursor;
 		m_Optics[1].absolute_text_ctrl->SetValue(
 			wxString::Format(
 				wxT("%.3f"), 
@@ -545,6 +561,7 @@ private:
 
 	void OnSetOpticsZAbsPos(wxCommandEvent& evt) 
 	{
+		wxBusyCursor cursor;
 		double absolute_position{};
 		if (!m_Optics[2].absolute_text_ctrl->GetValue().ToDouble(&absolute_position)) return;
 		m_Settings->GoToAbsPos(SettingsVariables::OPTICS_Z, (float)absolute_position);
@@ -552,6 +569,7 @@ private:
 
 	void OnDecrementOpticsZAbsPos(wxCommandEvent& evt) 
 	{
+		wxBusyCursor cursor;
 		double delta_position{};
 		if (!m_Optics[2].relative_text_ctrl->GetValue().ToDouble(&delta_position)) return;
 		m_Optics[2].absolute_text_ctrl->SetValue(
@@ -564,6 +582,7 @@ private:
 
 	void OnIncrementOpticsZAbsPos(wxCommandEvent& evt) 
 	{
+		wxBusyCursor cursor;
 		double delta_position{};
 		if (!m_Optics[2].relative_text_ctrl->GetValue().ToDouble(&delta_position)) return;
 		m_Optics[2].absolute_text_ctrl->SetValue(
@@ -576,6 +595,7 @@ private:
 
 	void OnCenterOpticsZ(wxCommandEvent& evt) 
 	{
+		wxBusyCursor cursor;
 		m_Optics[2].absolute_text_ctrl->SetValue(
 			wxString::Format(
 				wxT("%.3f"), 
@@ -585,6 +605,7 @@ private:
 
 	void OnHomeOpticsZ(wxCommandEvent& evt) 
 	{
+		wxBusyCursor cursor;
 		m_Optics[2].absolute_text_ctrl->SetValue(
 			wxString::Format(
 				wxT("%.3f"), 
@@ -601,6 +622,7 @@ private:
 
 	void OnSetOpticsPitchAbsPos(wxCommandEvent& evt) 
 	{
+		wxBusyCursor cursor;
 		double absolute_position{};
 		if (!m_Optics[3].absolute_text_ctrl->GetValue().ToDouble(&absolute_position)) return;
 		m_Settings->GoToAbsPos(SettingsVariables::OPTICS_PITCH, (float)absolute_position);
@@ -608,6 +630,7 @@ private:
 
 	void OnDecrementOpticsPitchAbsPos(wxCommandEvent& evt) 
 	{
+		wxBusyCursor cursor;
 		double delta_position{};
 		if (!m_Optics[3].relative_text_ctrl->GetValue().ToDouble(&delta_position)) return;
 		m_Optics[3].absolute_text_ctrl->SetValue(
@@ -620,6 +643,7 @@ private:
 
 	void OnIncrementOpticsPitchAbsPos(wxCommandEvent& evt) 
 	{
+		wxBusyCursor cursor;
 		double delta_position{};
 		if (!m_Optics[3].relative_text_ctrl->GetValue().ToDouble(&delta_position)) return;
 		m_Optics[3].absolute_text_ctrl->SetValue(
@@ -632,6 +656,7 @@ private:
 
 	void OnCenterOpticsPitch(wxCommandEvent& evt) 
 	{
+		wxBusyCursor cursor;
 		m_Optics[3].absolute_text_ctrl->SetValue(
 			wxString::Format(
 				wxT("%.3f"), 
@@ -641,6 +666,7 @@ private:
 
 	void OnHomeOpticsPitch(wxCommandEvent& evt) 
 	{
+		wxBusyCursor cursor;
 		m_Optics[3].absolute_text_ctrl->SetValue(
 			wxString::Format(
 				wxT("%.3f"), 
@@ -657,6 +683,7 @@ private:
 
 	void OnSetOpticsYawAbsPos(wxCommandEvent& evt) 
 	{
+		wxBusyCursor cursor;
 		double absolute_position{};
 		if (!m_Optics[4].absolute_text_ctrl->GetValue().ToDouble(&absolute_position)) return;
 		m_Settings->GoToAbsPos(SettingsVariables::OPTICS_YAW, (float)absolute_position);
@@ -664,6 +691,7 @@ private:
 
 	void OnDecrementOpticsYawAbsPos(wxCommandEvent& evt) 
 	{
+		wxBusyCursor cursor;
 		double delta_position{};
 		if (!m_Optics[4].relative_text_ctrl->GetValue().ToDouble(&delta_position)) return;
 		m_Optics[4].absolute_text_ctrl->SetValue(
@@ -676,6 +704,7 @@ private:
 
 	void OnIncrementOpticsYawAbsPos(wxCommandEvent& evt) 
 	{
+		wxBusyCursor cursor;
 		double delta_position{};
 		if (!m_Optics[4].relative_text_ctrl->GetValue().ToDouble(&delta_position)) return;
 		m_Optics[4].absolute_text_ctrl->SetValue(
@@ -688,6 +717,7 @@ private:
 
 	void OnCenterOpticsYaw(wxCommandEvent& evt) 
 	{
+		wxBusyCursor cursor;
 		m_Optics[4].absolute_text_ctrl->SetValue(
 			wxString::Format(
 				wxT("%.3f"), 
@@ -697,6 +727,7 @@ private:
 
 	void OnHomeOpticsYaw(wxCommandEvent& evt) 
 	{
+		wxBusyCursor cursor;
 		m_Optics[4].absolute_text_ctrl->SetValue(
 			wxString::Format(
 				wxT("%.3f"), 
@@ -711,7 +742,8 @@ private:
 	/* Changed Exposure value */
 	void ExposureValueChanged(wxCommandEvent& evt);
 	/* Start Capturing */
-	void OnStartCapturingButton(wxCommandEvent& evt);
+	void OnStartStopCapturingButton(wxCommandEvent& evt);
+	auto StartCapturing() -> bool;
 	void OnStartStopLiveCapturingMenu(wxCommandEvent& evt);
 	void OnStartStopLiveCapturingTglBtn(wxCommandEvent& evt);
 
@@ -760,7 +792,7 @@ private:
 	std::unique_ptr<wxTextCtrl> m_OutDirTextCtrl{};
 	std::unique_ptr<wxButton> m_OutDirBtn{};
 	std::unique_ptr<MainFrameVariables::MeasurementStage> m_FirstStage{}, m_SecondStage{};
-	std::unique_ptr<wxButton> m_StartMeasurement{};
+	std::unique_ptr<wxToggleButton> m_StartStopMeasurementTglBtn{};
 
 	/* Progress */
 	bool m_Cancelled{}, m_DataCalculatedInThisApp{};
