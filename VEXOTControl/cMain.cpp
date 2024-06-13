@@ -1350,7 +1350,7 @@ void cMain::OnSingleShotCameraImage(wxCommandEvent& evt)
 	wxString exposure_time_str = m_DeviceExposure->GetValue().IsEmpty() 
 		? wxString("1") 
 		: m_DeviceExposure->GetValue();
-	int exposure_time = abs(wxAtoi(exposure_time_str)); // Because user input is in [ms], we need to recalculate exposure time to [us]
+	auto exposure_time = abs(wxAtoi(exposure_time_str)); // Because user input is in [ms], we need to recalculate exposure time to [us]
 
 	auto start_live_capturing_after_ss = m_StartStopLiveCapturingTglBtn->GetValue();
 
@@ -1365,15 +1365,10 @@ void cMain::OnSingleShotCameraImage(wxCommandEvent& evt)
 			wxThread::This()->Sleep(10);
 		}
 
-		m_SingleShotBtn->Disable();
+		m_SingleShotBtn->Enable();
 	}
 
 	{
-		wxString exposure_time_str = m_DeviceExposure->GetValue().IsEmpty() 
-			? wxString("1") 
-			: m_DeviceExposure->GetValue();
-		unsigned long exposure_time = abs(wxAtoi(exposure_time_str)); // Because user input is in [ms], we need to recalculate the value to [us]
-
 		auto now = std::chrono::system_clock::now();
 		auto cur_time = std::chrono::system_clock::to_time_t(now);
 		auto str_time = std::string(std::ctime(&cur_time)).substr(11, 8);
@@ -1399,6 +1394,9 @@ void cMain::OnSingleShotCameraImage(wxCommandEvent& evt)
 
 			m_KetekHandler->CaptureData(exposure_time, mcaData.get(), &m_StartedThreads.back().second);
 
+			m_StartedThreads.back().second = false;
+			m_StartedThreads.back().first = "";
+
 			if (!mcaData)
 			{
 				raise_exception_msg();
@@ -1413,7 +1411,9 @@ void cMain::OnSingleShotCameraImage(wxCommandEvent& evt)
 			m_PreviewPanel->SetKETEKData(mcaData.get(), m_KetekHandler->GetDataSize(), sum);
 		}
 	}
+
 	m_StartStopLiveCapturingTglBtn->Enable();
+
 	/* Only if user has already started Live Capturing, continue Live Capturing */
 	if (start_live_capturing_after_ss)
 	{
