@@ -86,11 +86,11 @@ cMain::cMain(const wxString& title_)
 	CreateMainFrame();
 	InitDefaultStateWidgets();
 
-	//SetIcon(logo_xpm);
+	SetIcon(logo_xpm);
 
 	/* Creating, but not showing ProgressBar */
 	CreateProgressBar();
-	//m_ProgressBar->SetIcon(logo_xpm);
+	m_ProgressBar->SetIcon(logo_xpm);
 
 	CenterOnScreen();
 	Show();
@@ -1555,6 +1555,8 @@ auto cMain::InitializeSelectedDevice() -> void
 	/* Ketek */
 	if (m_DeviceChoice->GetString(m_DeviceChoice->GetSelection()) == "KETEK")
 	{
+		if (m_SelectedDeviceStaticTXT->GetValue().Find("UDXD") != wxNOT_FOUND) return;
+
 		m_KetekHandler = std::make_unique<Ketek>(m_Settings->GetSelectedKETEK().ToStdString());
 		if (m_KetekHandler->IsDeviceInitialized())
 		{

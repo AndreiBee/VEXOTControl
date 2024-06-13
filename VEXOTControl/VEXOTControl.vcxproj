@@ -150,6 +150,7 @@
     <ClInclude Include="cSettings.h" />
     <ClInclude Include="Ketek.h" />
     <ClInclude Include="Motor.h" />
+    <ClInclude Include="resource1.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cApp.cpp" />
@@ -159,6 +160,12 @@
     <ClCompile Include="cSettings.cpp" />
     <ClCompile Include="Ketek.cpp" />
     <ClCompile Include="Motor.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="VEXOTControl.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="src\img\logo.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

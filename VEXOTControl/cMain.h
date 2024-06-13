@@ -25,7 +25,7 @@
 #include "src/img/center.xpm"
 #include "src/img/home.xpm"
 
-//#include "src/img/logo.xpm"
+#include "src/img/logo.xpm"
 
 
 namespace MainFrameVariables
@@ -379,7 +379,8 @@ private:
 		wxBusyCursor cursor;
 		double absolute_position{};
 		if (!m_Detector[0].absolute_text_ctrl->GetValue().ToDouble(&absolute_position)) return;
-		m_Settings->GoToAbsPos(SettingsVariables::DETECTOR_X, (float)absolute_position);
+		auto position = m_Settings->GoToAbsPos(SettingsVariables::DETECTOR_X, (float)absolute_position);
+		m_Detector[0].absolute_text_ctrl->SetValue(wxString::Format(wxT("%.3f"), position));
 	};
 
 	void OnDecrementDetectorXAbsPos(wxCommandEvent& evt) 
@@ -441,7 +442,8 @@ private:
 		wxBusyCursor cursor;
 		double absolute_position{};
 		if (!m_Optics[0].absolute_text_ctrl->GetValue().ToDouble(&absolute_position)) return;
-		m_Settings->GoToAbsPos(SettingsVariables::OPTICS_X, (float)absolute_position);
+		auto position = m_Settings->GoToAbsPos(SettingsVariables::OPTICS_X, (float)absolute_position);
+		m_Optics[0].absolute_text_ctrl->SetValue(wxString::Format(wxT("%.3f"), position));
 	};
 
 	void OnDecrementOpticsXAbsPos(wxCommandEvent& evt)
@@ -503,7 +505,8 @@ private:
 		wxBusyCursor cursor;
 		double absolute_position{};
 		if (!m_Optics[1].absolute_text_ctrl->GetValue().ToDouble(&absolute_position)) return;
-		m_Settings->GoToAbsPos(SettingsVariables::OPTICS_Y, (float)absolute_position);
+		auto position = m_Settings->GoToAbsPos(SettingsVariables::OPTICS_Y, (float)absolute_position);
+		m_Optics[1].absolute_text_ctrl->SetValue(wxString::Format(wxT("%.3f"), position));
 	};
 
 	void OnDecrementOpticsYAbsPos(wxCommandEvent& evt) 
@@ -564,7 +567,8 @@ private:
 		wxBusyCursor cursor;
 		double absolute_position{};
 		if (!m_Optics[2].absolute_text_ctrl->GetValue().ToDouble(&absolute_position)) return;
-		m_Settings->GoToAbsPos(SettingsVariables::OPTICS_Z, (float)absolute_position);
+		auto position = m_Settings->GoToAbsPos(SettingsVariables::OPTICS_Z, (float)absolute_position);
+		m_Optics[2].absolute_text_ctrl->SetValue(wxString::Format(wxT("%.3f"), position));
 	};
 
 	void OnDecrementOpticsZAbsPos(wxCommandEvent& evt) 
@@ -625,7 +629,8 @@ private:
 		wxBusyCursor cursor;
 		double absolute_position{};
 		if (!m_Optics[3].absolute_text_ctrl->GetValue().ToDouble(&absolute_position)) return;
-		m_Settings->GoToAbsPos(SettingsVariables::OPTICS_PITCH, (float)absolute_position);
+		auto position = m_Settings->GoToAbsPos(SettingsVariables::OPTICS_PITCH, (float)absolute_position);
+		m_Optics[3].absolute_text_ctrl->SetValue(wxString::Format(wxT("%.3f"), position));
 	};
 
 	void OnDecrementOpticsPitchAbsPos(wxCommandEvent& evt) 
@@ -686,7 +691,8 @@ private:
 		wxBusyCursor cursor;
 		double absolute_position{};
 		if (!m_Optics[4].absolute_text_ctrl->GetValue().ToDouble(&absolute_position)) return;
-		m_Settings->GoToAbsPos(SettingsVariables::OPTICS_YAW, (float)absolute_position);
+		auto position = m_Settings->GoToAbsPos(SettingsVariables::OPTICS_YAW, (float)absolute_position);
+		m_Optics[4].absolute_text_ctrl->SetValue(wxString::Format(wxT("%.3f"), position));
 	};
 
 	void OnDecrementOpticsYawAbsPos(wxCommandEvent& evt) 
