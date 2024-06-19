@@ -1446,6 +1446,10 @@ void cMain::OnSetOutDirectoryBtn(wxCommandEvent& evt)
 		m_SingleShotBtn->Enable();
 		m_StartStopMeasurementTglBtn->Enable();
 	}
+
+#ifdef _DEBUG
+		m_StartStopMeasurementTglBtn->Enable();
+#endif // _DEBUG
 }
 
 auto cMain::OnOpenMCAFile(wxCommandEvent& evt) -> void
@@ -1858,7 +1862,9 @@ void cMain::OnSecondStageChoice(wxCommandEvent& evt)
 
 void cMain::OnStartStopCapturingButton(wxCommandEvent& evt)
 {
+#ifndef _DEBUG
 	if (m_SelectedDeviceStaticTXT->GetValue() == "-") return;
+#endif // !_DEBUG
 
 	if (m_StartStopLiveCapturingTglBtn->GetValue())
 	{
@@ -2681,7 +2687,10 @@ wxThread::ExitCode WorkerThread::Entry()
 		}
 		m_Settings->SetCurrentProgress(i, m_FirstAxis->step_number);
 		/* Here we need to round values, for the correct positioning of motors */
-		first_axis_rounded_go_to = (int)((m_FirstAxis->start + i * m_FirstAxis->step) * 1000.f + .5f) / 1000.f;
+		auto correctedStart = static_cast<int>(m_FirstAxis->start * 1000.f + .5f);
+		auto correctedStep = static_cast<int>(m_FirstAxis->step * 1000.f + .5f);
+		auto correctedPos = static_cast<float>(correctedStart + i * correctedStep);
+		first_axis_rounded_go_to = correctedPos / 1000.f;
 		switch (m_FirstAxis->axis_number)
 		{
 			/* Detector */

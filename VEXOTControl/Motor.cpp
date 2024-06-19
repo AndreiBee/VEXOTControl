@@ -485,6 +485,8 @@ bool MotorArray::InitAllMotors()
 
 		calibration_c.A = 1;
 		calibration_c.MicrostepMode = MICROSTEP_MODE_FULL;
+		//calibration_c.MicrostepMode = MICROSTEP_MODE_FRAC_256;
+
 		m_MotorsArray[i].SetCalibration(calibration_c);
 
 		/* Get Status */
