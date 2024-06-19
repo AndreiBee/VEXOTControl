@@ -1406,7 +1406,14 @@ void cMain::OnSingleShotCameraImage(wxCommandEvent& evt)
 			unsigned long long sum{};
 			sum = std::accumulate(&mcaData[0], &mcaData[m_KetekHandler->GetDataSize()], sum);
 
-			MainFrameVariables::WriteMCAFile(file_name, mcaData.get(), m_KetekHandler.get(), sum);
+			MainFrameVariables::WriteMCAFile
+			(
+				file_name, 
+				mcaData.get(), 
+				m_KetekHandler.get(), 
+				sum,
+				exposure_time
+			);
 
 			m_PreviewPanel->SetKETEKData(mcaData.get(), m_KetekHandler->GetDataSize(), sum);
 		}
@@ -2800,7 +2807,14 @@ auto WorkerThread::CaptureAndSaveData
 		unsigned long long sum{};
 		sum = std::accumulate(&mca[0], &mca[m_KetekHandler->GetDataSize()], sum);
 
-		MainFrameVariables::WriteMCAFile(file_name, mca, m_KetekHandler, sum);
+		MainFrameVariables::WriteMCAFile
+		(
+			file_name, 
+			mca, 
+			m_KetekHandler, 
+			sum,
+			m_ExposureTimeSeconds
+		);
 	}
 
 	return true;
