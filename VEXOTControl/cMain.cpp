@@ -1863,8 +1863,18 @@ void cMain::OnSecondStageChoice(wxCommandEvent& evt)
 void cMain::OnStartStopCapturingButton(wxCommandEvent& evt)
 {
 #ifndef _DEBUG
-	if (m_SelectedDeviceStaticTXT->GetValue() == "-") return;
+	if (m_SelectedDeviceStaticTXT->GetValue() == "-")
+	{
+		wxLogError("There is no connected device for capturing.");
+		return;
+	}
 #endif // !_DEBUG
+
+	if (!std::filesystem::exists(m_OutDirTextCtrl->GetValue().ToStdString()))
+	{
+		wxLogError("Desired path doesn't exist.\nPlease, change the output directory to existing path and try again.");
+		return;
+	}
 
 	if (m_StartStopLiveCapturingTglBtn->GetValue())
 	{
@@ -2691,31 +2701,8 @@ wxThread::ExitCode WorkerThread::Entry()
 		auto correctedStep = static_cast<int>(m_FirstAxis->step * 1000.f + .5f);
 		auto correctedPos = static_cast<float>(correctedStart + i * correctedStep);
 		first_axis_rounded_go_to = correctedPos / 1000.f;
-		switch (m_FirstAxis->axis_number)
-		{
-			/* Detector */
-			case 0:
-				first_axis_position = m_Settings->GoToAbsPos(SettingsVariables::DETECTOR_X, first_axis_rounded_go_to);
-				break;
-			/* Optics */
-			case 1:
-				first_axis_position = m_Settings->GoToAbsPos(SettingsVariables::OPTICS_X, first_axis_rounded_go_to);
-				break;
-			case 2:
-				first_axis_position = m_Settings->GoToAbsPos(SettingsVariables::OPTICS_Y, first_axis_rounded_go_to);
-				break;
-			case 3:
-				first_axis_position = m_Settings->GoToAbsPos(SettingsVariables::OPTICS_Z, first_axis_rounded_go_to);
-				break;
-			case 4:
-				first_axis_position = m_Settings->GoToAbsPos(SettingsVariables::OPTICS_PITCH, first_axis_rounded_go_to);
-				break;
-			case 5:
-				first_axis_position = m_Settings->GoToAbsPos(SettingsVariables::OPTICS_YAW, first_axis_rounded_go_to);
-				break;
-			default:
-				break;
-		}
+
+		first_axis_position = MoveFirstStage(first_axis_rounded_go_to);
 
 		if (!CaptureAndSaveData
 		(
@@ -2775,6 +2762,27 @@ wxThread::ExitCode WorkerThread::Entry()
 	*m_ThreadID = "";
 	evt.SetInt(-1);
 	wxQueueEvent(m_MainFrame, evt.Clone());
+
+	// Go to the best captured position
+	if (m_MaxElementDuringCapturing)
+	{
+		auto message = wxString(
+			"The maximum value was: " + wxString::Format(wxT("%ld"), m_MaxElementDuringCapturing) + "\n" 
+			+ " at position: "  + wxString::Format(wxT("%.3f"), m_BestFirstAxisPosition)
+		);
+		message += "\nDo you want to move stage to the best position?";
+		if (
+			wxMessageBox
+			(
+			message,
+			"Move stage?",
+			wxICON_QUESTION | wxYES_NO) == wxYES
+			)
+		{
+			MoveFirstStage(m_BestFirstAxisPosition);
+		}
+	}
+
 	return (wxThread::ExitCode)0;
 }
 
@@ -2791,6 +2799,12 @@ auto WorkerThread::CaptureAndSaveData
 {
 	if (!mca) return false;
 	if (!m_KetekHandler->CaptureData(m_ExposureTimeSeconds, mca, m_ContinueCapturing)) return false;
+
+	if (!std::filesystem::exists(m_DataPath.ToStdString()))
+	{
+		wxLogError("Desired path doesn't exist.");
+		return false;
+	}
 
 	/* Save Data */
 	{
@@ -2816,7 +2830,7 @@ auto WorkerThread::CaptureAndSaveData
 		unsigned long long sum{};
 		sum = std::accumulate(&mca[0], &mca[m_KetekHandler->GetDataSize()], sum);
 
-		MainFrameVariables::WriteMCAFile
+		auto maxElement = MainFrameVariables::WriteMCAFile
 		(
 			file_name, 
 			mca, 
@@ -2824,9 +2838,46 @@ auto WorkerThread::CaptureAndSaveData
 			sum,
 			m_ExposureTimeSeconds
 		);
+
+		if (maxElement > m_MaxElementDuringCapturing)
+		{
+			m_MaxElementDuringCapturing = maxElement;
+			m_BestFirstAxisPosition = first_stage_position;
+		}
 	}
 
 	return true;
+}
+auto WorkerThread::MoveFirstStage(const float position) -> float
+{
+	float firstAxisPos{};
+	switch (m_FirstAxis->axis_number)
+	{
+		/* Detector */
+		case 0:
+			firstAxisPos = m_Settings->GoToAbsPos(SettingsVariables::DETECTOR_X, position);
+			break;
+		/* Optics */
+		case 1:
+			firstAxisPos = m_Settings->GoToAbsPos(SettingsVariables::OPTICS_X, position);
+			break;
+		case 2:
+			firstAxisPos = m_Settings->GoToAbsPos(SettingsVariables::OPTICS_Y, position);
+			break;
+		case 3:
+			firstAxisPos = m_Settings->GoToAbsPos(SettingsVariables::OPTICS_Z, position);
+			break;
+		case 4:
+			firstAxisPos = m_Settings->GoToAbsPos(SettingsVariables::OPTICS_PITCH, position);
+			break;
+		case 5:
+			firstAxisPos = m_Settings->GoToAbsPos(SettingsVariables::OPTICS_YAW, position);
+			break;
+		default:
+			break;
+	}
+
+	return firstAxisPos;
 }
 /* ___ End Worker Thread ___ */
 

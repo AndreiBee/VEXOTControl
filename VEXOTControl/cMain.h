@@ -226,7 +226,7 @@ namespace MainFrameVariables
 		Ketek* handler, 
 		const unsigned long long sumValues, 
 		const int exposureSec = 1
-	) -> void
+	) -> unsigned long
 	{
 		auto replace_dot_to_comma = []
 		(
@@ -306,7 +306,7 @@ namespace MainFrameVariables
 
 		if (!outFile)
 		{
-			return;
+			return *maxElement;
 		}
 		
 		writeHeader(outFile, *maxElement, maxElementPos);
@@ -317,6 +317,8 @@ namespace MainFrameVariables
 		}
 
 		outFile.close();
+
+		return *maxElement;
 	}
 
 }
@@ -944,6 +946,8 @@ private:
 		const std::string& seconds
 	) -> bool;
 
+	auto MoveFirstStage(const float position) -> float;
+
 	auto SaveImageOnDisk(const int& image_number) -> bool;
 
 private:
@@ -955,6 +959,8 @@ private:
 	wxString m_DataPath{};
 	unsigned long m_ExposureTimeSeconds{};
 	MainFrameVariables::AxisMeasurement* m_FirstAxis{}, * m_SecondAxis{};
+	unsigned long m_MaxElementDuringCapturing{};
+	float m_BestFirstAxisPosition{}, m_BestSecondAxisPosition{};
 };
 /* ___ End Worker Thread ___ */
 

@@ -229,6 +229,7 @@ auto Motor::GoToPos(const float stage_position)
 			&m_StandaSettings->calibration
 		) != result_ok)) 
 			return false;
+
 		/* Wait to Stop */
 		if ((m_StandaSettings->result = command_wait_for_stop
 		(
@@ -240,6 +241,7 @@ auto Motor::GoToPos(const float stage_position)
 			/* Error command_wait_for_stop */
 			return false;
 		}
+
 		/* Wait for elimination of vibrations */
 		std::this_thread::sleep_for(std::chrono::milliseconds(wait_delay_milliseconds));
 		/* Get Status */
