@@ -1870,7 +1870,8 @@ void cMain::OnStartStopCapturingButton(wxCommandEvent& evt)
 	}
 #endif // !_DEBUG
 
-	if (!std::filesystem::exists(m_OutDirTextCtrl->GetValue().ToStdString()))
+	if (!std::filesystem::exists(m_OutDirTextCtrl->GetValue().ToStdString()) 
+		&& !std::filesystem::is_directory(m_OutDirTextCtrl->GetValue().ToStdString()))
 	{
 		wxLogError("Desired path doesn't exist.\nPlease, change the output directory to existing path and try again.");
 		return;
@@ -2800,7 +2801,7 @@ auto WorkerThread::CaptureAndSaveData
 	if (!mca) return false;
 	if (!m_KetekHandler->CaptureData(m_ExposureTimeSeconds, mca, m_ContinueCapturing)) return false;
 
-	if (!std::filesystem::exists(m_DataPath.ToStdString()))
+	if (!std::filesystem::exists(m_DataPath.ToStdString()) && !std::filesystem::is_directory(m_DataPath.ToStdString()))
 	{
 		wxLogError("Desired path doesn't exist.");
 		return false;
