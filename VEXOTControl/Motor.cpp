@@ -410,7 +410,7 @@ auto MotorArray::SetStepsPerMMForTheMotor(const std::string motor_sn, const int 
 	}
 }
 
-bool MotorArray::InitAllMotors(const char* ip_address)
+bool MotorArray::InitAllMotors(const std::string ip_address)
 {
 	auto appendUnitializedMotor = [&](const unsigned int motorSN, const int motorNum) 
 		{
@@ -439,11 +439,11 @@ bool MotorArray::InitAllMotors(const char* ip_address)
 	devenum_c = enumerate_devices(probe_flags, enumerate_hints);
 #else
 	const int probe_flags = ENUMERATE_PROBE | ENUMERATE_NETWORK;
-	const char* enumerate_hints = "addr=" + ip_address;
+	std::string eh = std::string("addr=") + ip_address;
+	const char* enumerate_hints = eh.c_str();
 	//const char* enumerate_hints = "addr=10.0.0.134";
 	devenum_c = enumerate_devices(probe_flags, enumerate_hints);
 #endif // _DEBUG
-
 	if (!devenum_c) return false;
 
 	int names_count = get_device_count(devenum_c);
