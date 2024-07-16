@@ -124,8 +124,8 @@ private:
 class MotorArray final
 {
 public:
-	MotorArray();
-	bool InitAllMotors();
+	MotorArray(const std::string ipAddress);
+	bool InitAllMotors(const char* ip_address);
 	auto FillNames();
 
 	/* Getter */

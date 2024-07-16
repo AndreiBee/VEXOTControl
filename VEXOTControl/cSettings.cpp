@@ -44,8 +44,8 @@ auto cSettings::GetSelectedCamera() const -> wxString
 
 void cSettings::CreateMainFrame()
 {
-	InitComponents();
 	ReadInitializationFile();
+	InitComponents();
 	ReadWorkStationFiles();
 	//IterateOverConnectedCameras();
 	//ReadXMLFile();
@@ -500,10 +500,11 @@ void cSettings::InitDefaultStateWidgets()
 void cSettings::InitComponents()
 {
 	m_WorkStations = std::make_unique<SettingsVariables::WorkStations>();
+	m_WorkStations->initialized_work_station = workStation;
 	m_Motors = std::make_unique<SettingsVariables::MotorSettingsArray>();
 	//m_xPIN = std::make_unique<SettingsVariables::MeasurementDevice>();
 	m_Ketek = std::make_unique<SettingsVariables::MeasurementDevice>();
-	m_PhysicalMotors = std::make_unique<MotorArray>();
+	m_PhysicalMotors = std::make_unique<MotorArray>(standaIP.ToStdString());
 }
 
 void cSettings::BindControls()
@@ -827,15 +828,32 @@ auto cSettings::ReadWorkStationFiles() -> void
 
 auto cSettings::ReadInitializationFile() -> void
 {
+	auto isValidIP = [](const std::string& ip)
+		{
+			std::regex ipPattern(
+				R"((\d{1,3}\.){3}\d{1,3})");
+			return std::regex_match(ip, ipPattern);
+		};
+
 	auto xmlFile = std::make_unique<rapidxml::file<>>(initialization_file_path.c_str());
 	auto document = std::make_unique<rapidxml::xml_document<>>();
 	document->parse<0>(xmlFile->data());
 	rapidxml::xml_node<>* work_station_node = document->first_node("work_station");
+	rapidxml::xml_node<>* standa_ip_node = document->first_node("standa_ip");
 
 	if (!work_station_node)
 		return;
 	
-	m_WorkStations->initialized_work_station = wxString(work_station_node->first_node()->value());
+	workStation = wxString(work_station_node->first_node()->value());
+	//m_WorkStations->initialized_work_station = wxString(work_station_node->first_node()->value());
+
+	auto desiredIP = standa_ip_node->first_node()->value();
+	if (!isValidIP(desiredIP))
+	{
+		wxLogError("\"standa_ip\" inside the src->init.ini file doesn't contain a valid IP address.");
+		return;
+	}
+	standaIP = wxString(desiredIP);
 }
 
 void cSettings::UpdateUniqueArray()

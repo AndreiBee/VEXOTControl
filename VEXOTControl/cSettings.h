@@ -12,6 +12,7 @@
 #include <fstream>
 #include <iostream>
 #include <filesystem>
+#include <regex>
 
 #include "rapidxml.hpp"
 #include "rapidxml_utils.hpp"
@@ -287,7 +288,7 @@ private:
 private:
 	const wxString initialization_file_path = "src\\init.ini";
 	const wxString work_stations_path = "src\\";
-	
+	wxString workStation{}, standaIP{ "10.0.0.134" };
 	//const wxString xml_file_path = "src\\old_xml\\mtrs.xml";
 
 	std::unique_ptr<SettingsVariables::WorkStations> m_WorkStations{};

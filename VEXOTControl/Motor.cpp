@@ -274,9 +274,9 @@ auto Motor::GoToPos(const float stage_position)
 }
 
 /* MotorArray */
-MotorArray::MotorArray()
+MotorArray::MotorArray(const std::string ipAddress)
 {
-	InitAllMotors();
+	InitAllMotors(ipAddress.c_str());
 }
 
 auto MotorArray::FillNames()
@@ -410,7 +410,7 @@ auto MotorArray::SetStepsPerMMForTheMotor(const std::string motor_sn, const int 
 	}
 }
 
-bool MotorArray::InitAllMotors()
+bool MotorArray::InitAllMotors(const char* ip_address)
 {
 	auto appendUnitializedMotor = [&](const unsigned int motorSN, const int motorNum) 
 		{
@@ -439,7 +439,8 @@ bool MotorArray::InitAllMotors()
 	devenum_c = enumerate_devices(probe_flags, enumerate_hints);
 #else
 	const int probe_flags = ENUMERATE_PROBE | ENUMERATE_NETWORK;
-	const char* enumerate_hints = "addr=10.0.0.134";
+	const char* enumerate_hints = "addr=" + ip_address;
+	//const char* enumerate_hints = "addr=10.0.0.134";
 	devenum_c = enumerate_devices(probe_flags, enumerate_hints);
 #endif // _DEBUG
 
