@@ -338,6 +338,7 @@ public:
 	//auto StopLiveCapturing() -> bool;
 	auto LiveCapturingFinishedCapturingAndDrawing(bool is_finished) -> void;
 	auto WorkerThreadFinished(bool is_finished) -> void;
+	void UpdateStagePositions();
 private:
 	void CreateMainFrame();
 	void InitComponents();
@@ -369,7 +370,6 @@ private:
 	void OnOpenSettings(wxCommandEvent& evt);
 	auto InitializeSelectedCamera() -> void;
 	auto InitializeSelectedDevice() -> void;
-	void UpdateStagePositions();
 	void EnableUsedAndDisableNonUsedMotors();
 
 	void OnCrossHairButton(wxCommandEvent& evt);

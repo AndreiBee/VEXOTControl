@@ -1680,7 +1680,6 @@ void cMain::UpdateStagePositions()
 		wxString::Format(wxT("%.3f"), 
 			m_Settings->GetActualMotorPosition(SettingsVariables::OPTICS_YAW))
 	);
-
 }
 
 void cMain::OnExit(wxCommandEvent& evt)
@@ -2781,6 +2780,7 @@ wxThread::ExitCode WorkerThread::Entry()
 			)
 		{
 			MoveFirstStage(m_BestFirstAxisPosition);
+			m_MainFrame->UpdateStagePositions();
 		}
 	}
 
