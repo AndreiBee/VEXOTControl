@@ -2684,6 +2684,9 @@ wxThread::ExitCode WorkerThread::Entry()
 
 	auto mcaData = std::make_unique<unsigned long[]>(m_KetekHandler->GetDataSize());
 
+	m_AllMaxElementsDuringCapturing = std::make_unique<unsigned long[]>(m_FirstAxis->step_number);
+	m_AllSumsDuringCapturing = std::make_unique<unsigned long long[]>(m_FirstAxis->step_number);
+
 	float first_axis_rounded_go_to{};
 	float first_axis_position{}, second_axis_position{};
 	for (auto i{ 0 }; i < m_FirstAxis->step_number; ++i)
@@ -2764,25 +2767,38 @@ wxThread::ExitCode WorkerThread::Entry()
 	wxQueueEvent(m_MainFrame, evt.Clone());
 
 	// Go to the best captured position
+#ifndef _DEBUG
 	if (m_MaxElementDuringCapturing)
 	{
+#endif // !_DEBUG
 		auto message = wxString(
 			"The maximum value was: " + wxString::Format(wxT("%ld"), m_MaxElementDuringCapturing) + "\n" 
 			+ " at position: "  + wxString::Format(wxT("%.3f"), m_BestFirstAxisPosition)
 		);
 		message += "\nDo you want to move stage to the best position?";
-		if (
-			wxMessageBox
-			(
+		auto bmp = CreateGraph
+		(
+			m_AllMaxElementsDuringCapturing.get(), 
+			m_AllSumsDuringCapturing.get(),
+			m_FirstAxis->step_number, 
+			1920, 1080, 
+			"Measurement Number", "Count", "Events"
+		);
+		SaveGraph(bmp, "src\\measurement.bmp");
+		
+		if (wxMessageBox
+		(
 			message,
 			"Move stage?",
-			wxICON_QUESTION | wxYES_NO) == wxYES
-			)
+			wxICON_QUESTION | wxYES_NO
+		) == wxYES)
 		{
 			MoveFirstStage(m_BestFirstAxisPosition);
 			m_MainFrame->UpdateStagePositions();
 		}
+#ifndef _DEBUG
 	}
+#endif // !_DEBUG
 
 	return (wxThread::ExitCode)0;
 }
@@ -2831,6 +2847,23 @@ auto WorkerThread::CaptureAndSaveData
 		unsigned long long sum{};
 		sum = std::accumulate(&mca[0], &mca[m_KetekHandler->GetDataSize()], sum);
 
+		m_AllSumsDuringCapturing[image_number - 1] = sum;
+#ifdef _DEBUG
+		{
+			// Seed with a real random value, if available
+			std::random_device rd;
+
+			// Choose a random number generator
+			std::mt19937 gen(rd());
+
+			// Define the range [22500, 23500]
+			std::uniform_int_distribution<> dis(22500, 23500);
+
+			m_AllSumsDuringCapturing[image_number - 1] = dis(gen);;
+		}
+#endif // DEBUG
+
+
 		auto maxElement = MainFrameVariables::WriteMCAFile
 		(
 			file_name, 
@@ -2839,6 +2872,22 @@ auto WorkerThread::CaptureAndSaveData
 			sum,
 			m_ExposureTimeSeconds
 		);
+
+		m_AllMaxElementsDuringCapturing[image_number - 1] = maxElement;
+#ifdef _DEBUG
+		{
+			// Seed with a real random value, if available
+			std::random_device rd;
+
+			// Choose a random number generator
+			std::mt19937 gen(rd());
+
+			// Define the range [22500, 23500]
+			std::uniform_int_distribution<> dis(150, 250);
+
+			m_AllMaxElementsDuringCapturing[image_number - 1] = dis(gen);;
+		}
+#endif // DEBUG
 
 		if (maxElement > m_MaxElementDuringCapturing)
 		{
@@ -2849,6 +2898,146 @@ auto WorkerThread::CaptureAndSaveData
 
 	return true;
 }
+
+wxBitmap WorkerThread::CreateGraph
+(
+	const unsigned long* const countData,
+	const unsigned long long* const sumData,
+	unsigned int dataSize,
+	int width, 
+	int height, 
+	const wxString& xAxisLabel, 
+	const wxString& leftYAxisLabel,
+	const wxString& rightYAxisLabel
+)
+{
+	wxBitmap bitmap(width, height);
+	wxMemoryDC dc(bitmap);
+
+	// Clear the bitmap
+	dc.SetBackground(*wxBLACK_BRUSH);
+	dc.Clear();
+
+	wxFont font = wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
+	wxColour countColour = wxColour(160, 240, 180);
+	wxColour sumColour = wxColour(255, 128, 0);
+	wxColour horizontalAxisColour = wxColour(255, 255, 255);
+
+	auto graphRect = wxRect(50, 10, width - 50 - 50, height - 50 - 10);
+
+	// Draw the axes
+	dc.SetPen(wxPen(horizontalAxisColour));
+	dc.DrawLine(graphRect.GetLeft(), graphRect.GetBottom(), graphRect.GetRight(), graphRect.GetBottom()); // X-axis
+	//dc.DrawLine(50, height - 50, width - 50, height - 50); // X-axis
+	dc.SetPen(wxPen(countColour));
+	dc.DrawLine(graphRect.GetLeft(), graphRect.GetBottom(), graphRect.GetLeft(), graphRect.GetTop()); // Left Y-axis
+	//dc.DrawLine(50, height - 50, 50, 10); // Left Y-axis
+	dc.SetPen(wxPen(sumColour));
+	dc.DrawLine(graphRect.GetRight(), graphRect.GetBottom(), graphRect.GetRight(), graphRect.GetTop()); // Right Y-axis
+	//dc.DrawLine(width - 50, height - 50, width - 50, 10); // Right Y-axis
+
+	// Label the axes
+	dc.SetFont(font);
+	dc.SetTextForeground(horizontalAxisColour);
+	dc.DrawText(xAxisLabel, (width / 2) - (dc.GetTextExtent(xAxisLabel).GetWidth() / 2), height - 40);
+	dc.SetTextForeground(countColour);
+	dc.DrawRotatedText(leftYAxisLabel, 10, (height / 2) + (dc.GetTextExtent(leftYAxisLabel).GetWidth() / 2), 90);
+	dc.SetTextForeground(sumColour);
+	dc.DrawRotatedText(rightYAxisLabel, width - 10, (height / 2) - (dc.GetTextExtent(rightYAxisLabel).GetWidth() / 2), 270);
+
+	if (dataSize <= 1)
+	{
+		dc.SelectObject(wxNullBitmap);
+		return bitmap;
+	}
+
+	// Draw the data curves
+	unsigned long maxSumValue = 0;
+	unsigned long maxCountValue = 0;
+	for (size_t i = 0; i < dataSize; ++i) 
+	{
+		if (sumData[i] > maxSumValue) 
+		{
+			maxSumValue = sumData[i];
+		}
+		if (countData[i] > maxCountValue) 
+		{
+			maxCountValue = countData[i];
+		}
+	}
+
+	maxSumValue = std::ceil(maxSumValue);
+
+	maxCountValue = std::ceil(maxCountValue);
+
+	maxSumValue = maxSumValue <= 0 ? 1 : maxSumValue;
+	maxCountValue = maxCountValue <= 0 ? 1 : maxCountValue;
+
+	// Draw the Right Axis Scale
+	{
+		auto sumAxisVerticalalLinesCount = maxSumValue / 10 > 0 ? 10 : maxSumValue;
+		auto sumAxisVerticalStep = (height - 50 - 10) / sumAxisVerticalalLinesCount;
+		auto widthHorizontalLine = 8;
+
+		for (auto i{ 0 }; i <= sumAxisVerticalalLinesCount; ++i)
+		{
+			if (!i) continue;
+
+			dc.DrawLine(
+				graphRect.GetRight() - widthHorizontalLine / 2,
+				graphRect.GetBottom() - i * sumAxisVerticalStep,
+				graphRect.GetRight() + widthHorizontalLine / 2,
+				graphRect.GetBottom() - i * sumAxisVerticalStep
+			); // Right Y-axis
+		}
+	}
+
+	for (size_t i = 1; i < dataSize; ++i) 
+	{
+		// Draw sumData curve
+		dc.SetPen(wxPen(sumColour, 2));
+		int x1 = graphRect.GetLeft() + (i - 1) * graphRect.GetWidth() / (dataSize - 1);
+		//int x1 = 50 + (i - 1) * (width - 100) / (dataSize - 1);
+		int y1 = height - graphRect.GetTop() - sumData[i - 1] * graphRect.GetHeight() / maxSumValue;
+		//int y1 = height - 50 - sumData[i - 1] * (height - 60) / maxSumValue;
+		int x2 = graphRect.GetLeft() + i * graphRect.GetWidth() / (dataSize - 1);
+		//int x2 = 50 + i * (width - 100) / (dataSize - 1);
+		int y2 = height - graphRect.GetTop() - sumData[i] * graphRect.GetHeight() / maxSumValue;
+		//int y2 = height - 50 - sumData[i] * (height - 60) / maxSumValue;
+		dc.DrawLine(x1, y1, x2, y2);
+
+		// Draw countData curve
+		dc.SetPen(wxPen(countColour, 2));
+		y1 = height - graphRect.GetTop() - countData[i - 1] * graphRect.GetHeight() / maxCountValue;
+		//y1 = height - 50 - countData[i - 1] * (height - 60) / maxCountValue;
+		y2 = height - graphRect.GetTop() - countData[i] * graphRect.GetHeight() / maxCountValue;
+		//y2 = height - 50 - countData[i] * (height - 60) / maxCountValue;
+		dc.DrawLine(x1, y1, x2, y2);
+	}
+
+	// Release the device context
+	dc.SelectObject(wxNullBitmap);
+	return bitmap;
+}
+
+auto WorkerThread::SaveGraph(const wxBitmap& bitmap, const wxString filePath) -> void
+{
+	if (bitmap.IsOk()) 
+	{
+		// Save the bitmap as a BMP file
+		//wxString filePath = wxT("output.bmp");
+		if (!bitmap.SaveFile(filePath, wxBITMAP_TYPE_BMP)) 
+		{
+			wxLogError("Failed to save bitmap to %s", filePath);
+			//wxLogMessage("Bitmap saved successfully to %s", filePath);
+		}
+	}
+	else 
+	{
+		wxLogError("Bitmap is not valid.");
+	}
+}
+
 auto WorkerThread::MoveFirstStage(const float position) -> float
 {
 	float firstAxisPos{};
@@ -3105,4 +3294,3 @@ void ProgressPanel::OnSize(wxSizeEvent& evt)
 	}
 }
 /* ___ End ProgressPanel ___ */
-

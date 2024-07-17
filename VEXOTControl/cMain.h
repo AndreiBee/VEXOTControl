@@ -14,6 +14,7 @@
 #include <chrono>
 #include <utility>
 #include <algorithm>
+#include <random>
 
 #include "json.hpp"
 
@@ -896,7 +897,7 @@ private:
 	bool* m_ContinueCapturing{};
 	int m_ExposureSeconds{};
 };
-/* ___ End Worker Thread ___ */
+/* ___ End Live Capturing Thread ___ */
 
 /* ___ Start Worker Theread ___ */
 class WorkerThread final: public wxThread
@@ -946,6 +947,20 @@ private:
 		const std::string& seconds
 	) -> bool;
 
+	wxBitmap CreateGraph
+	(
+		const unsigned long* const countData,
+		const unsigned long long* const sumData,
+		unsigned int dataSize,
+		int width, 
+		int height, 
+		const wxString& xAxisLabel, 
+		const wxString& leftYAxisLabel,
+		const wxString& rightYAxisLabel
+	);
+
+	auto SaveGraph(const wxBitmap& bitmap, const wxString filePath) -> void;
+
 	auto MoveFirstStage(const float position) -> float;
 
 	auto SaveImageOnDisk(const int& image_number) -> bool;
@@ -960,6 +975,8 @@ private:
 	unsigned long m_ExposureTimeSeconds{};
 	MainFrameVariables::AxisMeasurement* m_FirstAxis{}, * m_SecondAxis{};
 	unsigned long m_MaxElementDuringCapturing{};
+	std::unique_ptr<unsigned long[]> m_AllMaxElementsDuringCapturing{};
+	std::unique_ptr<unsigned long long[]> m_AllSumsDuringCapturing{};
 	float m_BestFirstAxisPosition{}, m_BestSecondAxisPosition{};
 };
 /* ___ End Worker Thread ___ */
