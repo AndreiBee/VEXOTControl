@@ -988,8 +988,8 @@ private:
 	std::unique_ptr<unsigned long[]> m_AllMaxElementsDuringCapturing{};
 	std::unique_ptr<unsigned long long[]> m_AllSumsDuringCapturing{};
 	float m_BestFirstAxisPosition{}, m_BestSecondAxisPosition{};
-	const wxString m_MeasurementGraphFilePath{ "src\\measurement.bmp" };
-	const wxString m_MeasurementGraphTxtFilePath{ "src\\measurement.txt" };
+	wxString m_MeasurementGraphFilePath{};
+	wxString m_MeasurementGraphTxtFilePath{};
 };
 /* ___ End Worker Thread ___ */
 

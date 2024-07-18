@@ -12,6 +12,8 @@
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 VEXOTControl/src/dbg_fld/*.mca
+VEXOTControl/src/dbg_fld/*.bmp
+VEXOTControl/src/dbg_fld/*.txt
 VEXOTControl/src/*.bmp
 VEXOTControl/src/*.txt
 *.userprefs

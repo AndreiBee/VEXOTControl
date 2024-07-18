@@ -2680,6 +2680,11 @@ wxThread::ExitCode WorkerThread::Entry()
 	auto cur_mins = str_time.substr(3, 2);
 	auto cur_secs = str_time.substr(6, 2);
 
+	auto graphFileName = m_DataPath + wxString("\\") + wxString("ktk_measurement_result_") + cur_hours + wxString("H_") + cur_mins + wxString("M_") + cur_secs + wxString("S");
+
+	m_MeasurementGraphFilePath = graphFileName + wxString(".bmp");
+	m_MeasurementGraphTxtFilePath = graphFileName + wxString(".txt");
+
 	wxThreadEvent evt(wxEVT_THREAD, MainFrameVariables::ID_THREAD_MAIN_CAPTURING);
 
 	auto mcaData = std::make_unique<unsigned long[]>(m_KetekHandler->GetDataSize());
@@ -2774,7 +2779,7 @@ wxThread::ExitCode WorkerThread::Entry()
 		auto message = wxString(
 			"The maximum value was: " + wxString::Format(wxT("%ld"), m_MaxElementDuringCapturing) + '\n'
 			+ "at position: "  + wxString::Format(wxT("%.3f"), m_BestFirstAxisPosition) + '\n'
-			+ "measurement number: " + wxString::Format(wxT("%i"), m_BestMeasurementNumber)
+			+ "measurement number: " + wxString::Format(wxT("%i"), (int)m_BestMeasurementNumber + 1)
 		);
 		message += "\nDo you want to move stage to the best position?";
 
@@ -2942,7 +2947,7 @@ wxBitmap WorkerThread::CreateGraph
 	dc.SetBackground(*wxBLACK_BRUSH);
 	dc.Clear();
 
-	if (dataSize <= 1)
+	if (dataSize <= 1 || !countData || !sumData)
 	{
 		dc.SelectObject(wxNullBitmap);
 		return bitmap;
@@ -2952,6 +2957,7 @@ wxBitmap WorkerThread::CreateGraph
 	wxColour countColour = wxColour(160, 240, 180);
 	wxColour sumColour = wxColour(255, 128, 0);
 	wxColour horizontalAxisColour = wxColour(255, 255, 255);
+	wxColour cellColour = wxColour(90, 90, 90, 120);
 
 	auto graphRect = wxRect
 	(
@@ -2967,6 +2973,25 @@ wxBitmap WorkerThread::CreateGraph
 	{
 		auto verticalLineHeight = 4;
 		auto horizontalStep = (wxDouble)graphRect.GetWidth() / (dataSize - 1);
+
+		// Draw Cell
+		// Vertical Lines
+		{
+			dc.SetPen(wxPen(cellColour, 1, wxPENSTYLE_LONG_DASH));
+			for (auto i{ 0 }; i < dataSize; ++i)
+			{
+				if (!i || i == dataSize - 1) continue;
+
+				dc.DrawLine
+				(
+					graphRect.GetLeft() + i * horizontalStep,
+					graphRect.GetTop(),
+					graphRect.GetLeft() + i * horizontalStep,
+					graphRect.GetBottom()
+				);
+			}
+		}
+
 		dc.SetPen(wxPen(horizontalAxisColour));
 		dc.DrawLine
 		(
@@ -3000,6 +3025,7 @@ wxBitmap WorkerThread::CreateGraph
 				graphRect.GetBottom() + verticalLineHeight + 4
 			);
 		}
+
 	}
 
 	//dc.DrawLine(50, height - 50, width - 50, height - 50); // X-axis
@@ -3065,8 +3091,60 @@ wxBitmap WorkerThread::CreateGraph
 	//curr_value += wxString::Format(wxT("%llu"), m_SumData);
 	wxDouble widthText{}, heightText{};
 
+
+	// Draw the Left Axis Ruler
+	{
+		auto countAxisVerticalalLinesCount = maxCountValue / 10 > 0 ? 10 : maxCountValue;
+		auto countAxisVerticalStep = graphRect.GetHeight() / countAxisVerticalalLinesCount;
+		auto widthHorizontalLine = 8;
+
+		// Draw Cell
+		// Horizontal Lines
+		{
+			dc.SetPen(wxPen(cellColour, 1, wxPENSTYLE_LONG_DASH));
+			for (auto i{ 0 }; i <= countAxisVerticalalLinesCount; ++i)
+			{
+				if (!i) continue;
+
+				dc.DrawLine
+				(
+					graphRect.GetLeft(),
+					graphRect.GetBottom() - i * countAxisVerticalStep,
+					graphRect.GetRight(),
+					graphRect.GetBottom() - i * countAxisVerticalStep
+				);
+			}
+		}
+
+		dc.SetPen(wxPen(countColour));
+		dc.SetTextForeground(countColour);
+
+		for (auto i{ 0 }; i <= countAxisVerticalalLinesCount; ++i)
+		{
+			currTextValue = wxString::Format(wxT("%i"), (int)maxCountValue / countAxisVerticalalLinesCount * i);
+			auto textSize = dc.GetTextExtent(currTextValue);
+			dc.DrawText
+			(
+				currTextValue, 
+				graphRect.GetLeft() - textSize.GetWidth() - widthHorizontalLine / 2 - 2,
+				graphRect.GetBottom() - textSize.GetHeight() / 2 - countAxisVerticalStep * i
+			);
+
+			if (!i) continue;
+
+			dc.DrawLine(
+				graphRect.GetLeft() - widthHorizontalLine / 2,
+				graphRect.GetBottom() - i * countAxisVerticalStep,
+				graphRect.GetLeft() + widthHorizontalLine / 2,
+				graphRect.GetBottom() - i * countAxisVerticalStep
+			); // Left Y-axis
+		}
+	}
+
 	// Draw the Right Axis Ruler
 	{
+		dc.SetPen(wxPen(sumColour));
+		dc.SetTextForeground(sumColour);
 		auto sumAxisVerticalalLinesCount = maxSumValue / 10 > 0 ? 10 : maxSumValue;
 		auto sumAxisVerticalStep = graphRect.GetHeight() / sumAxisVerticalalLinesCount;
 		auto widthHorizontalLine = 8;
@@ -3092,37 +3170,6 @@ wxBitmap WorkerThread::CreateGraph
 			); // Right Y-axis
 		}
 	}
-
-	// Draw the Left Axis Ruler
-	{
-		dc.SetPen(wxPen(countColour));
-		dc.SetTextForeground(countColour);
-		auto countAxisVerticalalLinesCount = maxCountValue / 10 > 0 ? 10 : maxCountValue;
-		auto countAxisVerticalStep = graphRect.GetHeight() / countAxisVerticalalLinesCount;
-		auto widthHorizontalLine = 8;
-
-		for (auto i{ 0 }; i <= countAxisVerticalalLinesCount; ++i)
-		{
-			currTextValue = wxString::Format(wxT("%i"), (int)maxCountValue / countAxisVerticalalLinesCount * i);
-			auto textSize = dc.GetTextExtent(currTextValue);
-			dc.DrawText
-			(
-				currTextValue, 
-				graphRect.GetLeft() - textSize.GetWidth() - widthHorizontalLine / 2 - 2,
-				graphRect.GetBottom() - textSize.GetHeight() / 2 - countAxisVerticalStep * i
-			);
-
-			if (!i) continue;
-
-			dc.DrawLine(
-				graphRect.GetLeft() - widthHorizontalLine / 2,
-				graphRect.GetBottom() - i * countAxisVerticalStep,
-				graphRect.GetLeft() + widthHorizontalLine / 2,
-				graphRect.GetBottom() - i * countAxisVerticalStep
-			); // Left Y-axis
-		}
-	}
-
 
 	// Draw the actual data
 	for (size_t i = 1; i < dataSize; ++i) 
@@ -3192,6 +3239,8 @@ auto WorkerThread::SaveGraphTxt
 	const wxString timestamp
 ) -> void
 {
+	if (!countData || !sumData) return;
+
 	std::ofstream outFile;
 
 	outFile.open(m_MeasurementGraphTxtFilePath.ToStdString());
