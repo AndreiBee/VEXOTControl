@@ -956,10 +956,19 @@ private:
 		int height, 
 		const wxString& xAxisLabel, 
 		const wxString& leftYAxisLabel,
-		const wxString& rightYAxisLabel
+		const wxString& rightYAxisLabel,
+		const wxString& timestamp
 	);
 
 	auto SaveGraph(const wxBitmap& bitmap, const wxString filePath) -> void;
+
+	auto SaveGraphTxt
+	(
+		const unsigned long* const countData,
+		const unsigned long long* const sumData,
+		const unsigned int dataSize,
+		const wxString timestamp
+	) -> void;
 
 	auto MoveFirstStage(const float position) -> float;
 
@@ -975,9 +984,12 @@ private:
 	unsigned long m_ExposureTimeSeconds{};
 	MainFrameVariables::AxisMeasurement* m_FirstAxis{}, * m_SecondAxis{};
 	unsigned long m_MaxElementDuringCapturing{};
+	int m_BestMeasurementNumber{};
 	std::unique_ptr<unsigned long[]> m_AllMaxElementsDuringCapturing{};
 	std::unique_ptr<unsigned long long[]> m_AllSumsDuringCapturing{};
 	float m_BestFirstAxisPosition{}, m_BestSecondAxisPosition{};
+	const wxString m_MeasurementGraphFilePath{ "src\\measurement.bmp" };
+	const wxString m_MeasurementGraphTxtFilePath{ "src\\measurement.txt" };
 };
 /* ___ End Worker Thread ___ */
 
