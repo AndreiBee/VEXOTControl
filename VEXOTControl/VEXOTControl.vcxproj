@@ -114,6 +114,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalIncludeDirectories>$(OPENCV)\..\..\include;$(WXWIN_LATEST)\include; $(WXWIN_LATEST)\include\msvc;$(ProjectDir)src\third_libs\rapidxml;$(XIMC);$(KETEK1226)\inc</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -132,6 +133,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalIncludeDirectories>$(OPENCV)\..\..\include;$(WXWIN_LATEST)\include; $(WXWIN_LATEST)\include\msvc;$(ProjectDir)src\third_libs\rapidxml;$(XIMC);$(KETEK1226)\inc</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
