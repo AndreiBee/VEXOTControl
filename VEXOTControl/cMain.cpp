@@ -2944,7 +2944,8 @@ wxBitmap WorkerThread::CreateGraph
 	wxMemoryDC dc(bitmap);
 
 	// Clear the bitmap
-	dc.SetBackground(*wxBLACK_BRUSH);
+	dc.SetBackground(*wxWHITE_BRUSH);
+	//dc.SetBackground(*wxBLACK_BRUSH);
 	dc.Clear();
 
 	if (dataSize <= 1 || !countData || !sumData)
@@ -2954,9 +2955,10 @@ wxBitmap WorkerThread::CreateGraph
 	}
 
 	wxFont font = wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
-	wxColour countColour = wxColour(160, 240, 180);
-	wxColour sumColour = wxColour(255, 128, 0);
-	wxColour horizontalAxisColour = wxColour(255, 255, 255);
+	wxColour countColour = wxColour(34, 177, 76);
+	wxColour sumColour = wxColour(255, 128, 64);
+	//wxColour horizontalAxisColour = wxColour(255, 255, 255);
+	wxColour horizontalAxisColour = wxColour(0, 0, 0);
 	wxColour cellColour = wxColour(90, 90, 90, 120);
 
 	auto graphRect = wxRect
@@ -3046,6 +3048,7 @@ wxBitmap WorkerThread::CreateGraph
 			(width / 2) - (dc.GetTextExtent(xAxisLabel).GetWidth() / 2),
 			height - 40
 		);
+
 		dc.SetTextForeground(countColour);
 		dc.DrawRotatedText
 		(
@@ -3054,6 +3057,7 @@ wxBitmap WorkerThread::CreateGraph
 			(height / 2) + (dc.GetTextExtent(leftYAxisLabel).GetWidth() / 2),
 			90
 		);
+
 		dc.SetTextForeground(sumColour);
 		dc.DrawRotatedText
 		(
