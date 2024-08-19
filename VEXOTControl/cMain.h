@@ -951,6 +951,7 @@ private:
 	(
 		const unsigned long* const countData,
 		const unsigned long long* const sumData,
+		const float* const positionsData,
 		unsigned int dataSize,
 		int width, 
 		int height, 

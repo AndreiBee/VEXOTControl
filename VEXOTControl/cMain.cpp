@@ -2694,6 +2694,7 @@ wxThread::ExitCode WorkerThread::Entry()
 
 	float first_axis_rounded_go_to{};
 	float first_axis_position{}, second_axis_position{};
+	auto positionsArray = std::make_unique<float[]>(m_FirstAxis->step_number);
 	for (auto i{ 0 }; i < m_FirstAxis->step_number; ++i)
 	{
 		if (!*m_ContinueCapturing)
@@ -2711,6 +2712,7 @@ wxThread::ExitCode WorkerThread::Entry()
 		first_axis_rounded_go_to = correctedPos / 1000.f;
 
 		first_axis_position = MoveFirstStage(first_axis_rounded_go_to);
+		positionsArray[i] = first_axis_rounded_go_to;
 
 		if (!CaptureAndSaveData
 		(
@@ -2792,6 +2794,7 @@ wxThread::ExitCode WorkerThread::Entry()
 		(
 			m_AllMaxElementsDuringCapturing.get(), 
 			m_AllSumsDuringCapturing.get(),
+			positionsArray.get(),
 			m_FirstAxis->step_number, 
 			1920, 1080, 
 			"Measurement Number", 
@@ -2931,6 +2934,7 @@ wxBitmap WorkerThread::CreateGraph
 (
 	const unsigned long* const countData,
 	const unsigned long long* const sumData,
+	const float* const positionsData,
 	unsigned int dataSize,
 	int width, 
 	int height, 
@@ -2955,11 +2959,14 @@ wxBitmap WorkerThread::CreateGraph
 	}
 
 	wxFont font = wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
+	dc.SetFont(font);
 	wxColour countColour = wxColour(34, 177, 76);
 	wxColour sumColour = wxColour(255, 128, 64);
 	//wxColour horizontalAxisColour = wxColour(255, 255, 255);
 	wxColour horizontalAxisColour = wxColour(0, 0, 0);
-	wxColour cellColour = wxColour(90, 90, 90, 120);
+	wxColour cellColour = wxColour(90, 90, 90, 80);
+	wxColour gaussianCurveColour = wxColour(181, 230, 29, 100);
+	wxColour highlightingBestMeasurementColour = wxColour(255, 0, 0, 230);
 
 	auto graphRect = wxRect
 	(
@@ -2970,6 +2977,7 @@ wxBitmap WorkerThread::CreateGraph
 	);
 
 	wxString currTextValue{};
+	wxDouble widthText{}, heightText{};
 	// Draw the axes
 	// X - Axis
 	{
@@ -2980,8 +2988,22 @@ wxBitmap WorkerThread::CreateGraph
 		// Vertical Lines
 		{
 			dc.SetPen(wxPen(cellColour, 1, wxPENSTYLE_LONG_DASH));
+			dc.SetTextForeground(cellColour);
 			for (auto i{ 0 }; i < dataSize; ++i)
 			{
+
+				currTextValue = wxString::Format(wxT("%.3f"), positionsData[i]);
+				auto textSize = dc.GetTextExtent(currTextValue);
+
+				dc.DrawRotatedText
+				(
+					currTextValue,
+					i == dataSize - 1 ? graphRect.GetRight() - textSize.GetHeight() + 12
+					: graphRect.GetLeft() + i * horizontalStep + textSize.GetHeight() + 5,
+					graphRect.GetBottom() - textSize.GetWidth() - 15,
+					270
+				);
+
 				if (!i || i == dataSize - 1) continue;
 
 				dc.DrawLine
@@ -3003,7 +3025,6 @@ wxBitmap WorkerThread::CreateGraph
 			graphRect.GetBottom()
 		); // X-axis
 
-		dc.SetFont(font);
 		dc.SetTextForeground(horizontalAxisColour);
 
 		// Draw vertical lines
@@ -3069,9 +3090,14 @@ wxBitmap WorkerThread::CreateGraph
 	}
 
 
+
 	// Draw the data curves
 	unsigned long maxSumValue = 0;
+	auto minSumValue = *std::min_element(sumData, sumData + dataSize);
+	minSumValue = (int)(std::floor(minSumValue / 10.0) * 10);
 	unsigned long maxCountValue = 0;
+	auto minCountValue = *std::min_element(countData, countData + dataSize);
+	minCountValue = (int)(std::floor(minCountValue / 10.0) * 10);
 	for (size_t i = 0; i < dataSize; ++i) 
 	{
 		if (sumData[i] > maxSumValue) 
@@ -3093,12 +3119,12 @@ wxBitmap WorkerThread::CreateGraph
 
 	//curr_value += "Events: ";
 	//curr_value += wxString::Format(wxT("%llu"), m_SumData);
-	wxDouble widthText{}, heightText{};
 
 
 	// Draw the Left Axis Ruler
 	{
-		auto countAxisVerticalalLinesCount = maxCountValue / 10 > 0 ? 10 : maxCountValue;
+		auto countAxisVerticalalLinesCount = (maxCountValue - minCountValue) / 10 > 0 ? 10 : maxCountValue - minCountValue;
+		countAxisVerticalalLinesCount = countAxisVerticalalLinesCount ? countAxisVerticalalLinesCount : 10;
 		auto countAxisVerticalStep = graphRect.GetHeight() / countAxisVerticalalLinesCount;
 		auto widthHorizontalLine = 8;
 
@@ -3125,7 +3151,7 @@ wxBitmap WorkerThread::CreateGraph
 
 		for (auto i{ 0 }; i <= countAxisVerticalalLinesCount; ++i)
 		{
-			currTextValue = wxString::Format(wxT("%i"), (int)maxCountValue / countAxisVerticalalLinesCount * i);
+			currTextValue = wxString::Format(wxT("%i"), (int)((maxCountValue - minCountValue) / countAxisVerticalalLinesCount * i + minCountValue));
 			auto textSize = dc.GetTextExtent(currTextValue);
 			dc.DrawText
 			(
@@ -3149,13 +3175,14 @@ wxBitmap WorkerThread::CreateGraph
 	{
 		dc.SetPen(wxPen(sumColour));
 		dc.SetTextForeground(sumColour);
-		auto sumAxisVerticalalLinesCount = maxSumValue / 10 > 0 ? 10 : maxSumValue;
+		auto sumAxisVerticalalLinesCount = (maxSumValue - minSumValue) / 10 > 0 ? 10 : maxSumValue - minSumValue;
+		sumAxisVerticalalLinesCount = sumAxisVerticalalLinesCount ? sumAxisVerticalalLinesCount : 10;
 		auto sumAxisVerticalStep = graphRect.GetHeight() / sumAxisVerticalalLinesCount;
 		auto widthHorizontalLine = 8;
 
 		for (auto i{ 0 }; i <= sumAxisVerticalalLinesCount; ++i)
 		{
-			currTextValue = wxString::Format(wxT("%i"), (int)maxSumValue / sumAxisVerticalalLinesCount * i);
+			currTextValue = wxString::Format(wxT("%i"), (int)((maxSumValue - minSumValue) / sumAxisVerticalalLinesCount * i + minSumValue));
 			auto textSize = dc.GetTextExtent(currTextValue);
 			dc.DrawText
 			(
@@ -3175,6 +3202,46 @@ wxBitmap WorkerThread::CreateGraph
 		}
 	}
 
+	// Calculation the Normal Distribution from sumData and Draw them
+	{
+		// Calculate mean
+		double mean = std::accumulate(sumData, sumData + dataSize, 0.0) / dataSize;
+		// Calculate standard deviation
+		double sum_squared_diff = 0.0;
+		for (auto i{0}; i < dataSize; ++i)
+		{
+			auto value = sumData[i];
+			sum_squared_diff += (value - mean) * (value - mean);
+		}
+		double stddev = std::sqrt(sum_squared_diff / dataSize);
+
+		auto pdfArray = std::make_unique<double[]>(dataSize);
+		// Calculating the normal distribution for a value
+		for (auto i{ 0 }; i < dataSize; ++i)
+		{
+			auto x = (double)sumData[i];
+			// Probability Density Function
+			double pdf = (1.0 / (stddev * std::sqrt(2 * M_PI))) * std::exp(-0.5 * std::pow((x - mean) / stddev, 2));
+			pdfArray[i] = pdf;
+		}
+
+		// Draw Gaussian curve
+		for (auto i{ 1 }; i < dataSize; ++i)
+		{
+			dc.SetPen(wxPen(gaussianCurveColour, 2));
+			int x1 = graphRect.GetLeft() + (i - 1) * graphRect.GetWidth() / (dataSize - 1);
+			//int x1 = 50 + (i - 1) * (width - 100) / (dataSize - 1);
+			int y1 = graphRect.GetBottom() - (pdfArray[i - 1] - minSumValue) * graphRect.GetHeight() / (maxSumValue - minSumValue);
+			//int y1 = height - 50 - sumData[i - 1] * (height - 60) / maxSumValue;
+			int x2 = graphRect.GetLeft() + i * graphRect.GetWidth() / (dataSize - 1);
+			//int x2 = 50 + i * (width - 100) / (dataSize - 1);
+			int y2 = graphRect.GetBottom() - (pdfArray[i] - minSumValue) * graphRect.GetHeight() / (maxSumValue - minSumValue);
+			//int y2 = height - 50 - sumData[i] * (height - 60) / maxSumValue;
+			dc.DrawLine(x1, y1, x2, y2);
+		}
+	}
+
+
 	// Draw the actual data
 	for (size_t i = 1; i < dataSize; ++i) 
 	{
@@ -3182,21 +3249,28 @@ wxBitmap WorkerThread::CreateGraph
 		dc.SetPen(wxPen(sumColour, 3));
 		int x1 = graphRect.GetLeft() + (i - 1) * graphRect.GetWidth() / (dataSize - 1);
 		//int x1 = 50 + (i - 1) * (width - 100) / (dataSize - 1);
-		int y1 = graphRect.GetBottom() - sumData[i - 1] * graphRect.GetHeight() / maxSumValue;
+		int y1 = graphRect.GetBottom() - (sumData[i - 1] - minSumValue) * graphRect.GetHeight() / (maxSumValue - minSumValue);
 		//int y1 = height - 50 - sumData[i - 1] * (height - 60) / maxSumValue;
 		int x2 = graphRect.GetLeft() + i * graphRect.GetWidth() / (dataSize - 1);
 		//int x2 = 50 + i * (width - 100) / (dataSize - 1);
-		int y2 = graphRect.GetBottom() - sumData[i] * graphRect.GetHeight() / maxSumValue;
+		int y2 = graphRect.GetBottom() - (sumData[i] - minSumValue) * graphRect.GetHeight() / (maxSumValue - minSumValue);
 		//int y2 = height - 50 - sumData[i] * (height - 60) / maxSumValue;
 		dc.DrawLine(x1, y1, x2, y2);
 
 		// Draw countData curve
 		dc.SetPen(wxPen(countColour, 3));
-		y1 = graphRect.GetBottom() - countData[i - 1] * graphRect.GetHeight() / maxCountValue;
+		y1 = graphRect.GetBottom() - (countData[i - 1] - minCountValue) * graphRect.GetHeight() / (maxCountValue - minCountValue);
 		//y1 = height - 50 - countData[i - 1] * (height - 60) / maxCountValue;
-		y2 = graphRect.GetBottom() - countData[i] * graphRect.GetHeight() / maxCountValue;
+		y2 = graphRect.GetBottom() - (countData[i] - minCountValue) * graphRect.GetHeight() / (maxCountValue - minCountValue);
 		//y2 = height - 50 - countData[i] * (height - 60) / maxCountValue;
 		dc.DrawLine(x1, y1, x2, y2);
+
+		// Highlighting the best value
+		if (m_MaxElementDuringCapturing == countData[i])
+		{
+			dc.SetPen(wxPen(highlightingBestMeasurementColour, 2));
+			dc.DrawCircle(wxPoint(x2, y2), 5);
+		}
 	}
 
 	// Placing a time stamp
