@@ -3202,6 +3202,7 @@ wxBitmap WorkerThread::CreateGraph
 		}
 	}
 
+#ifdef DRAW_NORMALDISTRIBUTION
 	// Calculation the Normal Distribution from sumData and Draw them
 	{
 		// Calculate mean
@@ -3226,9 +3227,9 @@ wxBitmap WorkerThread::CreateGraph
 		}
 
 		// Draw Gaussian curve
+		dc.SetPen(wxPen(gaussianCurveColour, 2));
 		for (auto i{ 1 }; i < dataSize; ++i)
 		{
-			dc.SetPen(wxPen(gaussianCurveColour, 2));
 			int x1 = graphRect.GetLeft() + (i - 1) * graphRect.GetWidth() / (dataSize - 1);
 			//int x1 = 50 + (i - 1) * (width - 100) / (dataSize - 1);
 			int y1 = graphRect.GetBottom() - (pdfArray[i - 1] - minSumValue) * graphRect.GetHeight() / (maxSumValue - minSumValue);
@@ -3240,6 +3241,7 @@ wxBitmap WorkerThread::CreateGraph
 			dc.DrawLine(x1, y1, x2, y2);
 		}
 	}
+#endif // DRAW_NORMALDISTRIBUTION
 
 
 	// Draw the actual data
