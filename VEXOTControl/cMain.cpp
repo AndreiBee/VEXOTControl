@@ -3275,6 +3275,24 @@ wxBitmap WorkerThread::CreateGraph
 		}
 	}
 
+	// Placing an Exposure value
+	auto exposureFinishX = 0;
+	{
+		dc.SetTextForeground(wxColour(0, 0, 0));
+		auto exposureStr = wxString::Format(wxT("%i"), (int)m_ExposureTimeSeconds);
+		exposureStr += " [s]";
+		auto textSize = dc.GetTextExtent(exposureStr);
+		auto startExposureTextX = 5;
+		exposureFinishX = startExposureTextX + textSize.GetWidth();
+
+		dc.DrawText
+		(
+			exposureStr, 
+			startExposureTextX,
+			height - textSize.GetHeight() - 5
+		);
+	}
+
 	// Placing a time stamp
 	{
 		dc.SetTextForeground(wxColour(255, 0, 0));
@@ -3283,10 +3301,11 @@ wxBitmap WorkerThread::CreateGraph
 		dc.DrawText
 		(
 			timestamp, 
-			5,
+			exposureFinishX + 15,
 			height - textSize.GetHeight() - 5
 		);
 	}
+
 
 	// Release the device context
 	dc.SelectObject(wxNullBitmap);
