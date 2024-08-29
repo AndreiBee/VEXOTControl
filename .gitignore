@@ -17,6 +17,7 @@ VEXOTControl/src/dbg_fld/*.txt
 VEXOTControl/src/*.bmp
 VEXOTControl/src/*.txt
 *.userprefs
+log.txt
 
 # Mono auto generated files
 mono_crash.*
