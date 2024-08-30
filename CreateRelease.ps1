@@ -1,7 +1,7 @@
-Write-Output "PowerShell script started at $(Get-Date)" >> "D:\Projects\RIGAKU\$repository_name\log.txt"
-
 # Define package name
 $repository_name = "VEXOTControl"
+
+Write-Output "PowerShell script started at $(Get-Date)" >> "D:\Projects\RIGAKU\$repository_name\log.txt"
 
 # Define major and minor version
 $major_version = "1"  # Replace with actual major version
