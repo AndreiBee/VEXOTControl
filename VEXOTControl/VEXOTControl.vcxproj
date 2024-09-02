@@ -113,15 +113,15 @@
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(OPENCV)\..\..\include;$(WXWIN_LATEST)\include; $(WXWIN_LATEST)\include\msvc;$(ProjectDir)src\third_libs\rapidxml;$(XIMC);$(KETEK1226)\inc</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(OPENCV_LATEST)\..\..\include;$(WXWIN_LATEST)\include; $(WXWIN_LATEST)\include\msvc;$(ProjectDir)src\third_libs\rapidxml;$(XIMC);$(KETEK1226)\inc</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(OPENCV)\lib;$(WXWIN_LATEST)\lib\vc_x64_lib;$(XIMC)\win64;$(KETEK1226)\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>handel.lib;opencv_world454d.lib;libximc.lib;bindy.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OPENCV_LATEST)\lib;$(WXWIN_LATEST)\lib\vc_x64_lib;$(XIMC)\win64;$(KETEK1226)\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>handel.lib;opencv_world4100d.lib;libximc.lib;bindy.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -132,7 +132,7 @@
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(OPENCV)\..\..\include;$(WXWIN_LATEST)\include; $(WXWIN_LATEST)\include\msvc;$(ProjectDir)src\third_libs\rapidxml;$(XIMC);$(KETEK1226)\inc</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(OPENCV_LATEST)\..\..\include;$(WXWIN_LATEST)\include; $(WXWIN_LATEST)\include\msvc;$(ProjectDir)src\third_libs\rapidxml;$(XIMC);$(KETEK1226)\inc</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
     </ClCompile>
@@ -141,8 +141,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(OPENCV)\lib;$(WXWIN_LATEST)\lib\vc_x64_lib;$(XIMC)\win64;$(KETEK1226)\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>handel.lib;opencv_world454.lib;libximc.lib;bindy.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OPENCV_LATEST)\lib;$(WXWIN_LATEST)\lib\vc_x64_lib;$(XIMC)\win64;$(KETEK1226)\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>handel.lib;opencv_world4100.lib;libximc.lib;bindy.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

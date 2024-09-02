@@ -2959,6 +2959,7 @@ wxBitmap WorkerThread::CreateGraph
 	}
 
 	wxFont font = wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
+	wxFont axisFont = wxFont(164, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
 	dc.SetFont(font);
 	wxColour countColour = wxColour(34, 177, 76);
 	wxColour sumColour = wxColour(255, 128, 64);
@@ -2967,6 +2968,7 @@ wxBitmap WorkerThread::CreateGraph
 	wxColour cellColour = wxColour(90, 90, 90, 80);
 	wxColour gaussianCurveColour = wxColour(181, 230, 29, 100);
 	wxColour highlightingBestMeasurementColour = wxColour(255, 0, 0, 230);
+	wxColour axisColour = wxColour(255, 0, 0, 64);
 
 	auto graphRect = wxRect
 	(
@@ -2977,6 +2979,44 @@ wxBitmap WorkerThread::CreateGraph
 	);
 
 	wxString currTextValue{};
+	// Draw Axis Name
+	{
+		// Draw text to a temporary wxImage
+		currTextValue = wxString(AxisNameToString(m_FirstAxis->axis_number));
+		dc.SetFont(axisFont);
+		wxSize textSize = dc.GetTextExtent(currTextValue);
+		wxBitmap tempBitmap(textSize.GetWidth(), textSize.GetHeight());
+		wxMemoryDC tempDC;
+		tempDC.SelectObject(tempBitmap);
+
+		// Clear temporary DC
+		tempDC.SetBackground(wxBrush(*wxWHITE));
+		tempDC.Clear();
+
+		// Set color and draw text onto the temporary DC
+		tempDC.SetTextForeground(axisColour);
+		tempDC.SetFont(axisFont);
+		tempDC.DrawText(currTextValue, 0, 0);
+
+		// Copy temporary bitmap to the main bitmap with alpha blending
+		wxImage tempImage = tempBitmap.ConvertToImage();
+		tempImage.InitAlpha(); // Ensure alpha channel is initialized
+		// Set the alpha channel for the text color
+		auto alpha = 16;
+		for (int y = 0; y < tempImage.GetHeight(); ++y) {
+			for (int x = 0; x < tempImage.GetWidth(); ++x) {
+					tempImage.SetAlpha(x, y, alpha);
+			}
+		}
+		wxBitmap finalBitmap = wxBitmap(tempImage);
+
+		dc.DrawBitmap(finalBitmap, 
+			graphRect.GetLeft() + graphRect.GetWidth() / 2 - textSize.GetWidth() / 2,
+			graphRect.GetBottom() - graphRect.GetHeight() / 2 - textSize.GetHeight() / 2
+		); // Draw final bitmap on memory DC
+	}
+
+	dc.SetFont(font);
 	wxDouble widthText{}, heightText{};
 	// Draw the axes
 	// X - Axis
@@ -2995,14 +3035,15 @@ wxBitmap WorkerThread::CreateGraph
 				currTextValue = wxString::Format(wxT("%.3f"), positionsData[i]);
 				auto textSize = dc.GetTextExtent(currTextValue);
 
-				dc.DrawRotatedText
-				(
-					currTextValue,
-					i == dataSize - 1 ? graphRect.GetRight() - textSize.GetHeight() + 12
-					: graphRect.GetLeft() + i * horizontalStep + textSize.GetHeight() + 5,
-					graphRect.GetBottom() - textSize.GetWidth() - 15,
-					270
-				);
+				if (dataSize < 80 || i == 0 || (i + 1) % 10 == 0)
+					dc.DrawRotatedText
+					(
+						currTextValue,
+						i == dataSize - 1 ? graphRect.GetRight() - textSize.GetHeight() + 12
+						: graphRect.GetLeft() + i * horizontalStep + textSize.GetHeight() + 2,
+						graphRect.GetBottom() - textSize.GetWidth() - 15,
+						270
+					);
 
 				if (!i || i == dataSize - 1) continue;
 
@@ -3041,12 +3082,13 @@ wxBitmap WorkerThread::CreateGraph
 				graphRect.GetBottom() + verticalLineHeight
 			);
 
-			dc.DrawText
-			(
-				currTextValue,
-				i == dataSize - 1 ? graphRect.GetRight() - textSize.GetWidth() / 2 : graphRect.GetLeft() + i * horizontalStep - textSize.GetWidth() / 2,
-				graphRect.GetBottom() + verticalLineHeight + 4
-			);
+			if (dataSize < 80 || i == 0 || (i + 1) % 10 == 0)
+				dc.DrawText
+				(
+					currTextValue,
+					i == dataSize - 1 ? graphRect.GetRight() - textSize.GetWidth() / 2 : graphRect.GetLeft() + i * horizontalStep - textSize.GetWidth() / 2,
+					graphRect.GetBottom() + verticalLineHeight + 4
+				);
 		}
 
 	}
@@ -3388,6 +3430,19 @@ auto WorkerThread::MoveFirstStage(const float position) -> float
 	}
 
 	return firstAxisPos;
+}
+
+auto WorkerThread::AxisNameToString(const int axis) -> std::string
+{
+	switch (axis) {
+	case SettingsVariables::DETECTOR_X:   return "DETECTOR X";
+	case SettingsVariables::OPTICS_X:   return "OPTICS X";
+	case SettingsVariables::OPTICS_Y:   return "OPTICS Y";
+	case SettingsVariables::OPTICS_Z:   return "OPTICS Z";
+	case SettingsVariables::OPTICS_PITCH:   return "OPTICS PITCH";
+	case SettingsVariables::OPTICS_YAW:   return "OPTICS YAW";
+	default:           return "Unknown";
+	}
 }
 /* ___ End Worker Thread ___ */
 

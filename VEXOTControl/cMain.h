@@ -975,6 +975,8 @@ private:
 
 	auto SaveImageOnDisk(const int& image_number) -> bool;
 
+	auto AxisNameToString(const int axis) -> std::string;
+
 private:
 	cMain* m_MainFrame{};
 	cSettings* m_Settings{};

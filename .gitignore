@@ -16,6 +16,7 @@ VEXOTControl/src/dbg_fld/*.bmp
 VEXOTControl/src/dbg_fld/*.txt
 VEXOTControl/src/*.bmp
 VEXOTControl/src/*.txt
+manifests/*
 *.userprefs
 log.txt
 
