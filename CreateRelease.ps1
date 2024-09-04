@@ -105,6 +105,22 @@ $fileHash
 ```
 "@
 
+# Create a manifest file
+$manifest_file = "D:\Projects\RIGAKU\$repository_name\RITE.$repository_name.yml"
+# Check if the directory exists before creating it
+$manifest_file_directory = "D:\Projects\RIGAKU\$repository_name\manifests\RITE\$repository_name\${major_version}.${minor_version}.${commit_number}"
+if (-Not (Test-Path -Path $manifest_file_directory)) {
+    New-Item -Path $manifest_file_directory -ItemType Directory
+} else {
+    Write-Host "Directory $manifest_file_directory already exists."
+}
+#New-Item -Path "D:\Projects\RIGAKU\$repository_name\manifests\RITE\$repository_name\" -Name "${major_version}.${minor_version}.${commit_number}" -ItemType "directory"
+$manifest_file_temp = "D:\Projects\RIGAKU\$repository_name\manifests\RITE\$repository_name\${major_version}.${minor_version}.${commit_number}\RITE.$repository_name.yml"
+Copy-Item -Path "$manifest_file" -Destination "$manifest_file_temp" -Force
+(Get-Content $manifest_file_temp) -replace "{#Major}", $major_version -replace "{#Minor}", $minor_version -replace "{#Build}", $commit_number -replace "{#Hash256}", $fileHash | Set-Content $manifest_file_temp
+#git add $manifest_file_temp
+#git commit --amend --no-edit
+
 # Upload to GitHub
 Write-Output "Upload $archive_name and ${repository_name}Installer_v$build_version.exe to GitHub [$(Get-Date)]" >> "D:\Projects\RIGAKU\$repository_name\log.txt"
 gh release create $tag_name $installer_path $archive_path --title "Release $tag_name" --notes "$release_notes"
