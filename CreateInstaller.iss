@@ -38,6 +38,9 @@ Name: "{commondesktop}\VEXOTControl"; Filename: "{app}\VEXOTControl.exe"; IconFi
 Name: "{commonprograms}\VEXOTControl"; Filename: "{app}\VEXOTControl.exe"; IconFilename: "{app}\logo.ico"
 Name: "{commonstartup}\VEXOTControl"; Filename: "{app}\VEXOTControl.exe"; IconFilename: "{app}\logo.ico"
 
+[Registry]
+Root: HKCU; Subkey: "SOFTWARE\RITE\VEXOTControl"; ValueType: string; ValueName: "InstallPath"; ValueData: "{app}"; Flags: createvalueifdoesntexist uninsdeletekey
+
 [Run]
 Filename: "{app}\VEXOTControl.exe"; Description: "{cm:LaunchProgram,VEXOTControl}"; Flags: nowait postinstall skipifsilent
 
@@ -49,34 +52,38 @@ Type: filesandordirs; Name: "{app}\src"
 Type: filesandordirs; Name: "{app}"
 
 [Code]
-function IsAppInstalled: Boolean;
+function GetInstallPath: string;
 var
   InstallPath: string;
 begin
-  // Define the installation path based on DefaultDirName
-  InstallPath := ExpandConstant('{localappdata}\Programs\VEXOTControl\VEXOTControl.exe');
-  
-  // Check if VEXOTControl.exe exists in the installation directory
-  if FileExists(InstallPath) then
+  // Initialize result to empty string
+  Result := '';
+
+  // Read the installation path from the registry
+  if RegQueryStringValue(HKCU, 'SOFTWARE\RITE\VEXOTControl', 'InstallPath', InstallPath) then
   begin
-    Result := True;  // Application is installed
-  end
-  else
-  begin
-    Result := False; // Application is not installed
+    Result := InstallPath;
   end;
 end;
 
 procedure InitializeWizard;
 var
-  ResultCode: Integer;  // Declare the ResultCode variable
+  InstallPath: string;
+  ResultCode: Integer;
 begin
-  // Check if the application is already installed by looking for VEXOTControl.exe
-  if IsAppInstalled then
+  // Get the installation path from the registry
+  InstallPath := GetInstallPath;
+
+  // Check if the application is already installed
+  if InstallPath <> '' then
   begin
     MsgBox('Previous installation detected. Uninstalling...', mbInformation, MB_OK);
+
+    // Construct the path to unins000.exe
+    InstallPath := ExpandConstant(InstallPath + '\unins000.exe');
+
     // Uninstall the existing application silently
-    if Exec(ExpandConstant('{localappdata}\Programs\VEXOTControl\unins000.exe'), '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
+    if Exec(InstallPath, '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
     begin
       if ResultCode <> 0 then
       begin

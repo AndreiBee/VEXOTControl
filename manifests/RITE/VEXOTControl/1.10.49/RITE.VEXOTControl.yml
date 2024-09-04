@@ -1,0 +1,16 @@
+Id: RITE.VEXOTControl
+Name: VEXOTControl
+Publisher: RITE
+Version: 1.10.49
+License: Proprietary
+LicenseUrl: https://www.gnu.org/licenses/gpl-3.0.txt
+Installers: 
+    - Arch: x64
+      InstallerType: exe
+      Url: https://github.com/AndreiBee/VEXOTControl/releases/download/v1.10.49/VEXOTControlInstaller_v1.10.49.exe
+      Sha256: DCCD17C6FBE88F8D85840CF6249CA33473E06A95D4E7B69B6A7743F46FEFDD90
+      Switches:
+        Silent: /SILENT
+        SilentWithProgress: /SILENT
+Description: VEXOTControl is a tool for controlling KETEK device.
+Homepage: https://github.com/AndreiBee/VEXOTControl

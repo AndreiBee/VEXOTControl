@@ -2775,7 +2775,7 @@ wxThread::ExitCode WorkerThread::Entry()
 
 	// Go to the best captured position
 #ifndef _DEBUG
-	if (m_MaxElementDuringCapturing)
+	if (m_MaxSumDuringCapturing)
 	{
 #endif // !_DEBUG
 		auto message = wxString(
@@ -2893,6 +2893,12 @@ auto WorkerThread::CaptureAndSaveData
 		}
 #endif // DEBUG
 
+		if (sum > m_MaxSumDuringCapturing)
+		{
+			m_MaxSumDuringCapturing = sum;
+			m_BestFirstAxisPosition = first_stage_position;
+			m_BestMeasurementNumber = image_number - 1;
+		}
 
 		auto maxElement = MainFrameVariables::WriteMCAFile
 		(
@@ -2919,12 +2925,12 @@ auto WorkerThread::CaptureAndSaveData
 		}
 #endif // DEBUG
 
-		if (maxElement > m_MaxElementDuringCapturing)
-		{
-			m_MaxElementDuringCapturing = maxElement;
-			m_BestFirstAxisPosition = first_stage_position;
-			m_BestMeasurementNumber = image_number - 1;
-		}
+		//if (maxElement > m_MaxElementDuringCapturing)
+		//{
+		//	m_MaxElementDuringCapturing = maxElement;
+		//	m_BestFirstAxisPosition = first_stage_position;
+		//	m_BestMeasurementNumber = image_number - 1;
+		//}
 	}
 
 	return true;
@@ -3301,6 +3307,13 @@ wxBitmap WorkerThread::CreateGraph
 		//int y2 = height - 50 - sumData[i] * (height - 60) / maxSumValue;
 		dc.DrawLine(x1, y1, x2, y2);
 
+		// Highlighting the best Sum value
+		if (m_MaxSumDuringCapturing == sumData[i])
+		{
+			dc.SetPen(wxPen(highlightingBestMeasurementColour, 2));
+			dc.DrawCircle(wxPoint(x2, y2), 5);
+		}
+
 		// Draw countData curve
 		dc.SetPen(wxPen(countColour, 3));
 		y1 = graphRect.GetBottom() - (countData[i - 1] - minCountValue) * graphRect.GetHeight() / (maxCountValue - minCountValue);
@@ -3309,12 +3322,12 @@ wxBitmap WorkerThread::CreateGraph
 		//y2 = height - 50 - countData[i] * (height - 60) / maxCountValue;
 		dc.DrawLine(x1, y1, x2, y2);
 
-		// Highlighting the best value
-		if (m_MaxElementDuringCapturing == countData[i])
-		{
-			dc.SetPen(wxPen(highlightingBestMeasurementColour, 2));
-			dc.DrawCircle(wxPoint(x2, y2), 5);
-		}
+		//// Highlighting the best value
+		//if (m_MaxElementDuringCapturing == countData[i])
+		//{
+		//	dc.SetPen(wxPen(highlightingBestMeasurementColour, 2));
+		//	dc.DrawCircle(wxPoint(x2, y2), 5);
+		//}
 	}
 
 	// Placing an Exposure value

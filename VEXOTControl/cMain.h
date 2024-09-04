@@ -986,7 +986,7 @@ private:
 	wxString m_DataPath{};
 	unsigned long m_ExposureTimeSeconds{};
 	MainFrameVariables::AxisMeasurement* m_FirstAxis{}, * m_SecondAxis{};
-	unsigned long m_MaxElementDuringCapturing{};
+	unsigned long m_MaxElementDuringCapturing{}, m_MaxSumDuringCapturing{};
 	int m_BestMeasurementNumber{};
 	std::unique_ptr<unsigned long[]> m_AllMaxElementsDuringCapturing{};
 	std::unique_ptr<unsigned long long[]> m_AllSumsDuringCapturing{};
