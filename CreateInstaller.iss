@@ -39,7 +39,7 @@ Name: "{commonprograms}\VEXOTControl"; Filename: "{app}\VEXOTControl.exe"; IconF
 Name: "{commonstartup}\VEXOTControl"; Filename: "{app}\VEXOTControl.exe"; IconFilename: "{app}\logo.ico"
 
 [Registry]
-Root: HKLM; Subkey: "SOFTWARE\RITE\VEXOTControl"; ValueType: string; ValueName: "InstallPath"; ValueData: "{app}"; Flags: createvalueifdoesntexist uninsdeletekey
+Root: HKCU; Subkey: "SOFTWARE\RITE\VEXOTControl"; ValueType: string; ValueName: "InstallPath"; ValueData: "{app}"; Flags: createvalueifdoesntexist uninsdeletekey
 
 [Run]
 Filename: "{app}\VEXOTControl.exe"; Description: "{cm:LaunchProgram,VEXOTControl}"; Flags: nowait postinstall skipifsilent
@@ -60,7 +60,7 @@ begin
   Result := '';
 
   // Read the installation path from the registry
-  if RegQueryStringValue(HKLM, 'SOFTWARE\RITE\VEXOTControl', 'InstallPath', InstallPath) then
+  if RegQueryStringValue(HKCU, 'SOFTWARE\RITE\VEXOTControl', 'InstallPath', InstallPath) then
   begin
     Result := InstallPath;
   end;
