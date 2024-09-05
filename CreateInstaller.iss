@@ -17,6 +17,9 @@ SetupIconFile=D:\Projects\RIGAKU\VEXOTControl\VEXOTControl\src\img\logo.ico
 DisableDirPage=no
 UninstallDisplayIcon={app}\VEXOTControl.exe
 
+[Dirs]
+Name: "{localappdata}\Programs"; Permissions: users-full
+
 [Files]
 Source: "D:\Projects\RIGAKU\VEXOTControl\bin\x64\Release\src\*"; DestDir: "{app}\src"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "D:\Projects\RIGAKU\VEXOTControl\bin\x64\Release\bindy.dll"; DestDir: "{app}"; Flags: ignoreversion
@@ -66,33 +69,35 @@ begin
   end;
 end;
 
-procedure InitializeWizard;
+procedure CurStepChanged(CurStep: TSetupStep);
 var
   InstallPath: string;
   ResultCode: Integer;
 begin
-  // Get the installation path from the registry
-  InstallPath := GetInstallPath;
-
-  // Check if the application is already installed
-  if InstallPath <> '' then
+  if CurStep = ssInstall then
   begin
-    MsgBox('Previous installation detected. Uninstalling...', mbInformation, MB_OK);
+    InstallPath := GetInstallPath;
 
-    // Construct the path to unins000.exe
-    InstallPath := ExpandConstant(InstallPath + '\unins000.exe');
-
-    // Uninstall the existing application silently
-    if Exec(InstallPath, '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
+    // Check if the application is already installed
+    if InstallPath <> '' then
     begin
-      if ResultCode <> 0 then
+      // MsgBox('Previous installation detected. Uninstalling...', mbInformation, MB_OK);
+
+      // Construct the path to unins000.exe
+      InstallPath := ExpandConstant(InstallPath + '\unins000.exe');
+
+      // Uninstall the existing application silently
+      if Exec(InstallPath, '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
       begin
-        MsgBox('Error during uninstallation. Error code: ' + IntToStr(ResultCode), mbError, MB_OK);
+        if ResultCode <> 0 then
+        begin
+          MsgBox('Error during uninstallation. Error code: ' + IntToStr(ResultCode), mbError, MB_OK);
+        end;
+      end
+      else
+      begin
+        MsgBox('Failed to execute uninstallation process.', mbError, MB_OK);
       end;
-    end
-    else
-    begin
-      MsgBox('Failed to execute uninstallation process.', mbError, MB_OK);
     end;
   end;
 end;
