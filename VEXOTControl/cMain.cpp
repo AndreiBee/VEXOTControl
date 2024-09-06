@@ -2779,7 +2779,7 @@ wxThread::ExitCode WorkerThread::Entry()
 	{
 #endif // !_DEBUG
 		auto message = wxString(
-			"The maximum value was: " + wxString::Format(wxT("%ld"), m_MaxElementDuringCapturing) + '\n'
+			"The maximum sum value was: " + wxString::Format(wxT("%ld"), m_MaxSumDuringCapturing) + '\n'
 			+ "at position: "  + wxString::Format(wxT("%.3f"), m_BestFirstAxisPosition) + '\n'
 			+ "measurement number: " + wxString::Format(wxT("%i"), (int)m_BestMeasurementNumber + 1)
 		);
