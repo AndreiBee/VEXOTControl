@@ -28,6 +28,13 @@ $inno_setup_script = "D:\Projects\RIGAKU\$repository_name\CreateInstaller.iss"
 $inno_setup_script_temp = "D:\Projects\RIGAKU\$repository_name\CreateInstallerTemp.iss"
 Copy-Item -Path "$inno_setup_script" -Destination "$inno_setup_script_temp" -Force
 
+# Remove all Installers and 7z archives (previous versions)
+# Get all .exe files except Project.exe
+Get-ChildItem -Path $release_folder -Filter *.exe | Where-Object { $_.Name -ne "$repository_name.exe" } | Remove-Item
+
+# Get all .7z files except About.7z
+Get-ChildItem -Path $release_folder -Filter *.7z | Where-Object { $_.Name -ne "About.7z" } | Remove-Item
+
 # Define major and minor version
 $major_version = "1"  # Replace with actual major version
 $minor_version = "10" # Replace with actual minor version
