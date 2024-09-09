@@ -3,6 +3,25 @@ $repository_name = "VEXOTControl"
 Write-Output "-------------------------------------- [$(Get-Date)] --------------------------------------" >> "D:\Projects\RIGAKU\$repository_name\log.txt"
 Write-Output "PowerShell script started at [$(Get-Date)]" >> "D:\Projects\RIGAKU\$repository_name\log.txt"
 
+Write-Output "Start building the $repository_name in Release mode [$(Get-Date)]" >> "D:\Projects\RIGAKU\$repository_name\log.txt"
+# Set the path to your solution file
+$solutionPath = "D:\Projects\RIGAKU\$repository_name\$repository_name.sln"
+
+# Set the path to MSBuild (you might need to adjust this depending on your VS installation)
+$msbuildPath = "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin\MSBuild.exe"
+
+# Specify the build configuration (Release) and platform (e.g., x64, x86)
+$buildConfiguration = "Release"
+$platform = "x64"
+
+# Build the solution using MSBuild
+& $msbuildPath $solutionPath `
+    /p:Configuration=$buildConfiguration `
+    /p:Platform=$platform `
+    /t:Build
+	
+Write-Output "Finished building the $repository_name in Release mode [$(Get-Date)]" >> "D:\Projects\RIGAKU\$repository_name\log.txt"
+
 # Define Inno Setup parameters
 $inno_setup_script = "D:\Projects\RIGAKU\$repository_name\CreateInstaller.iss"
 # Copy Inno Setup script
@@ -75,7 +94,7 @@ $commit_message = git log -1 --pretty=%B
 $tag_name = "v$major_version.$minor_version.$commit_number"
 
 # Replace placeholders in the Inno Setup script
-(Get-Content $inno_setup_script_temp) -replace "{#Major}", $major_version -replace "{#Minor}", $minor_version -replace "{#Build}", $commit_number | Set-Content $inno_setup_script_temp
+(Get-Content $inno_setup_script_temp) -replace "{#Major}", $major_version -replace "{#Minor}", $minor_version -replace "{#Build}", $commit_number -replace "{#RepoName}", $repository_name | Set-Content $inno_setup_script_temp
 
 # Run Inno Setup to generate the installer
 Write-Output "Running Inno Setup to generate the installer [$(Get-Date)]" >> "D:\Projects\RIGAKU\$repository_name\log.txt"
