@@ -56,7 +56,7 @@ Write-Output "Copying XIMC files into $release_folder [$(Get-Date)]" >> "${path_
 Copy-Item -Path "$ximc_folder\bindy.dll" -Destination "$release_folder\bindy.dll" -Force
 Copy-Item -Path "$ximc_folder\libximc.dll" -Destination "$release_folder\libximc.dll" -Force
 Copy-Item -Path "$ximc_folder\xiwrapper.dll" -Destination "$release_folder\xiwrapper.dll" -Force
-Copy-Item -Path "$ximc_folder\keyfile.sqlite" -Destination "$release_folder\keyfile.sqlite" -Force
+Copy-Item -Path "$other_files_folder\keyfile.sqlite" -Destination "$release_folder\keyfile.sqlite" -Force
 
 # Copy Ketek files
 Write-Output "Copying Ketek files into $release_folder [$(Get-Date)]" >> "${path_to_repository}\log.txt"
