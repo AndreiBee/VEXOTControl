@@ -29,9 +29,19 @@ $inno_setup_script = "${path_to_repository}\CreateInstaller.iss"
 $inno_setup_script_temp = "${path_to_repository}\CreateInstallerTemp.iss"
 Copy-Item -Path "$inno_setup_script" -Destination "$inno_setup_script_temp" -Force
 
-# Define major and minor version
-$major_version = "1"  # Replace with actual major version
-$minor_version = "10" # Replace with actual minor version
+# Define the path to the header file
+$headerFilePath = "${path_to_repository}\$repository_name\cMain.h"
+
+# Read the file content
+$fileContent = Get-Content $headerFilePath
+
+# Get major and minor version
+$major_version = [regex]::Match($fileContent, 'MAJOR_VERSION\s+(\d+)').Groups[1].Value
+$minor_version = [regex]::Match($fileContent, 'MINOR_VERSION\s+(\d+)').Groups[1].Value
+
+# Output the versions
+Write-Host "MAJOR_VERSION: $major_version"
+Write-Host "MINOR_VERSION: $minor_version"
 
 # Define paths
 $release_folder = "${path_to_repository}\bin\x64\Release"

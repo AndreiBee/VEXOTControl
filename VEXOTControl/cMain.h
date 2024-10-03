@@ -28,6 +28,8 @@
 
 #include "src/img/logo.xpm"
 
+#define MAJOR_VERSION 1
+#define MINOR_VERSION 10
 
 namespace MainFrameVariables
 {
